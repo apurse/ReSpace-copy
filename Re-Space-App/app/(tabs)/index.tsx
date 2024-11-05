@@ -1,70 +1,155 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet } from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+// Icons
+const StatusIcon = () => <Text>🔋</Text>;
+const ThumbsUpIcon = () => <Text>👍</Text>;
+const StarIcon = () => <Text>⭐</Text>;
+
+// Battery level
+const currentBatteryPerc = 96;
+
+// Greeting based on time
+const getGreeting = () => {
+  const currentHour = new Date().getHours();
+
+  if (currentHour < 12) {
+    return "Good morning!";
+  } else if (currentHour < 17) {
+    return "Good afternoon!";
+  } else {
+    return "Good evening!";
+  }
+};
+
+// Monitoring status card based on percentage/battery level
+const batteryLevel = () => {
+
+  const issuesFound = false;
+
+  if (issuesFound) {
+    return "Issues found!";
+  }
+
+  if (currentBatteryPerc > 74) {
+    return "Ready to go!";
+  } else if (currentBatteryPerc < 75 && currentBatteryPerc > 35) {
+    return "Good to go";
+  } else if (currentBatteryPerc < 35 && currentBatteryPerc > 15) {
+    return "Battery low";
+  } else {
+    return "Needs charging!";
+  }
+};
 
 export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* Greeting */}
+      <Text style={styles.greeting}>{getGreeting()}</Text>
+
+      {/* ReSpace Monitoring Status Card */}
+      <View style={styles.statusCard}>
+        <Text style={styles.statusTitle}>ReSpace Monitoring</Text>
+        <View style={styles.statusIcons}>
+          <StatusIcon />
+          <ThumbsUpIcon />
+        </View>
+        <Text style={styles.statusText}>{batteryLevel()}</Text>
+        <Text style={styles.statusText}>{currentBatteryPerc}%</Text>
+      </View>
+
+      {/* Recent Layouts Section */}
+      <Text style={styles.sectionTitle}>Recent Layouts</Text>
+      <View style={styles.layoutContainer}>
+        {/* Layout Card 1 */}
+        <View style={styles.layoutCard}>
+          <View style={styles.layoutHeader}>
+            <StarIcon />
+            <Text style={styles.layoutTitle}>Open space</Text>
+          </View>
+          <Image source={{uri: 'https://via.placeholder.com/100'}} style={styles.layoutImage} />
+        </View>
+
+        {/* Layout Card 2 */}
+        <View style={styles.layoutCard}>
+          <View style={styles.layoutHeader}>
+            <StarIcon />
+            <Text style={styles.layoutTitle}>Rows of 8</Text>
+          </View>
+          <Image source={{uri: 'https://via.placeholder.com/100'}} style={styles.layoutImage} />
+        </View>
+      </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    padding: 16,
     alignItems: 'center',
-    gap: 8,
+    paddingTop: 40, 
+    backgroundColor: '#fff',
   },
-  stepContainer: {
-    gap: 8,
+  greeting: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  statusCard: {
+    backgroundColor: '#28d000',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  statusTitle: {
+    fontSize: 18,
+    color: '#fff',
+    fontWeight: 'bold',
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  statusIcons: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 8,
+  },
+  statusText: {
+    fontSize: 16,
+    color: '#fff',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  layoutContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  layoutCard: {
+    width: '45%',
+    borderColor: '#ddd',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 8,
+    alignItems: 'center',
+  },
+  layoutHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  layoutTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 4,
+  },
+  layoutImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 4,
   },
 });
