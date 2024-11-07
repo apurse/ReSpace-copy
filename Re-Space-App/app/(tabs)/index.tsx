@@ -1,8 +1,11 @@
-import { View, Text, ScrollView, Image } from 'react-native';
+import { View, Text, ScrollView, Image, StyleSheet, Dimensions } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
-import { styles } from '../../components/indexComponents/styles';
+import { defaultStyles } from '../../components/defaultStyles';
 import SmallLayout from '@/components/smallLayout';
 import React from 'react';
+
+// Get dimensions of the screen
+const { width, height } = Dimensions.get('window');
 
 // Battery level
 const currentBatteryPerc = 45;
@@ -54,25 +57,25 @@ const { messageW = "", colorW = "", warningI = null } = warnings() || {};
 
 export default function HomeScreen() {
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={defaultStyles.container}>
       {/* Greeting */}
-      <Text style={styles.greeting}>{getGreeting()}</Text>
+      <Text style={uniqueStyles.greeting}>{getGreeting()}</Text>
       <Icons.SearchIcon />
 
       {/* ReSpace monitoring status section */}
-      <View style={[styles.statusCard, { backgroundColor: colorW || color }]}>
-        <Text style={styles.statusTitle}>ReSpace Monitoring</Text>
-        <View style={styles.statusIcons}>
+      <View style={[uniqueStyles.statusCard, { backgroundColor: colorW || color }]}>
+        <Text style={uniqueStyles.statusTitle}>ReSpace Monitoring</Text>
+        <View style={uniqueStyles.statusIcons}>
           {React.createElement(battery)}
           {React.createElement(warningI || warning)}
         </View>
-        <Text style={styles.statusText}>{messageW || message}</Text>
-        <Text style={styles.statusText}>{currentBatteryPerc}%</Text>
+        <Text style={uniqueStyles.statusText}>{messageW || message}</Text>
+        <Text style={uniqueStyles.statusText}>{currentBatteryPerc}%</Text>
       </View>
 
       {/* Recent layouts section */}
-      <Text style={styles.sectionTitle}>Recent Layouts</Text>
-      <View style={styles.cardSectionContainer}>
+      <Text style={defaultStyles.sectionTitle}>Recent Layouts</Text>
+      <View style={defaultStyles.cardSectionContainer}>
         <SmallLayout LayoutTitle="Groups of 2"></SmallLayout>
         <SmallLayout LayoutTitle="Rows of 8"></SmallLayout>
         <SmallLayout LayoutTitle="Rows of 4"></SmallLayout>
@@ -80,3 +83,57 @@ export default function HomeScreen() {
     </ScrollView>
   );
 }
+
+// styles unique to this page go here
+const uniqueStyles = StyleSheet.create({
+  // Greeting section
+
+  greeting: {
+    fontSize: width * 0.06,
+    marginBottom: 5,
+    marginTop: 5,
+    textAlign: 'center',
+  },
+
+  // Status monitoring section
+
+  statusCard: {
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginBottom: 24,
+    marginTop: 25,
+    borderColor: '#000',
+    borderWidth: 0.5,
+    width: '90%',
+    minHeight: 150,
+    alignSelf: 'center',
+  },
+  statusTitle: {
+    fontSize: width * 0.08,
+    color: '#fff',
+    fontWeight: '400',
+    marginBottom: 8,
+  },
+  statusText: {
+    fontSize: width * 0.06,
+    color: '#fff',
+    fontWeight: '400',
+  },
+
+  // Icons
+
+  statusIcons: {
+    flexDirection: 'row',
+    gap: width * 0.3,
+    marginBottom: 5,
+    marginTop: 5,
+    fontSize: height * 0.07,
+  },
+  outlineIcon: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  }
+
+});

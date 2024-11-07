@@ -1,29 +1,27 @@
 
 // modules go here
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, Text } from 'react-native';
 
 
 // components go here
 // components contain most of the functionality, each page just places it
 import SmallLayout from '@/components/smallLayout';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { defaultStyles } from '../../components/defaultStyles';
 
 
 // the page itself
 export default function Library() {
   return (
 
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={defaultStyles.container}>
 
       {/* Content */}
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Library</ThemedText>
-      </ThemedView>
+      <View style={defaultStyles.pageTitleSection}>
+        <Text style={defaultStyles.pageTitle}>Library</Text>
+      </View>
 
-
-      <ThemedText type="subtitle">All Layouts</ThemedText>
-      <View style={styles.cardSectionContainer}>
+      <Text style={defaultStyles.sectionTitle}>All Layouts</Text>
+      <View style={defaultStyles.cardSectionContainer}>
         <SmallLayout LayoutTitle="Rows of 8"></SmallLayout>
         {/* <SmallLayout LayoutTitle="Rows of 8" LayoutImage="..."></SmallLayout> */}
         <SmallLayout LayoutTitle="Rows of 4"></SmallLayout>
@@ -40,30 +38,4 @@ export default function Library() {
 
 // styling goes here, same as css
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    alignItems: 'center',
-    paddingTop: 40,
-    backgroundColor: '#fff',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  cardSectionContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
 });
