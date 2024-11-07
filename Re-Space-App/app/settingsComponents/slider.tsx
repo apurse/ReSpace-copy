@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import Slider from "@react-native-community/slider";
+// import Slider from "@react-native-community/slider";
 
 
 const SliderSetting = ({ label, min = 0, max = 100}: { label: string, min: number, max: number}) => {
@@ -9,7 +9,7 @@ const SliderSetting = ({ label, min = 0, max = 100}: { label: string, min: numbe
     return (
         <View style={styles.settingContainer}>
             <Text style={styles.label}>{label}: {value.toFixed(0)}</Text>
-            <Slider
+            {/* <Slider
                 style={{ width: 200, height: 40 }}
                 minimumValue={min}
                 maximumValue={max}
@@ -17,7 +17,7 @@ const SliderSetting = ({ label, min = 0, max = 100}: { label: string, min: numbe
                 onValueChange={setValue}
                 minimumTrackTintColor="#1EB1FC"
                 maximumTrackTintColor="#d3d3d3"
-            />
+            /> */}
         </View>
     );
 };
