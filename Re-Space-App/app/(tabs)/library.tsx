@@ -35,6 +35,7 @@ export default function Library() {
 
         {/* This is where the component gets called  */}
         <SmallLayout LayoutTitle="Rows of 8"></SmallLayout>
+        {/* <SmallLayout LayoutTitle="Rows of 8" LayoutImage="..."></SmallLayout> */}
         <SmallLayout LayoutTitle="Rows of 4"></SmallLayout>
         <SmallLayout LayoutTitle="Open Space"></SmallLayout>
 

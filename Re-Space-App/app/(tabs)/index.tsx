@@ -1,6 +1,7 @@
 import { View, Text, ScrollView, Image } from 'react-native';
 import * as Icons from '../indexComponents/Icons';
 import { styles } from '../indexComponents/styles';
+import SmallLayout from '@/components/smallLayout';
 import React from 'react';
 
 // Battery level
@@ -28,10 +29,10 @@ const batteryLevel = () => {
   const batteryStatus = [
     { threshold: 90, message: "Ready to go!", color: "#52be80", warning: Icons.ThumbsUpIcon, battery: Icons.BatteryIcon },
     { threshold: 70, message: "Good to go", color: "#52be80", warning: Icons.ThumbsUpIcon, battery: Icons.BatteryIcon3Q },
-    { threshold: 30, message: "Good to go", color: "#52be80", warning: Icons.ThumbsUpIcon, battery: Icons.BatteryIconHalf  },
-    { threshold: 15, message: "Battery low", color: "#dbd803", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconLow  },
-    { threshold: 0, message: "Needs charging!", color: "#ec1a01", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconLow  },
-    { threshold: -1, message: "No battery", color: "#ec1a01", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconNull  }
+    { threshold: 30, message: "Good to go", color: "#52be80", warning: Icons.ThumbsUpIcon, battery: Icons.BatteryIconHalf },
+    { threshold: 15, message: "Battery low", color: "#dbd803", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconLow },
+    { threshold: 0, message: "Needs charging!", color: "#ec1a01", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconLow },
+    { threshold: -1, message: "No battery", color: "#ec1a01", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconNull }
   ];
 
   return batteryStatus.find(item => currentBatteryPerc > item.threshold) || { message: "Error", color: "#ec1a01", warning: Icons.WarningIcon, battery: Icons.WarningIcon };;
@@ -40,13 +41,13 @@ const batteryLevel = () => {
 // Change status if any issues found
 const warnings = () => {
   if (issuesFound) {
-    return { messageW: "Issues found!", colorW: "#ec1a01", warningI: Icons.WarningIcon};
+    return { messageW: "Issues found!", colorW: "#ec1a01", warningI: Icons.WarningIcon };
   }
 
 }
 
 // batteryLevel function variables
-const { message, color, warning, battery} = batteryLevel();
+const { message, color, warning, battery } = batteryLevel();
 
 // warnings function variables
 const { messageW = "", colorW = "", warningI = null } = warnings() || {};
@@ -72,25 +73,9 @@ export default function HomeScreen() {
       {/* Recent layouts section */}
       <Text style={styles.sectionTitle}>Recent Layouts</Text>
       <View style={styles.layoutContainer}>
-        {/* Layout card 1 */}
-        <View style={styles.layoutCard}>
-          <View style={styles.layoutHeader}>
-            <Icons.StarIcon />
-            <Icons.StarIconOutline />
-            <Text style={styles.layoutTitle}>Open space</Text>
-          </View>
-          <Image source={{uri: 'https://via.placeholder.com/100'}} style={styles.layoutImage} />
-        </View>
-
-        {/* Layout card 2 */}
-        <View style={styles.layoutCard}>
-          <View style={styles.layoutHeader}>
-            <Icons.StarIcon />
-            <Icons.StarIconOutline />
-            <Text style={styles.layoutTitle}>Rows of 8</Text>
-          </View>
-          <Image source={{uri: 'https://via.placeholder.com/100'}} style={styles.layoutImage} />
-        </View>
+        <SmallLayout LayoutTitle="Groups of 2"></SmallLayout>
+        <SmallLayout LayoutTitle="Rows of 8"></SmallLayout>
+        <SmallLayout LayoutTitle="Rows of 4"></SmallLayout>
       </View>
     </ScrollView>
   );
