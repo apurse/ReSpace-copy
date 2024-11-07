@@ -3,4 +3,4 @@
 How to start app:
 
 in terminal: 
-cd Re-Space-App; npx expo start -c
+cd Re-Space-App; npm install; npx expo start -c
