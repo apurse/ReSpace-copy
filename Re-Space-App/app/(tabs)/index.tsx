@@ -4,7 +4,7 @@ import { styles } from '../indexComponents/styles';
 import React from 'react';
 
 // Battery level
-const currentBatteryPerc = 50;
+const currentBatteryPerc = 45;
 
 // Issues found
 const issuesFound = 0;
@@ -30,11 +30,11 @@ const batteryLevel = () => {
     { threshold: 70, message: "Good to go", color: "#52be80", warning: Icons.ThumbsUpIcon, battery: Icons.BatteryIcon3Q },
     { threshold: 30, message: "Good to go", color: "#52be80", warning: Icons.ThumbsUpIcon, battery: Icons.BatteryIconHalf  },
     { threshold: 15, message: "Battery low", color: "#dbd803", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconLow  },
-    { threshold: 0, message: "Needs charging!", color: "#ec1a01", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconVLow  },
+    { threshold: 0, message: "Needs charging!", color: "#ec1a01", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconLow  },
     { threshold: -1, message: "No battery", color: "#ec1a01", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconNull  }
   ];
 
-  return batteryStatus.find(item => currentBatteryPerc > item.threshold) || { message: "Unknown", color: "#000", warning: Icons.ThumbsUpIcon, battery: Icons.BatteryIcon };;
+  return batteryStatus.find(item => currentBatteryPerc > item.threshold) || { message: "Error", color: "#ec1a01", warning: Icons.WarningIcon, battery: Icons.WarningIcon };;
 };
 
 // Change status if any issues found
@@ -58,7 +58,7 @@ export default function HomeScreen() {
       <Text style={styles.greeting}>{getGreeting()}</Text>
       <Icons.SearchIcon />
 
-      {/* ReSpace Monitoring Status Card */}
+      {/* ReSpace monitoring status section */}
       <View style={[styles.statusCard, { backgroundColor: colorW || color }]}>
         <Text style={styles.statusTitle}>ReSpace Monitoring</Text>
         <View style={styles.statusIcons}>
@@ -69,10 +69,10 @@ export default function HomeScreen() {
         <Text style={styles.statusText}>{currentBatteryPerc}%</Text>
       </View>
 
-      {/* Recent Layouts Section */}
+      {/* Recent layouts section */}
       <Text style={styles.sectionTitle}>Recent Layouts</Text>
       <View style={styles.layoutContainer}>
-        {/* Layout Card 1 */}
+        {/* Layout card 1 */}
         <View style={styles.layoutCard}>
           <View style={styles.layoutHeader}>
             <Icons.StarIcon />
@@ -82,7 +82,7 @@ export default function HomeScreen() {
           <Image source={{uri: 'https://via.placeholder.com/100'}} style={styles.layoutImage} />
         </View>
 
-        {/* Layout Card 2 */}
+        {/* Layout card 2 */}
         <View style={styles.layoutCard}>
           <View style={styles.layoutHeader}>
             <Icons.StarIcon />

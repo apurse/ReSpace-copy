@@ -10,7 +10,6 @@ export const BatteryIcon = () => <Icon name="battery-full" size={30} color="#fff
 export const BatteryIcon3Q = () => <Icon name="battery-three-quarters" size={30} color="#fff" style={styles.statusIcons} />;
 export const BatteryIconHalf = () => <Icon name="battery-half" size={30} color="#fff" style={styles.statusIcons} />;
 export const BatteryIconLow = () => <Icon name="battery-quarter" size={30} color="#fff" style={styles.statusIcons} />;
-export const BatteryIconVLow = () => <Icon name="battery-quarter" size={30} color="#fff" style={styles.statusIcons} />;
 export const BatteryIconNull = () => <Icon name="battery-empty" size={30} color="#fff" style={styles.statusIcons} />;
 export const BatteryIconCharge = () => <Icon name="charging-station" size={30} color="#fff" style={styles.statusIcons} />;
 
