@@ -1,6 +1,6 @@
 import { View, Text, ScrollView, Image } from 'react-native';
-import * as Icons from '../indexComponents/Icons';
-import { styles } from '../indexComponents/styles';
+import * as Icons from '../../components/indexComponents/Icons';
+import { styles } from '../../components/indexComponents/styles';
 import SmallLayout from '@/components/smallLayout';
 import React from 'react';
 

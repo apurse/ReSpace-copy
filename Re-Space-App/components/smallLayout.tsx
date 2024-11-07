@@ -1,5 +1,5 @@
 import { StyleSheet, View, Text } from "react-native";
-import * as Icons from '../app/indexComponents/Icons';
+import * as Icons from './indexComponents/Icons';
 
 
 // function with parameters

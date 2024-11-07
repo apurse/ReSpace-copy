@@ -1,5 +1,5 @@
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { styles } from '../indexComponents/styles';
+import { styles } from './styles';
 
 // Status icons
 export const ThumbsUpIcon = () => <Icon name="thumbs-up" size={30} color="#fff" style={styles.statusIcons} />;

@@ -1,7 +1,7 @@
 import {StyleSheet, ScrollView, Text} from 'react-native';
-import ToggleSetting from '@/app/settingsComponents/toggle';
-import SliderSetting from '@/app/settingsComponents/slider';
-import ActionButton from '@/app/settingsComponents/actionButton';
+import ToggleSetting from '@/components/settingsComponents/toggle';
+import SliderSetting from '@/components/settingsComponents/slider';
+import ActionButton from '@/components/settingsComponents/actionButton';
 
 const SettingsPage = () => {
     return (
