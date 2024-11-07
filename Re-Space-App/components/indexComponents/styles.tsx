@@ -54,33 +54,10 @@ export const styles = StyleSheet.create({
       fontWeight: 'bold',
       marginBottom: 8,
     },
-    layoutContainer: {
+    cardSectionContainer: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       width: '100%',
-    },
-    layoutCard: {
-      width: '45%',
-      borderColor: '#ddd',
-      borderWidth: 1,
-      borderRadius: 8,
-      padding: 8,
-      alignItems: 'center',
-    },
-    layoutHeader: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 8,
-    },
-    layoutTitle: {
-      fontSize: 16,
-      fontWeight: 'bold',
-      marginLeft: 4,
-    },
-    layoutImage: {
-      width: 80,
-      height: 80,
-      borderRadius: 4,
     },
 
     // Icons

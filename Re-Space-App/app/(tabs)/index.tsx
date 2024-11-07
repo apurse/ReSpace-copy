@@ -72,7 +72,7 @@ export default function HomeScreen() {
 
       {/* Recent layouts section */}
       <Text style={styles.sectionTitle}>Recent Layouts</Text>
-      <View style={styles.layoutContainer}>
+      <View style={styles.cardSectionContainer}>
         <SmallLayout LayoutTitle="Groups of 2"></SmallLayout>
         <SmallLayout LayoutTitle="Rows of 8"></SmallLayout>
         <SmallLayout LayoutTitle="Rows of 4"></SmallLayout>
