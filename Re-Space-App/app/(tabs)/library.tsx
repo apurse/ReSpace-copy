@@ -13,7 +13,7 @@ import { defaultStyles } from '../../components/defaultStyles';
 export default function Library() {
   return (
 
-    <ScrollView contentContainerStyle={defaultStyles.container}>
+    <ScrollView contentContainerStyle={defaultStyles.body}>
 
       {/* Content */}
       <View style={defaultStyles.pageTitleSection}>

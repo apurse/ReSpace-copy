@@ -57,7 +57,7 @@ const { messageW = "", colorW = "", warningI = null } = warnings() || {};
 
 export default function HomeScreen() {
   return (
-    <ScrollView contentContainerStyle={defaultStyles.container}>
+    <ScrollView contentContainerStyle={defaultStyles.body}>
       {/* Greeting */}
       <Text style={uniqueStyles.greeting}>{getGreeting()}</Text>
       <Icons.SearchIcon />

@@ -7,7 +7,7 @@ export const defaultStyles = StyleSheet.create({
 
   // main body
 
-  container: {
+  body: {
     flex: 1,
     padding: 16,
     alignItems: 'center',
@@ -32,6 +32,9 @@ export const defaultStyles = StyleSheet.create({
     marginBottom: 8,
   },
 
+
+
+
   // small layout
 
   cardSectionContainer: {
@@ -40,6 +43,8 @@ export const defaultStyles = StyleSheet.create({
     width: '100%',
   },
 
+
+  // icons
 
   searchIcon: {
     position: 'absolute',
