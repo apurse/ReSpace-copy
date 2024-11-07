@@ -28,8 +28,9 @@ export const defaultStyles = StyleSheet.create({
 
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontWeight: '600',
+    marginVertical: 10,
+    color: '#333',
   },
 
 
