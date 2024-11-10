@@ -17,7 +17,8 @@ export const defaultStyles = StyleSheet.create({
 
   pageTitleSection: {
     width: '100%',
-    height: 180,
+    height: 100,
+    alignItems: 'center',
   },
 
   pageTitle: {
@@ -27,10 +28,9 @@ export const defaultStyles = StyleSheet.create({
   },
 
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: 'bold',
     marginVertical: 10,
-    color: '#333',
   },
 
 
@@ -40,7 +40,9 @@ export const defaultStyles = StyleSheet.create({
 
   cardSectionContainer: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    gap: width * 0.04,
     width: '100%',
   },
 
@@ -53,4 +55,10 @@ export const defaultStyles = StyleSheet.create({
     right: 16,
     marginTop: 10,
   },
+
+  starOutlineIcon: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  }
 });

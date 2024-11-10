@@ -129,11 +129,6 @@ const uniqueStyles = StyleSheet.create({
     marginBottom: 5,
     marginTop: 5,
     fontSize: height * 0.07,
-  },
-  outlineIcon: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
   }
 
 });

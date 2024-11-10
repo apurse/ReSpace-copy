@@ -15,7 +15,7 @@ export const BatteryIconCharge = () => <Icon name="charging-station" size={30} c
 
 // Star icon
 export const StarIcon = () => <Icon name="star" size={20} color="yellow" solid />;
-export const StarIconOutline = () => <Icon name="star" size={20} color="#000" style={defaultStyles.outlineIcon} />;
+export const StarIconOutline = () => <Icon name="star" size={20} color="#000" style={defaultStyles.starOutlineIcon} />;
 
 // Search icon
 export const SearchIcon = () => <Icon name="search" size={30} color="#000" style={defaultStyles.searchIcon} />;

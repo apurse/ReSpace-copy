@@ -22,13 +22,20 @@ export default function Library() {
 
       <Text style={defaultStyles.sectionTitle}>All Layouts</Text>
       <View style={defaultStyles.cardSectionContainer}>
-        <SmallLayout LayoutTitle="Rows of 8"></SmallLayout>
+        <SmallLayout LayoutTitle="Rows of 2"></SmallLayout>
         {/* <SmallLayout LayoutTitle="Rows of 8" LayoutImage="..."></SmallLayout> */}
         <SmallLayout LayoutTitle="Rows of 4"></SmallLayout>
+        <SmallLayout LayoutTitle="Rows of 6"></SmallLayout>
+        <SmallLayout LayoutTitle="Rows of 8"></SmallLayout>
+        <SmallLayout LayoutTitle="Rows of 10"></SmallLayout>
+        <SmallLayout LayoutTitle="Groups of 2"></SmallLayout>
+        <SmallLayout LayoutTitle="Groups of 4"></SmallLayout>
+        <SmallLayout LayoutTitle="Groups of 6"></SmallLayout>
+        <SmallLayout LayoutTitle="Groups of 8"></SmallLayout>
         <SmallLayout LayoutTitle="Open Space"></SmallLayout>
-        <SmallLayout LayoutTitle="Open Space"></SmallLayout>
-        <SmallLayout LayoutTitle="Open Space"></SmallLayout>
-        <SmallLayout LayoutTitle="Open Space"></SmallLayout>
+        <SmallLayout LayoutTitle="Open Space 2"></SmallLayout>
+        <SmallLayout LayoutTitle="Circle"></SmallLayout>
+        <SmallLayout LayoutTitle="U-shape"></SmallLayout>
       </View>
 
     </ScrollView>
