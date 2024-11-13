@@ -8,7 +8,7 @@ export const defaultStyles = StyleSheet.create({
   // main body
 
   body: {
-    flex: 1,
+    flexGrow: 1,
     padding: 16,
     alignItems: 'center',
     paddingTop: 40,
