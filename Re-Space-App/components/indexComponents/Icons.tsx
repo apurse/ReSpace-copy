@@ -1,21 +1,77 @@
 import Icon from 'react-native-vector-icons/FontAwesome5';
-import { defaultStyles } from '../defaultStyles';
+import { createDefaultStyles } from '../../components/defaultStyles';
+import { useTheme } from '../../app/_layout';
 
 // Status icons
-export const ThumbsUpIcon = () => <Icon name="thumbs-up" size={30} color="#fff" style={defaultStyles.statusIcons} />;
-export const WarningIcon = () => <Icon name="exclamation-circle" size={30} color="#fff" style={defaultStyles.statusIcons}/>;
+
+export const ThumbsUpIcon = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    return <Icon name="thumbs-up" size={30} color= '#fff' />;
+};
+  
+export const WarningIcon = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    return <Icon name="exclamation-circle" size={30} color= '#fff' />;
+};
 
 // Status battery icons
-export const BatteryIcon = () => <Icon name="battery-full" size={30} color="#fff" style={defaultStyles.statusIcons} />;
-export const BatteryIcon3Q = () => <Icon name="battery-three-quarters" size={30} color="#fff" style={defaultStyles.statusIcons} />;
-export const BatteryIconHalf = () => <Icon name="battery-half" size={30} color="#fff" style={defaultStyles.statusIcons} />;
-export const BatteryIconLow = () => <Icon name="battery-quarter" size={30} color="#fff" style={defaultStyles.statusIcons} />;
-export const BatteryIconNull = () => <Icon name="battery-empty" size={30} color="#fff" style={defaultStyles.statusIcons} />;
-export const BatteryIconCharge = () => <Icon name="charging-station" size={30} color="#fff" style={defaultStyles.statusIcons} />;
+
+export const BatteryIcon = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    return <Icon name="battery-full" size={30} color= '#fff' />;
+};
+
+export const BatteryIcon3Q = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    return <Icon name="battery-three-quarters" size={30} color= '#fff' />;
+};
+
+export const BatteryIconHalf = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    return <Icon name="battery-half" size={30} color= '#fff' />;
+};
+
+export const BatteryIconLow = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    return <Icon name="battery-quarter" size={30} color= '#fff' />;
+};
+
+export const BatteryIconNull = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    return <Icon name="battery-empty" size={30} color= '#fff' />;
+};
+
+export const BatteryIconCharge = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    return <Icon name="charging-station" size={30} color= '#fff' />;
+};
 
 // Star icon
-export const StarIcon = () => <Icon name="star" size={20} color="yellow" solid />;
-export const StarIconOutline = () => <Icon name="star" size={20} color="#000" style={defaultStyles.starOutlineIcon} />;
+
+export const StarIcon = () => {
+    return <Icon name="star" size={20} color="yellow" solid />;
+};
+
+export const StarIconOutline = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    return <Icon name="star" size={20} color={isDarkMode ? '#fff' : '#000'} style={defaultStyles.starOutlineIcon} />;
+};
 
 // Search icon
-export const SearchIcon = () => <Icon name="search" size={30} color="#000" style={defaultStyles.searchIcon} />;
+
+export const SearchIcon = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    return <Icon name="search" size={30} color={isDarkMode ? '#fff' : '#000'} style={defaultStyles.searchIcon} />;
+};

@@ -6,11 +6,15 @@ import { View, ScrollView, StyleSheet, Text } from 'react-native';
 // components go here
 // components contain most of the functionality, each page just places it
 import SmallLayout from '@/components/smallLayout';
-import { defaultStyles } from '../../components/defaultStyles';
+import { createDefaultStyles } from '../../components/defaultStyles';
+import { useTheme } from '../_layout';
 
 
 // the page itself
 export default function Library() {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
   return (
 
     <ScrollView contentContainerStyle={defaultStyles.body}>

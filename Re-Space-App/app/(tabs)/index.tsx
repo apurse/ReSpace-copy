@@ -1,14 +1,15 @@
-import { View, Text, ScrollView, Image, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
-import { defaultStyles } from '../../components/defaultStyles';
+import { createDefaultStyles } from '../../components/defaultStyles';
 import SmallLayout from '@/components/smallLayout';
 import React from 'react';
+import { useTheme } from '../_layout';
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
 
 // Battery level
-const currentBatteryPerc = 45;
+const currentBatteryPerc = 67;
 
 // Issues found
 const issuesFound = 0;
@@ -56,6 +57,11 @@ const { message, color, warning, battery } = batteryLevel();
 const { messageW = "", colorW = "", warningI = null } = warnings() || {};
 
 export default function HomeScreen() {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    const uniqueStyles = createUniqueStyles(isDarkMode);
+
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
       {/* Greeting */}
@@ -85,50 +91,50 @@ export default function HomeScreen() {
 }
 
 // styles unique to this page go here
-const uniqueStyles = StyleSheet.create({
-  // Greeting section
+const createUniqueStyles = (isDarkMode: boolean) =>
+  StyleSheet.create({
 
-  greeting: {
-    fontSize: width * 0.06,
-    marginBottom: 5,
-    marginTop: 5,
-    textAlign: 'center',
-  },
+    // Greeting section
 
-  // Status monitoring section
+    greeting: {
+      fontSize: width * 0.06,
+      marginBottom: 5,
+      marginTop: 5,
+      textAlign: 'center',
+      color: isDarkMode ? '#fff' : '#000',
+    },
 
-  statusCard: {
-    padding: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginBottom: 24,
-    marginTop: 25,
-    borderColor: '#000',
-    borderWidth: 0.5,
-    width: '90%',
-    minHeight: 150,
-    alignSelf: 'center',
-  },
-  statusTitle: {
-    fontSize: width * 0.08,
-    color: '#fff',
-    fontWeight: '400',
-    marginBottom: 8,
-  },
-  statusText: {
-    fontSize: width * 0.06,
-    color: '#fff',
-    fontWeight: '400',
-  },
+    // Status card section
 
-  // Icons
-
-  statusIcons: {
-    flexDirection: 'row',
-    gap: width * 0.3,
-    marginBottom: 5,
-    marginTop: 5,
-    fontSize: height * 0.07,
-  }
+    statusCard: {
+      padding: 16,
+      borderRadius: 8,
+      alignItems: 'center',
+      marginBottom: 24,
+      marginTop: 25,
+      borderColor: isDarkMode ? '#fff' : '#000',
+      borderWidth: 0.5,
+      width: '90%',
+      minHeight: 150,
+      alignSelf: 'center',
+    },
+    statusTitle: {
+      fontSize: width * 0.08,
+      color: '#fff',
+      fontWeight: '400',
+      marginBottom: 8,
+    },
+    statusText: {
+      fontSize: width * 0.06,
+      color: '#fff',
+      fontWeight: '400',
+    },
+    statusIcons: {
+      flexDirection: 'row',
+      gap: width * 0.3,
+      marginBottom: 5,
+      marginTop: 5,
+      fontSize: height * 0.07,
+    },
 
 });

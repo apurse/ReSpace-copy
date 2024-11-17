@@ -1,18 +1,18 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
 // Get dimensions of the screen
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-export const defaultStyles = StyleSheet.create({
+// Function to generate styles dynamically based on theme
+export const createDefaultStyles = (isDarkMode: boolean) => StyleSheet.create({
 
   // main body
-
   body: {
     flexGrow: 1,
     padding: 16,
     alignItems: 'center',
     paddingTop: 40,
-    backgroundColor: '#fff',
+    backgroundColor: isDarkMode ? '#222' : '#fff',
   },
 
   pageTitleSection: {
@@ -25,19 +25,17 @@ export const defaultStyles = StyleSheet.create({
     fontSize: 40,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: isDarkMode ? '#fff' : '#000', 
   },
 
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginVertical: 10,
+    color: isDarkMode ? '#fff' : '#000', 
   },
 
-
-
-
   // small layout
-
   cardSectionContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -46,9 +44,7 @@ export const defaultStyles = StyleSheet.create({
     width: '100%',
   },
 
-
   // icons
-
   searchIcon: {
     position: 'absolute',
     top: 16,
@@ -60,5 +56,5 @@ export const defaultStyles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-  }
+  },
 });

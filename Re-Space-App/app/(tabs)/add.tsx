@@ -1,8 +1,13 @@
 import { View, ScrollView, StyleSheet, Text } from 'react-native';
 
-import { defaultStyles } from '../../components/defaultStyles';
+import { createDefaultStyles } from '../../components/defaultStyles';
+import { useTheme } from '../_layout';
 
 export default function AddLayout() {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
 
