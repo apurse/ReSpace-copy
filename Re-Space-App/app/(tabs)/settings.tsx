@@ -16,6 +16,20 @@ const SettingsPage = () => {
     const [completedTasks, setCompletedTasks] = useState(false);
     const [collisions, setCollisions] = useState(false);
     const [batteryLevels, setBatteryLevels] = useState(false);
+    const [test, setTest] = useState(false);
+
+
+    function onChangeFunction(settingFunction: any, value: any) {
+        if (value != null) {
+            settingFunction(value);
+            alert("Changed ==> " + value);
+        } else {
+            settingFunction();
+            alert("Toggled ==> " + settingFunction.toString());
+        }
+        // TODO: Setup communication interface eg: Communication.Send(value)
+    }
+
 
     return (
         <ScrollView contentContainerStyle={defaultStyles.body}>
@@ -33,10 +47,15 @@ const SettingsPage = () => {
                 </View>
 
                 <SliderSetting label="Movement Speed" min={1} max={3}/>
+                <ToggleSetting label="Test"
+                               onValueChange={(value) => onChangeFunction(setTest, value)}
+                               value={test}
+                />
+
                 <ToggleSetting
                     label="Stop when humans present"
                     value={stopWhenHumansPresent}
-                    onValueChange={setStopWhenHumansPresent}
+                    onValueChange={(value) => onChangeFunction(setStopWhenHumansPresent, value)}
                 />
                 <ActionButton
                     label="Re-map room"
@@ -57,17 +76,17 @@ const SettingsPage = () => {
                 <ToggleSetting
                     label="Completed Tasks"
                     value={completedTasks}
-                    onValueChange={setCompletedTasks}
+                    onValueChange={(value) => onChangeFunction(setCompletedTasks, value)}
                 />
                 <ToggleSetting
                     label="Collisions"
                     value={collisions}
-                    onValueChange={setCollisions}
+                    onValueChange={(value) => onChangeFunction(setCollisions, value)}
                 />
                 <ToggleSetting
                     label="Battery Levels"
                     value={batteryLevels}
-                    onValueChange={setBatteryLevels}
+                    onValueChange={(value) => onChangeFunction(setBatteryLevels, value)}
                 />
                 <SliderSetting label="Battery Notification Threshold" min={1} max={25} />
 
@@ -85,7 +104,7 @@ const SettingsPage = () => {
                 <ToggleSetting
                     label="Dark Mode"
                     value={isDarkMode}
-                    onValueChange={toggleTheme}
+                    onValueChange={() => onChangeFunction(toggleTheme, null)}
                 />
             </View>
         </ScrollView>
