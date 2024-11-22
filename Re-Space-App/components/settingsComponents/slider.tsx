@@ -1,11 +1,19 @@
-import React, { useState } from 'react';
+// import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '../../app/_layout'
-// import Slider from "@react-native-community/slider";
+import Slider from "@react-native-community/slider";
 
+type SliderSettingProps = {
+    label: string;
+    min: number;
+    max: number;
+    value: number;
+    onValueChange: (value: number) => void;
+};
 
-const SliderSetting = ({ label, min = 0, max = 100}: { label: string, min: number, max: number}) => {
-    const [value, setValue] = useState((min + max) / 2);
+const SliderSetting: React.FC<SliderSettingProps> = ({label, min, max, value, onValueChange }) => {
+    // const [value, setValue] = useState((min + max) / 2);
 
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
@@ -14,15 +22,15 @@ const SliderSetting = ({ label, min = 0, max = 100}: { label: string, min: numbe
     return (
         <View style={uniqueStyles.settingContainer}>
             <Text style={uniqueStyles.label}>{label}: {value.toFixed(0)}</Text>
-            {/* <Slider
+            {<Slider
                 style={{ width: 200, height: 40 }}
                 minimumValue={min}
                 maximumValue={max}
                 value={value}
-                onValueChange={setValue}
+                onValueChange={onValueChange}
                 minimumTrackTintColor="#1EB1FC"
                 maximumTrackTintColor="#d3d3d3"
-            /> */}
+            />}
         </View>
     );
 };

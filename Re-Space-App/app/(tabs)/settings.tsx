@@ -17,15 +17,41 @@ const SettingsPage = () => {
     const [collisions, setCollisions] = useState(false);
     const [batteryLevels, setBatteryLevels] = useState(false);
     const [test, setTest] = useState(false);
+    const [movementSpeed, setMovementSpeed] = useState(2);
+    const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
+
+    function loadSettings() {
+        // response = Communication.getSettings();
+        // setStopWhenHumansPresent(response.data.stopWhenHumansPresent);
+        // setCompletedTasks(response.data.completedTasks);
+        // setCollisions(response.data.collisions);
+        // setBatteryLevels(response.data.batteryLevels);
+        // isDarkMode(response.data.isDarkMode);
+        // etc...
+
+        // JSON EXAMPLE: EXCEPT notification settings won't be stored on server!
+        /*
+        {
+          "settings": {
+            "stopWhenHumansPresent": true,
+            "completedTasks": true,
+            "collisions": true,
+            "batteryLevels": true,
+            "isDarkMode": true
+          }
+        }
+        */
+    }
+    loadSettings();
 
 
     function onChangeFunction(settingFunction: any, value: any) {
         if (value != null) {
             settingFunction(value);
-            alert("Changed ==> " + value);
+            // alert("Changed ==> " + value);
         } else {
             settingFunction();
-            alert("Toggled ==> " + settingFunction.toString());
+            // alert("Toggled ==> " + settingFunction.toString());
         }
         // TODO: Setup communication interface eg: Communication.Send(value)
     }
@@ -46,7 +72,12 @@ const SettingsPage = () => {
                     </Text>
                 </View>
 
-                <SliderSetting label="Movement Speed" min={1} max={3}/>
+                <SliderSetting label="Movement Speed"
+                               min={1}
+                               max={3}
+                               value={movementSpeed}
+                               onValueChange={(value) => onChangeFunction(setMovementSpeed, value)}
+                />
                 <ToggleSetting label="Test"
                                onValueChange={(value) => onChangeFunction(setTest, value)}
                                value={test}
@@ -88,7 +119,13 @@ const SettingsPage = () => {
                     value={batteryLevels}
                     onValueChange={(value) => onChangeFunction(setBatteryLevels, value)}
                 />
-                <SliderSetting label="Battery Notification Threshold" min={1} max={25} />
+                <SliderSetting
+                    label="Battery Notification Threshold"
+                    min={1}
+                    max={25}
+                    value={batteryNotificationThreshold}
+                    onValueChange={(value) => onChangeFunction(setBatteryNotificationThreshold, value)}
+                />
 
                 <Text style={defaultStyles.sectionTitle}>
                     Analytics and Reporting
