@@ -7,6 +7,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -28,6 +29,24 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
+  // Load dark mode setting from local storage
+  useEffect(() => {
+    const initializeTheme = async () => {
+      try {
+        const isDarkModeStored = await AsyncStorage.getItem('isDarkMode');
+        if (isDarkModeStored === 'true') {
+          setTheme('dark');
+        } else {
+          setTheme('light');
+        }
+      } catch (error) {
+        console.error('Failed to fetch theme from AsyncStorage:', error);
+      }
+    };
+
+    initializeTheme();
+  }, []);
+
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
@@ -39,13 +58,13 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </ThemeProvider>
-    </ThemeContext.Provider>
+      <ThemeContext.Provider value={{theme, toggleTheme}}>
+        <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+            <Stack.Screen name="+not-found"/>
+          </Stack>
+        </ThemeProvider>
+      </ThemeContext.Provider>
   );
 }

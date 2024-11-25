@@ -32,7 +32,7 @@ const SettingsPage = () => {
 
         try {
             const test = await AsyncStorage.getItem('test');
-            setTest(test === 'true');
+            setTest(test == 'true');
         } catch (error) {
             console.error("Error loading settings:", error);
             setTest(false);
@@ -48,8 +48,7 @@ const SettingsPage = () => {
 
         try {
             const stopWhenHumansPresent = await AsyncStorage.getItem('stopWhenHumansPresent');
-            console.log("Stop: " + stopWhenHumansPresent);
-            setStopWhenHumansPresent(stopWhenHumansPresent === 'true');
+            setStopWhenHumansPresent(stopWhenHumansPresent == 'true');
         } catch (error) {
             console.error("Error loading 'stopWhenHumansPresent' setting:", error);
             setStopWhenHumansPresent(false);
@@ -57,7 +56,7 @@ const SettingsPage = () => {
 
         try {
             const completedTasks = await AsyncStorage.getItem('completedTasks');
-            setCompletedTasks(completedTasks === 'true');
+            setCompletedTasks(completedTasks == 'true');
         } catch (error) {
             console.error("Error loading 'completedTasks' setting:", error);
             setCompletedTasks(false);
@@ -65,7 +64,7 @@ const SettingsPage = () => {
 
         try {
             const collisions = await AsyncStorage.getItem('collisions');
-            setCollisions(collisions === 'true');
+            setCollisions(collisions == 'true');
         } catch (error) {
             console.error("Error loading 'collisions' setting:", error);
             setCollisions(false);
@@ -73,7 +72,7 @@ const SettingsPage = () => {
 
         try {
             const batteryLevels = await AsyncStorage.getItem('batteryLevels');
-            setBatteryLevels(batteryLevels === 'true');
+            setBatteryLevels(batteryLevels == 'true');
         } catch (error) {
             console.error("Error loading 'batteryLevels' setting:", error);
             setBatteryLevels(false);
@@ -86,7 +85,6 @@ const SettingsPage = () => {
             console.error("Error loading 'batteryNotification' setting:", error);
             setBatteryNotificationThreshold(-1);
         }
-        // Todo: Missing darkmode toggle saving
 
     }
 
@@ -96,18 +94,8 @@ const SettingsPage = () => {
             console.log("Changing value: " + value.toString());
             await AsyncStorage.setItem(key.toString(), value.toString());
             // alert("Key: " + settingFunction.toString());
+
         }
-        // Darkmode storage WIP
-        //  else {
-        //     settingFunction();
-        //     if (theme == 'dark') {
-        //         await AsyncStorage.setItem(key, true.toString());
-        //     } else {
-        //         await AsyncStorage.setItem(key, false.toString());
-        //     }
-        //
-        //     // alert("Toggled ==> " + settingFunction.toString());
-        // }
         // TODO: Setup communication interface eg: Communication.Send(value)
     }
 
@@ -196,7 +184,7 @@ const SettingsPage = () => {
                 <ToggleSetting
                     label="Dark Mode"
                     value={isDarkMode}
-                    onValueChange={() => onChangeFunction(toggleTheme, "isDarkMode", null)}
+                    onValueChange={() => onChangeFunction(toggleTheme, "isDarkMode", theme == 'light')}
                 />
             </View>
         </ScrollView>
