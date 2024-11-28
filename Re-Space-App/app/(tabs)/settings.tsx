@@ -1,4 +1,6 @@
-import React, {useEffect, useState} from 'react';
+// https://reactnative.dev/docs/network
+
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, Text, View } from 'react-native';
 import ToggleSetting from '@/components/settingsComponents/toggle';
 import SliderSetting from '@/components/settingsComponents/slider';
@@ -21,6 +23,8 @@ const SettingsPage = () => {
     const [test, setTest] = useState(false);
     const [movementSpeed, setMovementSpeed] = useState(2);
     const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
+
+    const ws = new WebSocket('ws://localhost:8002');
 
     useEffect(() => {
         loadLocalSettings();
@@ -88,6 +92,28 @@ const SettingsPage = () => {
 
     }
 
+    async function sendMessage() {
+        ws.onopen = () => {
+            // connection opened
+            ws.send('something'); // send a message
+          };
+          
+          ws.onmessage = e => {
+            // a message was received
+            console.log(e.data);
+          };
+          
+          ws.onerror = e => {
+            // an error occurred
+            console.log(e);
+          };
+          
+          ws.onclose = e => {
+            // connection closed
+            console.log(e.code, e.reason);
+          };
+    }
+
     async function onChangeFunction(settingFunction: any, key: any, value: any) {
         if (value != null) {
             settingFunction(value);
@@ -116,14 +142,14 @@ const SettingsPage = () => {
                 </View>
 
                 <SliderSetting label="Movement Speed"
-                               min={1}
-                               max={3}
-                               value={movementSpeed}
-                               onValueChange={(value) => onChangeFunction(setMovementSpeed, "movementSpeed", value)}
+                    min={1}
+                    max={3}
+                    value={movementSpeed}
+                    onValueChange={(value) => onChangeFunction(setMovementSpeed, "movementSpeed", value)}
                 />
                 <ToggleSetting label="Test"
-                               onValueChange={(value) => onChangeFunction(setTest, "test", value)}
-                               value={test}
+                    onValueChange={(value) => onChangeFunction(setTest, "test", value)}
+                    value={test}
                 />
 
                 <ToggleSetting
@@ -133,7 +159,7 @@ const SettingsPage = () => {
                 />
                 <ActionButton
                     label="Re-map room"
-                    onPress={() => alert("Mapping...")}
+                    onPress={() => sendMessage()}
                 />
             </View>
 

@@ -2,7 +2,7 @@
 
 // Tutorial https://www.youtube.com/watch?v=1BfCnjr_Vjg
 const http = require('http').createServer();
-const port = 3000;
+const port = 8002;
 
 // take io packet
 const io = require('socket.io')(http, {
