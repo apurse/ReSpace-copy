@@ -24,8 +24,6 @@ const SettingsPage = () => {
     const [movementSpeed, setMovementSpeed] = useState(2);
     const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
 
-    const ws = new WebSocket('ws://localhost:8002');
-
     useEffect(() => {
         loadLocalSettings();
     }, []);
@@ -93,25 +91,26 @@ const SettingsPage = () => {
     }
 
     async function sendMessage() {
+        const ws = new WebSocket('ws://localhost:8002');
         ws.onopen = () => {
             // connection opened
             ws.send('something'); // send a message
-          };
-          
-          ws.onmessage = e => {
+        };
+
+        ws.onmessage = e => {
             // a message was received
             console.log(e.data);
-          };
-          
-          ws.onerror = e => {
+        };
+
+        ws.onerror = e => {
             // an error occurred
             console.log(e);
-          };
-          
-          ws.onclose = e => {
+        };
+
+        ws.onclose = e => {
             // connection closed
             console.log(e.code, e.reason);
-          };
+        };
     }
 
     async function onChangeFunction(settingFunction: any, key: any, value: any) {
