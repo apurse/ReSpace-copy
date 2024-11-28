@@ -14,8 +14,8 @@ async def echo(websocket):
 
 
 async def main():
-    print("Hosting server on loacalhost:8002 ")
-    async with serve(echo, "localhost", 8002) as server:
+    print("Hosting server on respace-hub.local:8002 ")
+    async with serve(echo, "respace-hub.local", 8002) as server:
         await server.serve_forever()
 
 
