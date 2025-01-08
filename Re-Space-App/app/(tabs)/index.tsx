@@ -4,6 +4,7 @@ import { createDefaultStyles } from '../../components/defaultStyles';
 import SmallLayout from '@/components/smallLayout';
 import React from 'react';
 import { useTheme } from '../_layout';
+//import WebSocket from '../../components/Websocket';
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -78,6 +79,8 @@ export default function HomeScreen() {
         <Text style={uniqueStyles.statusText}>{messageW || message}</Text>
         <Text style={uniqueStyles.statusText}>{currentBatteryPerc}%</Text>
       </View>
+
+      {/* <WebSocket/> */}
 
       {/* Recent layouts section */}
       <Text style={defaultStyles.sectionTitle}>Recent Layouts</Text>

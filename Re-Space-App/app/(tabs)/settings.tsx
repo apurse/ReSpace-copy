@@ -1,15 +1,19 @@
-import React, { useState } from 'react';
+// https://reactnative.dev/docs/network
+
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, Text, View } from 'react-native';
 import ToggleSetting from '@/components/settingsComponents/toggle';
 import SliderSetting from '@/components/settingsComponents/slider';
 import ActionButton from '@/components/settingsComponents/actionButton';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from '../_layout';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
+    let hasLoaded = false;
 
     // Add state for each independent toggle
     const [stopWhenHumansPresent, setStopWhenHumansPresent] = useState(false);
@@ -20,38 +24,102 @@ const SettingsPage = () => {
     const [movementSpeed, setMovementSpeed] = useState(2);
     const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
 
-    function loadSettings() {
-        // response = Communication.getSettings();
-        // setStopWhenHumansPresent(response.data.stopWhenHumansPresent);
-        // setCompletedTasks(response.data.completedTasks);
-        // setCollisions(response.data.collisions);
-        // setBatteryLevels(response.data.batteryLevels);
-        // isDarkMode(response.data.isDarkMode);
-        // etc...
+    useEffect(() => {
+        loadLocalSettings();
+    }, []);
 
-        // JSON EXAMPLE: EXCEPT notification settings won't be stored on server!
-        /*
-        {
-          "settings": {
-            "stopWhenHumansPresent": true,
-            "completedTasks": true,
-            "collisions": true,
-            "batteryLevels": true,
-            "isDarkMode": true
-          }
+    async function loadLocalSettings() {
+        if (hasLoaded) return;
+        hasLoaded = true;
+
+        try {
+            const test = await AsyncStorage.getItem('test');
+            setTest(test == 'true');
+        } catch (error) {
+            console.error("Error loading settings:", error);
+            setTest(false);
         }
-        */
+
+        try {
+            const movementSpeed = await AsyncStorage.getItem('movementSpeed');
+            setMovementSpeed(movementSpeed != null ? parseFloat(movementSpeed) : 2);
+        } catch (error) {
+            console.error("Error loading 'movementSpeed' setting:", error);
+            setMovementSpeed(-1);
+        }
+
+        try {
+            const stopWhenHumansPresent = await AsyncStorage.getItem('stopWhenHumansPresent');
+            setStopWhenHumansPresent(stopWhenHumansPresent == 'true');
+        } catch (error) {
+            console.error("Error loading 'stopWhenHumansPresent' setting:", error);
+            setStopWhenHumansPresent(false);
+        }
+
+        try {
+            const completedTasks = await AsyncStorage.getItem('completedTasks');
+            setCompletedTasks(completedTasks == 'true');
+        } catch (error) {
+            console.error("Error loading 'completedTasks' setting:", error);
+            setCompletedTasks(false);
+        }
+
+        try {
+            const collisions = await AsyncStorage.getItem('collisions');
+            setCollisions(collisions == 'true');
+        } catch (error) {
+            console.error("Error loading 'collisions' setting:", error);
+            setCollisions(false);
+        }
+
+        try {
+            const batteryLevels = await AsyncStorage.getItem('batteryLevels');
+            setBatteryLevels(batteryLevels == 'true');
+        } catch (error) {
+            console.error("Error loading 'batteryLevels' setting:", error);
+            setBatteryLevels(false);
+        }
+
+        try {
+            const batteryNotificationThreshold = await AsyncStorage.getItem('batteryNotification');
+            setBatteryNotificationThreshold(batteryNotificationThreshold != null ? parseFloat(batteryNotificationThreshold) : 15);
+        } catch (error) {
+            console.error("Error loading 'batteryNotification' setting:", error);
+            setBatteryNotificationThreshold(-1);
+        }
+
     }
-    loadSettings();
 
+    async function sendMessage() {
+        const ws = new WebSocket('ws://respace-hub.local:8002');
+        ws.onopen = () => {
+            // connection opened
+            ws.send('something'); // send a message
+        };
 
-    function onChangeFunction(settingFunction: any, value: any) {
+        ws.onmessage = e => {
+            // a message was received
+            console.log(e.data);
+        };
+
+        ws.onerror = e => {
+            // an error occurred
+            console.log(e);
+        };
+
+        ws.onclose = e => {
+            // connection closed
+            console.log(e.code, e.reason);
+        };
+    }
+
+    async function onChangeFunction(settingFunction: any, key: any, value: any) {
         if (value != null) {
             settingFunction(value);
-            // alert("Changed ==> " + value);
-        } else {
-            settingFunction();
-            // alert("Toggled ==> " + settingFunction.toString());
+            console.log("Changing value: " + value.toString());
+            await AsyncStorage.setItem(key.toString(), value.toString());
+            // alert("Key: " + settingFunction.toString());
+
         }
         // TODO: Setup communication interface eg: Communication.Send(value)
     }
@@ -73,24 +141,24 @@ const SettingsPage = () => {
                 </View>
 
                 <SliderSetting label="Movement Speed"
-                               min={1}
-                               max={3}
-                               value={movementSpeed}
-                               onValueChange={(value) => onChangeFunction(setMovementSpeed, value)}
+                    min={1}
+                    max={3}
+                    value={movementSpeed}
+                    onValueChange={(value) => onChangeFunction(setMovementSpeed, "movementSpeed", value)}
                 />
                 <ToggleSetting label="Test"
-                               onValueChange={(value) => onChangeFunction(setTest, value)}
-                               value={test}
+                    onValueChange={(value) => onChangeFunction(setTest, "test", value)}
+                    value={test}
                 />
 
                 <ToggleSetting
                     label="Stop when humans present"
+                    onValueChange={(value) => onChangeFunction(setStopWhenHumansPresent, "stopWhenHumansPresent", value)}
                     value={stopWhenHumansPresent}
-                    onValueChange={(value) => onChangeFunction(setStopWhenHumansPresent, value)}
                 />
                 <ActionButton
                     label="Re-map room"
-                    onPress={() => alert("Mapping...")}
+                    onPress={() => sendMessage()}
                 />
             </View>
 
@@ -107,24 +175,24 @@ const SettingsPage = () => {
                 <ToggleSetting
                     label="Completed Tasks"
                     value={completedTasks}
-                    onValueChange={(value) => onChangeFunction(setCompletedTasks, value)}
+                    onValueChange={(value) => onChangeFunction(setCompletedTasks, "completedTasks", value)}
                 />
                 <ToggleSetting
                     label="Collisions"
                     value={collisions}
-                    onValueChange={(value) => onChangeFunction(setCollisions, value)}
+                    onValueChange={(value) => onChangeFunction(setCollisions, "collisions", value)}
                 />
                 <ToggleSetting
                     label="Battery Levels"
                     value={batteryLevels}
-                    onValueChange={(value) => onChangeFunction(setBatteryLevels, value)}
+                    onValueChange={(value) => onChangeFunction(setBatteryLevels, "batteryLevels", value)}
                 />
                 <SliderSetting
                     label="Battery Notification Threshold"
                     min={1}
                     max={25}
                     value={batteryNotificationThreshold}
-                    onValueChange={(value) => onChangeFunction(setBatteryNotificationThreshold, value)}
+                    onValueChange={(value) => onChangeFunction(setBatteryNotificationThreshold, "batteryNotification", value)}
                 />
 
                 <Text style={defaultStyles.sectionTitle}>
@@ -141,7 +209,7 @@ const SettingsPage = () => {
                 <ToggleSetting
                     label="Dark Mode"
                     value={isDarkMode}
-                    onValueChange={() => onChangeFunction(toggleTheme, null)}
+                    onValueChange={() => onChangeFunction(toggleTheme, "isDarkMode", theme == 'light')}
                 />
             </View>
         </ScrollView>
