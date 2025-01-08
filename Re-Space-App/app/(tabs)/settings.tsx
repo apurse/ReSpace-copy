@@ -91,7 +91,7 @@ const SettingsPage = () => {
     }
 
     async function sendMessage() {
-        const ws = new WebSocket('ws://localhost:8002');
+        const ws = new WebSocket('ws://respace-hub.local:8002');
         ws.onopen = () => {
             // connection opened
             ws.send('something'); // send a message
