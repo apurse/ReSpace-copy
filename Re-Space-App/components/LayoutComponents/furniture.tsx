@@ -11,7 +11,9 @@ export default function Furniture({ furnitureName, furnitureID }: { furnitureNam
     const isDarkMode = theme === 'dark';
     const uniqueStyles = createUniqueStyles(isDarkMode);
 
+
     const [dragging, setDragging] = useState(false);
+
 
     // ref for position
     const pan = useRef(new Animated.ValueXY()).current;
@@ -39,6 +41,12 @@ export default function Furniture({ furnitureName, furnitureID }: { furnitureNam
         })
     ).current;
 
+    // get pixel coordinates
+
+
+    // check coordinates are within bounding box
+    
+    
 
     // store coordinates in JSON
 
@@ -47,7 +55,7 @@ export default function Furniture({ furnitureName, furnitureID }: { furnitureNam
     return (
         <Animated.View
             style={[
-                uniqueStyles.table,
+                uniqueStyles.table, // could change to be customisable by user inputs, dimensions and colour
                 {
                     transform: [{ translateX: pan.x }, { translateY: pan.y }],
                     opacity: dragging ? 0.8 : 1,
@@ -82,6 +90,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             width: 60,
             height: 100,
             borderRadius: 4,
-            backgroundColor: '#964B00'
+            backgroundColor: '#964B00',
+            // borderColor: '#000',
+            // borderWidth: 3
         }
     })

@@ -1,7 +1,7 @@
 import { StyleSheet, Dimensions } from 'react-native';
 
 // Get dimensions of the screen
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
 // Function to generate styles dynamically based on theme
 export const createDefaultStyles = (isDarkMode: boolean) => StyleSheet.create({

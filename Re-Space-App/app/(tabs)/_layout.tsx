@@ -1,9 +1,14 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 
+import { Dimensions } from 'react-native';
+
 import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+
+// Get dimensions of the screen
+const { width, height } = Dimensions.get('window');
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -13,10 +18,10 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          height: 60,
+          height: height * 0.07, // need to fix
         },
         tabBarLabelStyle: {
-          fontSize: 12,
+          fontSize: height * 0.018, // need to fix
         },
       }}>
       <Tabs.Screen
