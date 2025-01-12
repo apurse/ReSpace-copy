@@ -20,24 +20,44 @@ export default function Furniture({ gridDimensions, furnitureName, furnitureID }
     const pan = useRef(new Animated.ValueXY()).current;
 
 
-    // Get position of the midpoint of the furniture
+    // Get position of furniture top left
     const positionJSON = JSON.stringify(pan.getTranslateTransform());
     const position = JSON.parse(positionJSON);
-    var positionX = parseFloat(position[0].translateX) + uniqueStyles.table.width / 2;
-    var positionY = parseFloat(position[1].translateY) + uniqueStyles.table.height / 2;
+
+    // Get position of furniture midpoint
+
+    var tableWidth = uniqueStyles.table.width;
+    var tableHeight = uniqueStyles.table.height;
+
+    var positionX = parseFloat(position[0].translateX) + tableWidth / 2;
+    var positionY = parseFloat(position[1].translateY) + tableHeight / 2;
     console.log(`X: ${positionX}`, `Y: ${positionY}`);
 
-
-    // too far left || too far right
-    if (positionX < uniqueStyles.table.width / 2 || positionX + uniqueStyles.table.width / 2 > gridDimensions[0]) {
+    
+    // left
+    if (positionX < tableWidth / 2) {
         console.log("X Outside");
-        // map inside
-    }
-    if (positionY < uniqueStyles.table.height / 2 || positionY + uniqueStyles.table.height / 2> gridDimensions[1]) {
-        console.log("Y Outside");
-        // map inside
+        positionX = positionX + (tableWidth / 2);
+        // change position here
     }
 
+    // right
+    if (positionX + tableWidth / 2 > gridDimensions[0]) {
+        console.log("X Outside");
+        positionX = gridDimensions[0] - tableWidth;
+    }
+
+    // top
+    if (positionY < tableHeight / 2) {
+        console.log("Y Outside");
+        positionY = positionY + (tableHeight / 2);
+    }
+    
+    // bottom
+    if (positionY + tableHeight / 2 > gridDimensions[1]) {
+        console.log("Y Outside");
+        positionY = gridDimensions[1] - tableHeight;
+    }
 
 
     // snapping functionality
@@ -62,7 +82,6 @@ export default function Furniture({ gridDimensions, furnitureName, furnitureID }
 
             // on release, finish dragging
             onPanResponderRelease: () => {
-                //console.log(pan.extractOffset());
                 pan.extractOffset();
                 setDragging(false);
             },
