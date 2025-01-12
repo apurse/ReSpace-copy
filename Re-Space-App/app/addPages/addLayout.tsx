@@ -14,7 +14,8 @@ const { width, height } = Dimensions.get('window');
 const roomSize = [600, 900];
 const gridSize = [0.8 * width, 0.55 * height];
 
-const tableWidth = 50;
+const robotDimensions = [50, 50];
+const gridSpaceSize = [robotDimensions];
 
 var scaleX = roomSize[0] / gridSize[0];
 var scaleY = roomSize[1] / gridSize[1];
@@ -28,12 +29,11 @@ export default function AddLayout() {
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
 
-  // do grid as visual
+  // do grid as visual set to robot size
   // if overhang, count as "dead space" and maybe fill in black?
   // snapping works but not to grid, make snapping add few mm as gap
 
   // width of each grid box = largest item squared
-  // add bounds
   // add rotate button
 
   return (
@@ -45,8 +45,16 @@ export default function AddLayout() {
       </View>
 
       <View style={uniqueStyles.grid}>
-        <Furniture furnitureName="Table" furnitureID="240"></Furniture>
-        <Furniture furnitureName="Table" furnitureID="230"></Furniture>
+        <Furniture
+          gridDimensions={gridSize}  // very cheap fix, could be better
+          furnitureName="Table"
+          furnitureID="240"
+        />
+        <Furniture
+          gridDimensions={gridSize}
+          furnitureName="Table"
+          furnitureID="230"
+        />
       </View>
       {/* Need scale measurement */}
 

@@ -4,6 +4,7 @@ import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from '../_layout';
 import Furniture from '@/components/LayoutComponents/furniture';
 import ActionButton from '@/components/settingsComponents/actionButton';
+import { TextInput } from 'react-native-gesture-handler';
 
 
 // Get dimensions of the screen
@@ -28,14 +29,6 @@ export default function AddLayout() {
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
 
-  // do grid as visual
-  // if overhang, count as "dead space" and maybe fill in black?
-  // snapping works but not to grid, make snapping add few mm as gap
-
-  // width of each grid box = largest item squared
-  // add bounds
-  // add rotate button
-
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
 
@@ -44,22 +37,30 @@ export default function AddLayout() {
         <Text style={defaultStyles.pageTitle}>Add Furniture</Text>
       </View>
 
-      <View style={uniqueStyles.grid}>
-        <Furniture furnitureName="Table" furnitureID="240"></Furniture>
-        <Furniture furnitureName="Table" furnitureID="230"></Furniture>
+      <View style={uniqueStyles.inputField}>
+        <Text style={uniqueStyles.inputHeader}>Height</Text>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter height value...'></TextInput>
       </View>
-      {/* Need scale measurement */}
+      <View style={uniqueStyles.inputField}>
+        <Text style={uniqueStyles.inputHeader}>Width</Text>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter width value...'></TextInput>
+      </View>
+      <View style={uniqueStyles.inputField}>
+        <Text style={uniqueStyles.inputHeader}>Length</Text>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter length value...'></TextInput>
+      </View>
+      <View style={uniqueStyles.inputField}>
+        <Text style={uniqueStyles.inputHeader}>Quantity</Text>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter quantity value...'></TextInput>
+      </View>
+      <View style={uniqueStyles.inputField}>
+        <Text style={uniqueStyles.inputHeader}>Colour</Text>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter colour...'></TextInput>
+      </View>
 
       <View style={uniqueStyles.buttonContainer}>
-
-
         <ActionButton
-          label="Save Layout"
-          onPress={() => alert("Todo...")}
-        />
-
-        <ActionButton
-          label="Ready To Go!"
+          label="Save Furniture"
           onPress={() => alert("Todo...")}
         />
       </View>
@@ -70,11 +71,24 @@ export default function AddLayout() {
 
 const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
+    inputField: {
 
-    grid: {
-      width: gridSize[0], // * scaleX once visuals are done
-      height: gridSize[1], // * scaleY once visuals are done
-      backgroundColor: '#D3D3D3',
+    },
+    inputHeader: {
+      fontSize: 16,
+      color: isDarkMode ? '#fff' : '#333',
+    },
+    textInput: {
+      width: width * 0.3,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      height: 30,
+      backgroundColor: isDarkMode ? '#fff' : '#000',
+      color: isDarkMode ? '#000' : '#fff',
+      fontSize: 14,
+      fontWeight: 'bold',
+      fontFamily: 'arial',
     },
     buttonContainer: {
       width: gridSize[0],

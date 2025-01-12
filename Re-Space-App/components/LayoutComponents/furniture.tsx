@@ -6,7 +6,8 @@ import { useTheme } from '../../app/_layout';
 
 // drag and drop: https://reactnative.dev/docs/panresponder
 // dragging functionality: https://www.geeksforgeeks.org/how-to-implement-drag-and-drop-functionality-in-react-native/
-export default function Furniture({ furnitureName, furnitureID }: { furnitureName: any, furnitureID: any }) {
+// get position: https://reactnative.dev/docs/animatedvaluexy#getlayout
+export default function Furniture({ gridDimensions, furnitureName, furnitureID }: { gridDimensions: any, furnitureName: any, furnitureID: any }) {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const uniqueStyles = createUniqueStyles(isDarkMode);
@@ -17,6 +18,32 @@ export default function Furniture({ furnitureName, furnitureID }: { furnitureNam
 
     // ref for position
     const pan = useRef(new Animated.ValueXY()).current;
+
+
+    // Get position of the midpoint of the furniture
+    const positionJSON = JSON.stringify(pan.getTranslateTransform());
+    const position = JSON.parse(positionJSON);
+    var positionX = parseFloat(position[0].translateX) + uniqueStyles.table.width / 2;
+    var positionY = parseFloat(position[1].translateY) + uniqueStyles.table.height / 2;
+    console.log(`X: ${positionX}`, `Y: ${positionY}`);
+
+
+    // too far left || too far right
+    if (positionX < uniqueStyles.table.width / 2 || positionX + uniqueStyles.table.width / 2 > gridDimensions[0]) {
+        console.log("X Outside");
+        // map inside
+    }
+    if (positionY < uniqueStyles.table.height / 2 || positionY + uniqueStyles.table.height / 2> gridDimensions[1]) {
+        console.log("Y Outside");
+        // map inside
+    }
+
+
+
+    // snapping functionality
+
+
+    // output coordinates once done
 
 
     // create new gesture responder
@@ -35,20 +62,12 @@ export default function Furniture({ furnitureName, furnitureID }: { furnitureNam
 
             // on release, finish dragging
             onPanResponderRelease: () => {
+                //console.log(pan.extractOffset());
                 pan.extractOffset();
                 setDragging(false);
             },
         })
     ).current;
-
-    // get pixel coordinates
-
-
-    // check coordinates are within bounding box
-    
-    
-
-    // store coordinates in JSON
 
 
     // the component structure

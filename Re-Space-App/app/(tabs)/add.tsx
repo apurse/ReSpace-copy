@@ -21,17 +21,19 @@ export default function AddLayout() {
         <Text style={defaultStyles.pageTitle}>Add</Text>
       </View>
 
-      <Link href="/addPages/addLayout" asChild>
-        <Pressable>
-          <Text>Add Layout</Text>
-        </Pressable>
-      </Link>
+      <View style={uniqueStyles.buttonContainer}>
+        <Link href="/addPages/addLayout" asChild>
+          <Pressable style={uniqueStyles.button}>
+            <Text style={uniqueStyles.text}>Add Layout</Text>
+          </Pressable>
+        </Link>
 
-      <Link href="/addPages/addFurniture" asChild>
-        <Pressable>
-          <Text>Add Furniture</Text>
-        </Pressable>
-      </Link>
+        <Link href="/addPages/addFurniture" asChild>
+          <Pressable style={uniqueStyles.button}>
+            <Text style={uniqueStyles.text}>Add Furniture</Text>
+          </Pressable>
+        </Link>
+      </View>
 
 
 
@@ -41,5 +43,19 @@ export default function AddLayout() {
 
 const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
+    buttonContainer: {
+      gap: width * 0.2,
+    },
+    button: {
+      width: width * 0.5,
+      height: width * 0.5,
+      backgroundColor: isDarkMode ? '#fff' : '#000',
+      borderRadius: 20,
+    },
+    text: {
+      textAlign: 'center',
+      fontSize: 24,
+      color: isDarkMode ? '#000' : '#fff',
 
+    }
   });
