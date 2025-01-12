@@ -5,7 +5,7 @@ import { StyleSheet, ScrollView, Text, View } from 'react-native';
 import ToggleSetting from '@/components/settingsComponents/toggle';
 import SliderSetting from '@/components/settingsComponents/slider';
 import ActionButton from '@/components/settingsComponents/actionButton';
-import { createDefaultStyles } from '../../components/defaultStyles';
+import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -20,7 +20,7 @@ const SettingsPage = () => {
     const [completedTasks, setCompletedTasks] = useState(false);
     const [collisions, setCollisions] = useState(false);
     const [batteryLevels, setBatteryLevels] = useState(false);
-    const [test, setTest] = useState(false);
+    // const [test, setTest] = useState(false);
     const [movementSpeed, setMovementSpeed] = useState(2);
     const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
 
@@ -32,13 +32,13 @@ const SettingsPage = () => {
         if (hasLoaded) return;
         hasLoaded = true;
 
-        try {
-            const test = await AsyncStorage.getItem('test');
-            setTest(test == 'true');
-        } catch (error) {
-            console.error("Error loading settings:", error);
-            setTest(false);
-        }
+        // try {
+        //     const test = await AsyncStorage.getItem('test');
+        //     setTest(test == 'true');
+        // } catch (error) {
+        //     console.error("Error loading settings:", error);
+        //     setTest(false);
+        // }
 
         try {
             const movementSpeed = await AsyncStorage.getItem('movementSpeed');
@@ -90,16 +90,28 @@ const SettingsPage = () => {
 
     }
 
-    async function sendMessage() {
-        const ws = new WebSocket('ws://respace-hub.local:8002');
+    async function sendMessage(data: Record<string, unknown>) {
+        const ws = new WebSocket('ws://localhost:8002');
         ws.onopen = () => {
+            console.log("WebSocket connection established.");
             // connection opened
-            ws.send('something'); // send a message
+            // ws.send('something'); // send a message
+
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify(data));
+            } else {
+                console.error("WebSocket is not open.");
+            }
         };
 
+        // a message was received
         ws.onmessage = e => {
-            // a message was received
-            console.log(e.data);
+            try {
+                const data = JSON.parse(e.data);
+                console.log("Received:", data);
+            } catch (err) {
+                console.error("Error parsing message:", err);
+            }
         };
 
         ws.onerror = e => {
@@ -146,10 +158,10 @@ const SettingsPage = () => {
                     value={movementSpeed}
                     onValueChange={(value) => onChangeFunction(setMovementSpeed, "movementSpeed", value)}
                 />
-                <ToggleSetting label="Test"
-                    onValueChange={(value) => onChangeFunction(setTest, "test", value)}
-                    value={test}
-                />
+                {/*<ToggleSetting label="Test"*/}
+                {/*    onValueChange={(value) => onChangeFunction(setTest, "test", value)}*/}
+                {/*    value={test}*/}
+                {/*/>*/}
 
                 <ToggleSetting
                     label="Stop when humans present"
@@ -158,7 +170,12 @@ const SettingsPage = () => {
                 />
                 <ActionButton
                     label="Re-map room"
-                    onPress={() => sendMessage()}
+                    onPress={() => alert("Re-mapping room")}
+                />
+
+                <ActionButton
+                    label="Test Connection"
+                    onPress={() => sendMessage({ type: "navigate-coordinates", message: "3,5" })}
                 />
             </View>
 
