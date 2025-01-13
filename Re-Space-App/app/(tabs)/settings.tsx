@@ -1,13 +1,14 @@
 // https://reactnative.dev/docs/network
 
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, ScrollView, Text, View } from 'react-native';
+import {StyleSheet, ScrollView, Text, View, Pressable, Dimensions} from 'react-native';
 import ToggleSetting from '@/components/settingsComponents/toggle';
 import SliderSetting from '@/components/settingsComponents/slider';
 import ActionButton from '@/components/settingsComponents/actionButton';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {Link} from "expo-router";
 
 const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
@@ -91,7 +92,8 @@ const SettingsPage = () => {
     }
 
     async function sendMessage(data: Record<string, unknown>) {
-        const ws = new WebSocket('ws://localhost:8002');
+        // Must have .local at end of hostname
+        const ws = new WebSocket('ws://respace-1.local:8002');
         ws.onopen = () => {
             console.log("WebSocket connection established.");
             // connection opened
@@ -173,9 +175,15 @@ const SettingsPage = () => {
                     onPress={() => alert("Re-mapping room")}
                 />
 
+                <Link href="/controller/controller" asChild>
+                    <Pressable style={uniqueStyles.button}>
+                        <Text style={uniqueStyles.buttonText}>Controller</Text>
+                    </Pressable>
+                </Link>
+
                 <ActionButton
                     label="Test Connection"
-                    onPress={() => sendMessage({ type: "navigate-coordinates", message: "3,5" })}
+                    onPress={() => sendMessage({ type: "debug", message: "Testing message!" })}
                 />
             </View>
 
@@ -246,6 +254,18 @@ const uniqueStyles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 30,
         fontWeight: 'bold',
+    },
+    button: {
+        backgroundColor: '#4CAF50',
+        padding: 15,
+        alignItems: 'center',
+        borderRadius: 5,
+        marginTop: 20,
+    },
+    buttonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '500',
     },
 });
 
