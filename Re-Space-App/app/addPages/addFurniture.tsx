@@ -38,6 +38,14 @@ export default function AddLayout() {
       </View>
 
       <View style={uniqueStyles.inputField}>
+        <Text style={uniqueStyles.inputHeader}>Name</Text>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter name...'></TextInput>
+      </View>
+      <View style={uniqueStyles.inputField}>
+        <Text style={uniqueStyles.inputHeader}>Model</Text>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter model type...'></TextInput>
+      </View>
+      <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Height</Text>
         <TextInput style={uniqueStyles.textInput} placeholder='Enter height value...'></TextInput>
       </View>

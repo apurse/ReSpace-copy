@@ -1,0 +1,31 @@
+{
+    "Furniture": [
+        {
+            "name": "Table",
+            "model": "",
+            "height": "",
+            "width": "",
+            "length": "",
+            "quantity": "",
+            "colour": ""
+        },
+        {
+            "name": "Chair",
+            "model": "",
+            "height": "",
+            "width": "",
+            "length": "",
+            "quantity": "",
+            "colour": ""
+        },
+        {
+            "name": "Table 2",
+            "model": "",
+            "height": "",
+            "width": "",
+            "length": "",
+            "quantity": "",
+            "colour": ""
+        }
+    ]
+}
