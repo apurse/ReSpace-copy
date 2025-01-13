@@ -1,7 +1,7 @@
 import React, { useState, useRef } from "react";
-import {View, Text, PanResponder, StyleSheet, Dimensions} from "react-native";
-import {useTheme} from "@/app/_layout";
-import {createDefaultStyles} from "@/components/defaultStyles";
+import { View, Text, PanResponder, StyleSheet, Dimensions } from "react-native";
+import { useTheme } from "@/app/_layout";
+import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
 
@@ -10,26 +10,28 @@ const { width, height } = Dimensions.get('window');
 
 // -------- Grid Visuals --------
 
-const gridSize = [0.8 * width, 0.55 * height];
-const roomSize = [600, 900];
-var scaleX = roomSize[0] / gridSize[0];
-var scaleY = roomSize[1] / gridSize[1];
+// const pixelsPerMM = 3.78;
+// const robotDimensions = [250, 250]; // mm
+
+const gridDimensionsPx = [0.8 * width, 0.8 * width];
+const roomDimensionsMM = [1600, 1600];
+
+
+var scaleX = gridDimensionsPx[0] / roomDimensionsMM[0];
+var scaleY = gridDimensionsPx[1] / roomDimensionsMM[1];
 
 
 // Calculate running time for distance
-function calculateTime(distance: Float){
+function calculateTime(axis: string, distance: Float) {
 
-    const pixelsPerMM = 3.78;
+    if (axis == "X")
+        distance = distance * scaleX
+    else
+        distance = distance * scaleY
     
-    // 160mm * 160mm grid
-    // const gridBox = 160 * pixelsPerMM;
-    const robotDistance = 100 * pixelsPerMM; // change 100 to distance travelled
-    const robotDistance1S = robotDistance / 1;
+    const robotSpeedMM = 190 / 2; // hardcoded mm
 
-
-    // Time = distance changed as mm / speed
-    const time = (distance * pixelsPerMM) / robotDistance1S;
-    
+    const time = distance / robotSpeedMM;
     return time;
 }
 
@@ -45,23 +47,24 @@ export default function DragAndDrop() {
 
     // set boxes array
     const [boxes, setBoxes] = useState([
-        { id: 1, x: 50, y: 50, timeX: 0, timeY: 0 }, // Initial position of Box 1
+        { id: 1, x: 0, y: 0, timeX: 0, timeY: 0 }, // Initial position of Box 1
         { id: 2, x: 150, y: 150, timeX: 0, timeY: 0 }, // Initial position of Box 2
     ]);
 
     const squareRef = useRef(null);
 
-    
+
     // work out new positions and timings
     const updateBoxPosition = (id: number, dx: number, dy: number) => {
         setBoxes((prevBoxes) =>
             prevBoxes.map((box) => {
                 if (box.id === id) {
-                    const newX = Math.max(0, Math.min(gridSize[0] - 60, box.x + dx)); // Clamp x position
-                    const newY = Math.max(0, Math.min(gridSize[1] - 100, box.y + dy)); // Clamp y position
-                    const newTimeX = calculateTime(newX);
-                    const newTimeY = calculateTime(newY);
-                    return { ...box, x: newX, y: newY, timeX: newTimeX, timeY: newTimeY };
+                    //
+                    const newX = Math.max(0, Math.min(gridDimensionsPx[0] - (uniqueStyles.robot.width + 3), box.x + dx)); // Clamp x position
+                    const newY = Math.max(0, Math.min(gridDimensionsPx[1] - (uniqueStyles.robot.height + 3), box.y + dy)); // Clamp y position
+                    const newTimeX = calculateTime("X", newX);
+                    const newTimeY = calculateTime("Y", newY);
+                    return { ...box, x: newX, y: newY, timeX: newTimeX, timeY: newTimeY};
                 }
                 return box;
             })
@@ -85,7 +88,7 @@ export default function DragAndDrop() {
             },
         });
 
-        
+
     return (
         <View style={defaultStyles.body}>
             {/* Content */}
@@ -106,7 +109,7 @@ export default function DragAndDrop() {
                         <View
                             key={box.id}
                             style={[
-                                uniqueStyles.table,
+                                uniqueStyles.robot,
                                 {
                                     left: box.x,
                                     top: box.y,
@@ -128,7 +131,7 @@ export default function DragAndDrop() {
                 />
                 <ActionButton
                     label="Ready To Go!"
-                    onPress={() => sendMessage({ type: "coordinates", message: boxes })} // `id: ${boxes[0].id}, x: ${boxes[0].x}, y: ${boxes[0].y}`
+                    onPress={() => sendMessage({ type: "time", message: boxes })} // `id: ${boxes[0].id}, x: ${boxes[0].x}, y: ${boxes[0].y}`
                 />
             </View>
         </View>
@@ -176,28 +179,33 @@ export default function DragAndDrop() {
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
         grid: {
-            width: gridSize[0], // * scaleX once visuals are done
-            height: gridSize[1], // * scaleY once visuals are done
+            width: gridDimensionsPx[0], // * scaleX once visuals are done
+            height: gridDimensionsPx[1], // * scaleY once visuals are done
             backgroundColor: '#D3D3D3',
             position: "relative",
             borderWidth: 2,
             borderColor: "#aaa",
         },
-        table: {
-            width: 60,
-            height: 100,
+        robot: {
+            width: 250 * scaleX,
+            height: 250 * scaleY,
             position: "absolute",
             justifyContent: "center",
             alignItems: "center",
             borderRadius: 4,
             backgroundColor: '#964B00'
         },
+        circle: {
+            width: 340 * scaleX,
+            borderRadius: 90,
+            backgroundColor: "green"
+        },
         boxText: {
             color: "#fff",
             fontWeight: "bold",
         },
         buttonContainer: {
-            width: gridSize[0],
+            width: gridDimensionsPx[0],
         }
 
     });
