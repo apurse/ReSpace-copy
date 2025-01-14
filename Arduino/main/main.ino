@@ -42,18 +42,20 @@ void setup() {
 
 void loop() {
   if  (Serial.available() > 0) {
-    String msg = Serial.readStringUntil(';')
+    String msg = Serial.readStringUntil(';');
     StopMotors();
     if (msg == "forward") {
       MoveForward();
     } else if (msg == "backward") {
-      MoveBackwards()
-    } else if (msg == "up") {
+      MoveBackward();
+    } else if (msg == "raise") {
       stepper.runToNewPosition(1200);
-    } else if (msg == "down") {
+    } else if (msg == "lower") {
       stepper.runToNewPosition(0);
-    } else if (msg == "tleft") {
-      
+    } else if (msg == "left") {
+      TurnLeft();
+    } else if (msg == "right") {
+      TurnRight();
     }
   }
 }
@@ -79,10 +81,10 @@ void MoveForward() {
   analogWrite(AIN1, motorSpeed);
   analogWrite(AIN2, 0);
 
-  analogWrite(BIN1, motorSpeed);
-  analogWrite(BIN2, 0);
+  analogWrite(BIN1, 0);
+  analogWrite(BIN2, motorSpeed);
 
-  analogWrite(CIN1, motorSpeed);
+  analogWrite(CIN1, 0);
   analogWrite(CIN2, 0);
 }
 
@@ -90,11 +92,11 @@ void MoveBackward() {
   analogWrite(AIN1, 0);
   analogWrite(AIN2, motorSpeed);
 
-  analogWrite(BIN1, 0);
-  analogWrite(BIN2, motorSpeed);
+  analogWrite(BIN1, motorSpeed);
+  analogWrite(BIN2, 0);
 
   analogWrite(CIN1, 0);
-  analogWrite(CIN2, motorSpeed);
+  analogWrite(CIN2, 0);
 }
 
 void TurnLeft() {
