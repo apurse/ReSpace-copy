@@ -107,7 +107,7 @@ export default function DragAndDrop() {
                     const panResponder = createPanResponder(box.id);
                     return (
                         <View
-                            key={box.id}
+                            // key={box.id}
                             style={[
                                 uniqueStyles.robot,
                                 {
