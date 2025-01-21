@@ -1,10 +1,10 @@
 import { View, ScrollView, StyleSheet, Text, Dimensions, TextInput } from 'react-native';
 import React, { useState } from 'react';
-import { createDefaultStyles } from '../../components/defaultStyles';
-import { useTheme } from '../_layout';
+import { createDefaultStyles } from '@/components/defaultStyles';
+import { useTheme } from '@/app/_layout';
 import Furniture from '@/components/LayoutComponents/furniture';
 import ActionButton from '@/components/settingsComponents/actionButton';
-import furnitureData from '../../Jsons/FurnitureData.json';
+import furnitureData from '@/Jsons/FurnitureData.json';
 
 
 // Get dimensions of the screen
