@@ -1,10 +1,10 @@
-import { View, ScrollView, StyleSheet, Text, Dimensions, TextInput } from 'react-native';
-import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, Text, Dimensions } from 'react-native';
+
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from '../_layout';
 import Furniture from '@/components/LayoutComponents/furniture';
 import ActionButton from '@/components/settingsComponents/actionButton';
-import furnitureData from '@/Jsons/Furniture.json';
+import { TextInput } from 'react-native-gesture-handler';
 
 
 // Get dimensions of the screen
@@ -28,37 +28,6 @@ export default function AddLayout() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
-  const [name, setName] = useState('');
-  const [model, setModel] = useState('');
-  const [heightF, setHeight] = useState('');
-  const [widthF, setWidth] = useState('');
-  const [length, setLength] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [colour, setColour] = useState('');
-  
-  const saveFurniture = () => {
-    const newFurniture = {
-      name,
-      model,
-      height : heightF,
-      width : widthF,
-      length,
-      quantity,
-      colour,
-    };
-
-    furnitureData.Furniture.push(newFurniture);
-    console.log('New data pushed');
-
-    // Reset form
-    setName('');
-    setModel('');
-    setHeight('');
-    setWidth('');
-    setLength('');
-    setQuantity('');
-    setColour('');
-  };
 
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
@@ -70,37 +39,37 @@ export default function AddLayout() {
 
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Name</Text>
-        <TextInput value={name} onChangeText={setName} style={uniqueStyles.textInput} placeholder='Enter name...'></TextInput>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter name...'></TextInput>
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Model</Text>
-        <TextInput value={model} onChangeText={setModel} style={uniqueStyles.textInput} placeholder='Enter model type...'></TextInput>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter model type...'></TextInput>
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Height</Text>
-        <TextInput value={heightF} onChangeText={setHeight} style={uniqueStyles.textInput} placeholder='Enter height value...'></TextInput>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter height value...'></TextInput>
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Width</Text>
-        <TextInput value={widthF} onChangeText={setWidth} style={uniqueStyles.textInput} placeholder='Enter width value...'></TextInput>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter width value...'></TextInput>
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Length</Text>
-        <TextInput value={length} onChangeText={setLength} style={uniqueStyles.textInput} placeholder='Enter length value...'></TextInput>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter length value...'></TextInput>
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Quantity</Text>
-        <TextInput value={quantity} onChangeText={setQuantity} style={uniqueStyles.textInput} placeholder='Enter quantity value...'></TextInput>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter quantity value...'></TextInput>
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Colour</Text>
-        <TextInput value={colour} onChangeText={setColour} style={uniqueStyles.textInput} placeholder='Enter colour...'></TextInput>
+        <TextInput style={uniqueStyles.textInput} placeholder='Enter colour...'></TextInput>
       </View>
 
       <View style={uniqueStyles.buttonContainer}>
         <ActionButton
           label="Save Furniture"
-          onPress={saveFurniture}
+          onPress={() => alert("Todo...")}
         />
       </View>
 
@@ -118,11 +87,11 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       color: isDarkMode ? '#fff' : '#333',
     },
     textInput: {
-      width: width * 0.5,
+      width: width * 0.3,
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      height: 40,
+      height: 30,
       backgroundColor: isDarkMode ? '#fff' : '#000',
       color: isDarkMode ? '#000' : '#fff',
       fontSize: 14,
