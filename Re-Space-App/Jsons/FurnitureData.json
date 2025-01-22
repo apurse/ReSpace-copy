@@ -1,31 +1,13 @@
 {
     "Furniture": [
         {
-            "name": "Table",
-            "model": "",
-            "height": "",
-            "width": "",
-            "length": "",
-            "quantity": "",
-            "colour": ""
-        },
-        {
-            "name": "Chair",
-            "model": "",
-            "height": "",
-            "width": "",
-            "length": "",
-            "quantity": "",
-            "colour": ""
-        },
-        {
-            "name": "Table 2",
-            "model": "",
-            "height": "",
-            "width": "",
-            "length": "",
-            "quantity": "",
-            "colour": ""
+            "name": "Example",
+            "model": "Example",
+            "height": "0",
+            "width": "0",
+            "length": "0",
+            "quantity": "0",
+            "colour": "Example"
         }
     ]
 }

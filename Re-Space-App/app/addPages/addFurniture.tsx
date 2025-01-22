@@ -5,7 +5,10 @@ import { useTheme } from '@/app/_layout';
 import Furniture from '@/components/LayoutComponents/furniture';
 import ActionButton from '@/components/settingsComponents/actionButton';
 import furnitureData from '@/Jsons/FurnitureData.json';
+import * as FileSystem from 'expo-file-system';
 
+// Local json file with furniture data
+const fileUri = FileSystem.documentDirectory + 'FurnitureData.json';
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -36,7 +39,7 @@ export default function AddLayout() {
   const [quantity, setQuantity] = useState('');
   const [colour, setColour] = useState('');
 
-  const saveFurniture = () => {
+  const saveFurniture = async () => {
     const newFurniture = {
       name,
       model,
@@ -47,17 +50,28 @@ export default function AddLayout() {
       colour,
     };
 
-    furnitureData.Furniture.push(newFurniture);
-    console.log('New data pushed');
+    // Adding data to json
+    const updateData = [...furnitureData.Furniture, newFurniture];
 
-    // Reset form
-    setName('');
-    setModel('');
-    setHeight('');
-    setWidth('');
-    setLength('');
-    setQuantity('');
-    setColour('');
+    try {
+      // Write new data to json
+      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify({ Furniture : updateData }));
+
+      // Show local json file in console
+      const data  = await FileSystem.readAsStringAsync(fileUri);
+      console.log('Furniture json updated:', data);
+
+      // Reset form
+      setName('');
+      setModel('');
+      setHeight('');
+      setWidth('');
+      setLength('');
+      setQuantity('');
+      setColour('');
+    } catch (error) {
+      console.error('Failed to update/save data to json file:', error);
+    }
   };
 
   return (
