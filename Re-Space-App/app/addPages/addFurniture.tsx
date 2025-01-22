@@ -2,13 +2,12 @@ import { View, ScrollView, StyleSheet, Text, Dimensions, TextInput } from 'react
 import React, { useState } from 'react';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '@/app/_layout';
-import Furniture from '@/components/LayoutComponents/furniture';
 import ActionButton from '@/components/settingsComponents/actionButton';
 import furnitureData from '@/Jsons/FurnitureData.json';
 import * as FileSystem from 'expo-file-system';
 
 // Local json file with furniture data
-const fileUri = FileSystem.documentDirectory + 'FurnitureData.json';
+const localJson = FileSystem.documentDirectory + 'FurnitureData.json';
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -31,13 +30,13 @@ export default function AddLayout() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
-  const [name, setName] = useState('');
-  const [model, setModel] = useState('');
-  const [heightF, setHeight] = useState('');
-  const [widthF, setWidth] = useState('');
-  const [length, setLength] = useState('');
-  const [quantity, setQuantity] = useState('');
-  const [colour, setColour] = useState('');
+  const [name, setName] = useState<string>('');
+  const [model, setModel] = useState<string>('');
+  const [heightF, setHeight] = useState<number>(0);
+  const [widthF, setWidth] = useState<number>(0);
+  const [length, setLength] = useState<number>(0);
+  const [quantity, setQuantity] = useState<number>(0);
+  const [colour, setColour] = useState<string>('');
 
   const saveFurniture = async () => {
     const newFurniture = {
@@ -51,23 +50,36 @@ export default function AddLayout() {
     };
 
     // Adding data to json
-    const updateData = [...furnitureData.Furniture, newFurniture];
+    //const updateData = [...furnitureData.Furniture, newFurniture];
 
     try {
+      // Read data from json before writing new data
+      const readData = await FileSystem.readAsStringAsync(localJson);
+      let jsonData = {};
+
+      // Check there is data
+      if (readData) {
+        jsonData = JSON.parse(readData);
+      }
+
+      // Adding data to json
+      // Ignore 'Furniture' error, this is due there is nothing in 'jsonData' yet.
+      const updateData = [...(jsonData.Furniture || []), newFurniture];
+
       // Write new data to json
-      await FileSystem.writeAsStringAsync(fileUri, JSON.stringify({ Furniture : updateData }));
+      await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture : updateData }));
 
       // Show local json file in console
-      const data  = await FileSystem.readAsStringAsync(fileUri);
+      const data  = await FileSystem.readAsStringAsync(localJson);
       console.log('Furniture json updated:', data);
 
       // Reset form
       setName('');
       setModel('');
-      setHeight('');
-      setWidth('');
-      setLength('');
-      setQuantity('');
+      setHeight(0);
+      setWidth(0);
+      setLength(0);
+      setQuantity(0);
       setColour('');
     } catch (error) {
       console.error('Failed to update/save data to json file:', error);
@@ -84,31 +96,78 @@ export default function AddLayout() {
 
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Name</Text>
-        <TextInput value={name} onChangeText={setName} style={uniqueStyles.textInput} placeholder='Enter name...'></TextInput>
+        <TextInput 
+          value={name} 
+          onChangeText={setName} 
+          style={uniqueStyles.textInput} 
+          placeholder='Enter name...'
+        />
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Model</Text>
-        <TextInput value={model} onChangeText={setModel} style={uniqueStyles.textInput} placeholder='Enter model type...'></TextInput>
+        <TextInput 
+          value={model} 
+          onChangeText={setModel} 
+          style={uniqueStyles.textInput} 
+          placeholder='Enter model type...'
+        />
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Height</Text>
-        <TextInput value={heightF} onChangeText={setHeight} style={uniqueStyles.textInput} placeholder='Enter height value...'></TextInput>
+        <TextInput
+          // If there is nothing ('0') then show empty string (to keep placeholder)
+          value={heightF ? heightF.toString() : ''}
+          // Check update value with a number
+          onChangeText={(text) => setHeight(Number(text))}
+          style={uniqueStyles.textInput} 
+          placeholder='Enter height value...'
+          keyboardType="numeric"
+        />
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Width</Text>
-        <TextInput value={widthF} onChangeText={setWidth} style={uniqueStyles.textInput} placeholder='Enter width value...'></TextInput>
+        <TextInput
+          // If there is nothing ('0') then show empty string (to keep placeholder) 
+          value={widthF ? widthF.toString() : ''}
+          // Check update value with a number
+          onChangeText={(text) => setWidth(Number(text))} 
+          style={uniqueStyles.textInput} 
+          placeholder='Enter width value...'
+          keyboardType="numeric"
+        />
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Length</Text>
-        <TextInput value={length} onChangeText={setLength} style={uniqueStyles.textInput} placeholder='Enter length value...'></TextInput>
+        <TextInput
+          // If there is nothing ('0') then show empty string (to keep placeholder)
+          value={length ? length.toString() : ''}
+          // Check update value with a number 
+          onChangeText={(text) => setLength(Number(text))} 
+          style={uniqueStyles.textInput} 
+          placeholder='Enter length value...'
+          keyboardType="numeric"
+        />
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Quantity</Text>
-        <TextInput value={quantity} onChangeText={setQuantity} style={uniqueStyles.textInput} placeholder='Enter quantity value...'></TextInput>
+        <TextInput
+          // If there is nothing ('0') then show empty string (to keep placeholder)
+          value={quantity ? quantity.toString() : ''}
+          // Check update value with a number
+          onChangeText={(text) => setQuantity(Number(text))} 
+          style={uniqueStyles.textInput} 
+          placeholder='Enter quantity value...'
+          keyboardType="numeric"
+        />
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Colour</Text>
-        <TextInput value={colour} onChangeText={setColour} style={uniqueStyles.textInput} placeholder='Enter colour...'></TextInput>
+        <TextInput 
+          value={colour} 
+          onChangeText={setColour} 
+          style={uniqueStyles.textInput} 
+          placeholder='Enter colour...'
+        />
       </View>
 
       <View style={uniqueStyles.buttonContainer}>
