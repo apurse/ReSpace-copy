@@ -61,7 +61,7 @@ export default function AddLayout() {
       // Show notifications for 3 sec
       setTimeout(() => setnotifications(null), 3000);
 
-      // Uncomment and click 'save furniture' with nothing on the fields
+      // Uncomment and click 'save furniture' with nothing on the fields (need reset expo)
       //clearJsonData();
       
       return;
@@ -80,7 +80,7 @@ export default function AddLayout() {
     try {
       // Read data from json before writing new data
       const readData = await FileSystem.readAsStringAsync(localJson);
-      let jsonData = {};
+      let jsonData = { Furniture: [] }; // Give empty array to stop showing an error
 
       // Check there is data
       if (readData) {
@@ -88,8 +88,7 @@ export default function AddLayout() {
       }
 
       // Adding data to json
-      // Ignore 'Furniture' error, this is due there is nothing in 'jsonData' yet.
-      const updateData = [...(jsonData.Furniture || []), newFurniture];
+      const updateData = [...jsonData.Furniture, newFurniture];
 
       // Write new data to json
       await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture : updateData }));
