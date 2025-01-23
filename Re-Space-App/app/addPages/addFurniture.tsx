@@ -5,9 +5,21 @@ import { useTheme } from '@/app/_layout';
 import ActionButton from '@/components/settingsComponents/actionButton';
 import furnitureData from '@/Jsons/FurnitureData.json';
 import * as FileSystem from 'expo-file-system';
+import Furniture from '@/components/LayoutComponents/furniture';
 
 // Local json file with furniture data
 const localJson = FileSystem.documentDirectory + 'FurnitureData.json';
+
+// Call function to clear the json data from device
+const clearJsonData = async () => {
+  try {
+    await  FileSystem.writeAsStringAsync(localJson,JSON.stringify({ Furniture: [] }));
+
+    console.log('Data has been cleared');
+  } catch (error) {
+    console.error('Error deleting json data');
+  }
+};
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -30,6 +42,8 @@ export default function AddLayout() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
+  const [notifications, setnotifications] = useState<string | null>(null);
+
   const [name, setName] = useState<string>('');
   const [model, setModel] = useState<string>('');
   const [heightF, setHeight] = useState<number>(0);
@@ -39,6 +53,20 @@ export default function AddLayout() {
   const [colour, setColour] = useState<string>('');
 
   const saveFurniture = async () => {
+
+    if (!name || !heightF || !widthF || !length || !quantity) {
+      // Show notifications to fill the fields
+      setnotifications('Please fill the necessary fields (Marked with \'*\')');
+
+      // Show notifications for 3 sec
+      setTimeout(() => setnotifications(null), 3000);
+
+      // Uncomment and click 'save furniture' with nothing on the fields
+      //clearJsonData();
+      
+      return;
+    }
+
     const newFurniture = {
       name,
       model,
@@ -48,9 +76,6 @@ export default function AddLayout() {
       quantity,
       colour,
     };
-
-    // Adding data to json
-    //const updateData = [...furnitureData.Furniture, newFurniture];
 
     try {
       // Read data from json before writing new data
@@ -73,6 +98,12 @@ export default function AddLayout() {
       const data  = await FileSystem.readAsStringAsync(localJson);
       console.log('Furniture json updated:', data);
 
+      // Show notifications of successful
+      setnotifications('New furniture added sucessfully');
+
+      // Show notifications for 3 sec
+      setTimeout(() => setnotifications(null), 3000);
+
       // Reset form
       setName('');
       setModel('');
@@ -83,6 +114,12 @@ export default function AddLayout() {
       setColour('');
     } catch (error) {
       console.error('Failed to update/save data to json file:', error);
+
+      // Show notifications of failure
+      setnotifications('Failed to add new furniture.')
+
+      // Show notifications for 3 sec
+      setTimeout(() => setnotifications(null), 3000);
     }
   };
 
@@ -100,7 +137,7 @@ export default function AddLayout() {
           value={name} 
           onChangeText={setName} 
           style={uniqueStyles.textInput} 
-          placeholder='Enter name...'
+          placeholder='*Enter name...*'
         />
       </View>
       <View style={uniqueStyles.inputField}>
@@ -120,7 +157,7 @@ export default function AddLayout() {
           // Check update value with a number
           onChangeText={(text) => setHeight(Number(text))}
           style={uniqueStyles.textInput} 
-          placeholder='Enter height value...'
+          placeholder='*Enter height value...*'
           keyboardType="numeric"
         />
       </View>
@@ -132,7 +169,7 @@ export default function AddLayout() {
           // Check update value with a number
           onChangeText={(text) => setWidth(Number(text))} 
           style={uniqueStyles.textInput} 
-          placeholder='Enter width value...'
+          placeholder='*Enter width value...*'
           keyboardType="numeric"
         />
       </View>
@@ -144,7 +181,7 @@ export default function AddLayout() {
           // Check update value with a number 
           onChangeText={(text) => setLength(Number(text))} 
           style={uniqueStyles.textInput} 
-          placeholder='Enter length value...'
+          placeholder='*Enter length value...*'
           keyboardType="numeric"
         />
       </View>
@@ -156,7 +193,7 @@ export default function AddLayout() {
           // Check update value with a number
           onChangeText={(text) => setQuantity(Number(text))} 
           style={uniqueStyles.textInput} 
-          placeholder='Enter quantity value...'
+          placeholder='*Enter quantity value...*'
           keyboardType="numeric"
         />
       </View>
@@ -170,7 +207,8 @@ export default function AddLayout() {
         />
       </View>
 
-      <View style={uniqueStyles.buttonContainer}>
+      <View style={uniqueStyles.buttonContainer}> 
+        {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
         <ActionButton
           label="Save Furniture"
           onPress={saveFurniture}
@@ -204,6 +242,21 @@ const createUniqueStyles = (isDarkMode: boolean) =>
     },
     buttonContainer: {
       width: gridSize[0],
-    }
+    },
+    notificationText: {
+      position: 'absolute',
+      top: 100,
+      left: 0,
+      right: 0,
+      backgroundColor: isDarkMode ? 'rgba(255,255, 255, 0.7)' : 'rgba(0,0, 0, 0.7)',
+      color: isDarkMode ? '#000' : '#fff',
+      padding: 10,
+      borderRadius: 5,
+      marginBottom: 15,
+      fontSize:  16,
+      fontWeight: 'bold',
+      textAlign: 'center',
+      zIndex: 1000,
+    },
 
   });
