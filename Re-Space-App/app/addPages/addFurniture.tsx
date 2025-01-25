@@ -42,6 +42,7 @@ export default function AddLayout() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
+  // Notifications
   const [notifications, setnotifications] = useState<string | null>(null);
 
   const [name, setName] = useState<string>('');

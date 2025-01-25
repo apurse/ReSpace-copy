@@ -35,21 +35,37 @@ function calculateTime(axis: string, distance: Float) {
     return time;
 }
 
+// Boxes/furnitures in the grid
+const allBoxes = [
+    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0 }, 
+    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0 },
+    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0 },
+];
+
 export default function DragAndDrop() {
-
-
     // dark mode
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
 
+    // Notifications
+    const [notifications, setnotifications] = useState<string | null>(null);
+
+    // Define 'Box' to store in 'currentPos'
+    type Box = {
+        id: number;
+        x: Float;
+        y: Float;
+        timeX: Float;
+        timeY: Float;
+    };
 
     // set boxes array
-    const [boxes, setBoxes] = useState([
-        { id: 1, x: 0, y: 0, timeX: 0, timeY: 0 }, // Initial position of Box 1
-        { id: 2, x: 150, y: 150, timeX: 0, timeY: 0 }, // Initial position of Box 2
-    ]);
+    const [boxes, setBoxes] = useState(allBoxes);
+
+    // Placed boxes of current layout
+    const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]);
 
     const squareRef = useRef(null);
 
@@ -88,13 +104,38 @@ export default function DragAndDrop() {
             },
         });
 
+    // Check if the layout is set or not
+    const [isSet, setIsSet] = useState(false);
+
+    // Set boxes to current layout
+    const  setLayout = () => {
+        if (isSet) return; // Do nothing if already set
+        setIsSet(true); // Disable button function
+        setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
+
+        setnotifications('Current layout has been set');
+        setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
+
+    };
+
+    // Reset layout before setting current position 
+    const resetLayout = () => {
+        setIsSet(false); // Activate setlayout function again
+        setPlacedBoxes([]);
+        setBoxes(allBoxes)
+
+        setnotifications('Layout has been reset');
+        setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
+    };
 
     return (
         <View style={defaultStyles.body}>
-            {/* Content */}
+            {/* Title */}
             <View style={defaultStyles.pageTitleSection}>
                 <Text style={defaultStyles.pageTitle}>Add Layout</Text>
             </View>
+
+            {/* Grid */}
             <View
                 ref={squareRef}
                 style={uniqueStyles.grid}
@@ -102,7 +143,26 @@ export default function DragAndDrop() {
                     const { x, y, width, height } = e.nativeEvent.layout;
                     console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
                 }}
-            >
+            >   
+                {/* Display not moving boxes */}
+                {placedBoxes.map((box) => (
+                    <View
+                    key={`placed-${box.id}`} // Create unique id for placed boxes
+                    style={[
+                        uniqueStyles.robot,
+                        { 
+                            left:  box.x, 
+                            top: box.y, 
+                            backgroundColor: "transparent", 
+                            borderWidth: 1,
+                        },
+                    ]}
+                    >
+                        <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
+                    </View>
+                ))}
+
+                {/* Display moving boxes */}
                 {boxes.map((box) => {
                     const panResponder = createPanResponder(box.id);
                     return (
@@ -113,6 +173,7 @@ export default function DragAndDrop() {
                                 {
                                     left: box.x,
                                     top: box.y,
+                                    backgroundColor: '#964B00',
                                 },
                             ]}
                             {...panResponder.panHandlers}
@@ -124,14 +185,22 @@ export default function DragAndDrop() {
             </View>
             {/* Need scale measurement */}
 
+            {/* Buttons */}
             <View style={uniqueStyles.buttonContainer}>
+                {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
                 <ActionButton
-                    label="Save Layout"
-                    onPress={() => alert("Todo...")}
+                    label="Set Current Location"
+                    onPress={setLayout}
+                    style={isSet ? { backgroundColor: "rgba(76, 175, 80, 0.3)"} : {}}
+                    textS={isSet ? { color: "rgba(250, 250, 250, 0.3"} : {}}
                 />
                 <ActionButton
                     label="Ready To Go!"
                     onPress={() => sendMessage({ type: "time", message: boxes })} // `id: ${boxes[0].id}, x: ${boxes[0].x}, y: ${boxes[0].y}`
+                />
+                <ActionButton
+                    label="Reset Layout" 
+                    onPress={resetLayout}
                 />
             </View>
         </View>
@@ -151,7 +220,7 @@ export default function DragAndDrop() {
                 ws.send(JSON.stringify(data));
             } else {
                 console.error("WebSocket is not open.");
-            }
+            };
         };
 
         // a message was received
@@ -161,7 +230,7 @@ export default function DragAndDrop() {
                 console.log("Received:", data);
             } catch (err) {
                 console.error("Error parsing message:", err);
-            }
+            };
         };
 
         ws.onerror = e => {
@@ -173,8 +242,8 @@ export default function DragAndDrop() {
             // connection closed
             console.log(e.code, e.reason);
         };
-    }
-}
+    };
+};
 
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
@@ -206,6 +275,21 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         },
         buttonContainer: {
             width: gridDimensionsPx[0],
-        }
+        },
+        notificationText: {
+            position: 'absolute',
+            top: 225,
+            left: 0,
+            right: 0,
+            backgroundColor: isDarkMode ? 'rgba(255,255, 255, 0.7)' : 'rgba(0,0, 0, 0.7)',
+            color: isDarkMode ? '#000' : '#fff',
+            padding: 10,
+            borderRadius: 5,
+            marginBottom: 15,
+            fontSize:  16,
+            fontWeight: 'bold',
+            textAlign: 'center',
+            zIndex: 1000,
+          },
 
     });
