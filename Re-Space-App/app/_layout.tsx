@@ -1,6 +1,6 @@
 // _layout.tsx
 
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, ReactChild } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -9,13 +9,62 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+
+// Create websocket connection to server
+// NEED TO CHANGE AS WS DOESN'T WORK IN BROWSER
+// WebSocket works for mobile, not for browser, require('ws') works for neither
+const socket = new WebSocket("ws://Douglas-MBP.local:8002/app");
+
+
+// connection opened
+socket.onopen = () => {
+  console.log("WebSocket connection established.");
+};
+
+
+// a message was received
+socket.onmessage = (e: { data: string; }) => {
+  try {
+    const data = JSON.parse(e.data);
+    console.log("Received:", data);
+  } catch (err) {
+    console.error("Error parsing message:", err);
+  };
+};
+
+
+// an error occurred
+socket.onerror = (e: any) => {console.log(e)};
+
+
+// connection closed
+socket.onclose = (e: { code: any; reason: any; }) => {console.log(e.code, e.reason)};
+
+
+// Context to pass data to children
+export const SocketContext = createContext(socket);
+
+interface ISocketProvider {
+  children: ReactChild;
+}
+
+
+// Make a new prop
+export const SocketProvider = (props: ISocketProvider) => (
+  <SocketContext.Provider value={socket}>{props.children}</SocketContext.Provider>
+);
+
+
+
+
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 // Theme Context (toggle theme light to dark)
 const ThemeContext = createContext({
   theme: 'light',
-  toggleTheme: () => {},
+  toggleTheme: () => { },
 });
 
 // Hook to use theme context
@@ -58,13 +107,15 @@ export default function RootLayout() {
   }
 
   return (
-      <ThemeContext.Provider value={{theme, toggleTheme}}>
+    <SocketProvider>
+      <ThemeContext.Provider value={{ theme, toggleTheme }}>
         <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
           <Stack>
-            <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
-            <Stack.Screen name="+not-found"/>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
           </Stack>
         </ThemeProvider>
       </ThemeContext.Provider>
+    </SocketProvider>
   );
 }

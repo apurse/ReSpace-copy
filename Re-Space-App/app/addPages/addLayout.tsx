@@ -4,9 +4,11 @@ import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
+import { useSocket } from "@/hooks/useSocket";
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
+
 
 // -------- Grid Visuals --------
 
@@ -28,7 +30,7 @@ function calculateTime(axis: string, distance: Float) {
         distance = distance * scaleX
     else
         distance = distance * scaleY
-    
+
     const robotSpeedMM = 190 / 2; // hardcoded mm
 
     const time = distance / robotSpeedMM;
@@ -37,7 +39,7 @@ function calculateTime(axis: string, distance: Float) {
 
 // Boxes/furnitures in the grid
 const allBoxes = [
-    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0 }, 
+    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0 },
     { id: 2, x: 150, y: 150, timeX: 0, timeY: 0 },
     { id: 3, x: 100, y: 100, timeX: 0, timeY: 0 },
 ];
@@ -48,6 +50,7 @@ export default function DragAndDrop() {
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
+    const socket = useSocket();
 
     // Notifications
     const [notifications, setnotifications] = useState<string | null>(null);
@@ -80,13 +83,12 @@ export default function DragAndDrop() {
                     const newY = Math.max(0, Math.min(gridDimensionsPx[1] - (uniqueStyles.robot.height + 3), box.y + dy)); // Clamp y position
                     const newTimeX = calculateTime("X", newX);
                     const newTimeY = calculateTime("Y", newY);
-                    return { ...box, x: newX, y: newY, timeX: newTimeX, timeY: newTimeY};
+                    return { ...box, x: newX, y: newY, timeX: newTimeX, timeY: newTimeY };
                 }
                 return box;
             })
         );
     };
-
 
 
     const createPanResponder = (id: number) =>
@@ -107,16 +109,17 @@ export default function DragAndDrop() {
     // Check if the layout is set or not
     const [isSet, setIsSet] = useState(false);
 
+
     // Set boxes to current layout
-    const  setLayout = () => {
+    const setLayout = () => {
         if (isSet) return; // Do nothing if already set
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
 
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
-
     };
+
 
     // Reset layout before setting current position 
     const resetLayout = () => {
@@ -126,6 +129,16 @@ export default function DragAndDrop() {
 
         setnotifications('Layout has been reset');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
+    };
+
+
+    // Send WebSocket data
+    const sendMessage = async (data: Record<string, unknown>) => {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(data));
+        } else {
+            console.error("WebSocket is not open.");
+        };
     };
 
     return (
@@ -143,20 +156,20 @@ export default function DragAndDrop() {
                     const { x, y, width, height } = e.nativeEvent.layout;
                     console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
                 }}
-            >   
+            >
                 {/* Display not moving boxes */}
                 {placedBoxes.map((box) => (
                     <View
-                    key={`placed-${box.id}`} // Create unique id for placed boxes
-                    style={[
-                        uniqueStyles.robot,
-                        { 
-                            left:  box.x, 
-                            top: box.y, 
-                            backgroundColor: "transparent", 
-                            borderWidth: 1,
-                        },
-                    ]}
+                        key={`placed-${box.id}`} // Create unique id for placed boxes
+                        style={[
+                            uniqueStyles.robot,
+                            {
+                                left: box.x,
+                                top: box.y,
+                                backgroundColor: "transparent",
+                                borderWidth: 1,
+                            },
+                        ]}
                     >
                         <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
                     </View>
@@ -191,58 +204,20 @@ export default function DragAndDrop() {
                 <ActionButton
                     label="Set Current Location"
                     onPress={setLayout}
-                    style={isSet ? { backgroundColor: "rgba(76, 175, 80, 0.3)"} : {}}
-                    textS={isSet ? { color: "rgba(250, 250, 250, 0.3"} : {}}
+                    style={isSet ? { backgroundColor: "rgba(76, 175, 80, 0.3)" } : {}}
+                    textS={isSet ? { color: "rgba(250, 250, 250, 0.3" } : {}}
                 />
                 <ActionButton
                     label="Ready To Go!"
                     onPress={() => sendMessage({ type: "time", message: boxes })} // `id: ${boxes[0].id}, x: ${boxes[0].x}, y: ${boxes[0].y}`
                 />
                 <ActionButton
-                    label="Reset Layout" 
+                    label="Reset Layout"
                     onPress={resetLayout}
                 />
             </View>
         </View>
     );
-
-
-    // -------------------------------------- WEBSOCKET STUFF --------------------------------------
-
-    async function sendMessage(data: Record<string, unknown>) {
-        const ws = new WebSocket('ws://respace-1.local:8002');
-        ws.onopen = () => {
-            console.log("WebSocket connection established.");
-            // connection opened
-            // ws.send('something'); // send a message
-
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify(data));
-            } else {
-                console.error("WebSocket is not open.");
-            };
-        };
-
-        // a message was received
-        ws.onmessage = e => {
-            try {
-                const data = JSON.parse(e.data);
-                console.log("Received:", data);
-            } catch (err) {
-                console.error("Error parsing message:", err);
-            };
-        };
-
-        ws.onerror = e => {
-            // an error occurred
-            console.log(e);
-        };
-
-        ws.onclose = e => {
-            // connection closed
-            console.log(e.code, e.reason);
-        };
-    };
 };
 
 const createUniqueStyles = (isDarkMode: boolean) =>
@@ -286,10 +261,10 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             padding: 10,
             borderRadius: 5,
             marginBottom: 15,
-            fontSize:  16,
+            fontSize: 16,
             fontWeight: 'bold',
             textAlign: 'center',
             zIndex: 1000,
-          },
+        },
 
     });

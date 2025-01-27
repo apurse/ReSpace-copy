@@ -1,52 +1,29 @@
 import React from 'react';
-import {Dimensions, Pressable, StyleSheet} from 'react-native';
+import { Dimensions, Pressable, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
+import { useSocket } from "@/hooks/useSocket";
+
 
 const { width, height } = Dimensions.get('window');
+const socket = useSocket();
 
-async function sendMessage(data: Record<string, unknown>) {
-    // Must have .local at end of hostname
-    const ws = new WebSocket('ws://respace-1.local:8002');
-    ws.onopen = () => {
-        console.log("WebSocket connection established.");
-        // connection opened
-        // ws.send('something'); // send a message
 
-        if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify(data));
-        } else {
-            console.error("WebSocket is not open.");
-        }
-    };
-
-    // a message was received
-    ws.onmessage = e => {
-        try {
-            const data = JSON.parse(e.data);
-            console.log("Received:", data);
-        } catch (err) {
-            console.error("Error parsing message:", err);
-        }
-    };
-
-    ws.onerror = e => {
-        // an error occurred
-        console.log(e);
-    };
-
-    ws.onclose = e => {
-        // connection closed
-        console.log(e.code, e.reason);
+// sends message data to websocket hook
+const sendMessage = async (data: Record<string, unknown>) => {
+    if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(data));
+    } else {
+        console.error("WebSocket is not open.");
     };
 }
 
 const ControlButton = ({
-                           iconName,
-                           iconSize = 24,
-                           iconColor = 'black',
-                           buttonStyle,
-                           message,
-                       }: {
+    iconName,
+    iconSize = 24,
+    iconColor = 'black',
+    buttonStyle,
+    message,
+}: {
     onPressIn?: () => void;
     onPressOut?: () => void;
     iconName: keyof typeof AntDesign.glyphMap;
@@ -58,11 +35,11 @@ const ControlButton = ({
     return (
         <Pressable
             onPressIn={() => {
-                sendMessage({"control": message});
+                sendMessage({ "control": message });
                 console.log("Sending: movement:", message);
             }}
             onPressOut={() => {
-                sendMessage({"control": "stop"});
+                sendMessage({ "control": "stop" });
                 console.log("Sending: movement:", "stop");
             }}
             style={({ pressed }) => [
@@ -81,10 +58,10 @@ const ControlButton = ({
 const styles = StyleSheet.create({
     button: {
         borderRadius: 10,
-        width: width*0.2,
-        height: width*0.2,
-        marginBottom:10,
-        marginLeft:10,
+        width: width * 0.2,
+        height: width * 0.2,
+        marginBottom: 10,
+        marginLeft: 10,
         alignItems: 'center',
         justifyContent: 'center',
         // backgroundColor: isDarkMode ? '#fff' : '#000',

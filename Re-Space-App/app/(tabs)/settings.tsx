@@ -1,19 +1,21 @@
 // https://reactnative.dev/docs/network
 
 import React, { useEffect, useState } from 'react';
-import {StyleSheet, ScrollView, Text, View, Pressable, Dimensions} from 'react-native';
+import { StyleSheet, ScrollView, Text, View, Pressable, Dimensions } from 'react-native';
 import ToggleSetting from '@/components/settingsComponents/toggle';
 import SliderSetting from '@/components/settingsComponents/slider';
 import ActionButton from '@/components/settingsComponents/actionButton';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {Link} from "expo-router";
+import { Link } from "expo-router";
+import { useSocket } from "@/hooks/useSocket";
 
 const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
+    const socket = useSocket();
     let hasLoaded = false;
 
     // Add state for each independent toggle
@@ -33,13 +35,6 @@ const SettingsPage = () => {
         if (hasLoaded) return;
         hasLoaded = true;
 
-        // try {
-        //     const test = await AsyncStorage.getItem('test');
-        //     setTest(test == 'true');
-        // } catch (error) {
-        //     console.error("Error loading settings:", error);
-        //     setTest(false);
-        // }
 
         try {
             const movementSpeed = await AsyncStorage.getItem('movementSpeed');
@@ -91,41 +86,15 @@ const SettingsPage = () => {
 
     }
 
-    async function sendMessage(data: Record<string, unknown>) {
-        // Must have .local at end of hostname
-        const ws = new WebSocket('ws://respace-1.local:8002');
-        ws.onopen = () => {
-            console.log("WebSocket connection established.");
-            // connection opened
-            // ws.send('something'); // send a message
-
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify(data));
-            } else {
-                console.error("WebSocket is not open.");
-            }
-        };
-
-        // a message was received
-        ws.onmessage = e => {
-            try {
-                const data = JSON.parse(e.data);
-                console.log("Received:", data);
-            } catch (err) {
-                console.error("Error parsing message:", err);
-            }
-        };
-
-        ws.onerror = e => {
-            // an error occurred
-            console.log(e);
-        };
-
-        ws.onclose = e => {
-            // connection closed
-            console.log(e.code, e.reason);
+    // sends message data to websocket hook
+    const sendMessage = async(data: Record<string, unknown>) => {
+        if (socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify(data));
+        } else {
+            console.error("WebSocket is not open.");
         };
     }
+
 
     async function onChangeFunction(settingFunction: any, key: any, value: any) {
         if (value != null) {
@@ -135,7 +104,6 @@ const SettingsPage = () => {
             // alert("Key: " + settingFunction.toString());
 
         }
-        // TODO: Setup communication interface eg: Communication.Send(value)
     }
 
 

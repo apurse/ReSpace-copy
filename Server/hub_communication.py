@@ -4,7 +4,7 @@ import json
 from websockets import serve
 import socket
 
-host = "0.0.0.0"
+host = "localhost"
 port = 8002
 
 connected_apps = set()
@@ -106,7 +106,7 @@ async def main():
     hostname = socket.gethostname()
     print(f"Server running at ws://{hostname}:{port}")
 
-    async with serve(handle_connection, host, port):
+    async with serve(handle_connection, 'localhost', port):
         try:
             await asyncio.Future()  # Keeps the server running
         except asyncio.CancelledError:
