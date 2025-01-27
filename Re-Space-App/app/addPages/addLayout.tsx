@@ -83,7 +83,7 @@ export default function DragAndDrop() {
                     const newY = Math.max(0, Math.min(gridDimensionsPx[1] - (uniqueStyles.robot.height + 3), box.y + dy)); // Clamp y position
                     const newTimeX = calculateTime("X", newX);
                     const newTimeY = calculateTime("Y", newY);
-                    return { ...box, x: newX, y: newY, timeX: newTimeX, timeY: newTimeY };
+                    return { ...box, x: newX, y: newY };
                 }
                 return box;
             })
@@ -115,6 +115,7 @@ export default function DragAndDrop() {
         if (isSet) return; // Do nothing if already set
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
+        sendMessage({ type: "current_layout", locations: boxes })
 
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
@@ -209,7 +210,7 @@ export default function DragAndDrop() {
                 />
                 <ActionButton
                     label="Ready To Go!"
-                    onPress={() => sendMessage({ type: "time", message: boxes })} // `id: ${boxes[0].id}, x: ${boxes[0].x}, y: ${boxes[0].y}`
+                    onPress={() => sendMessage({ type: "desired_layout", locations: boxes })}
                 />
                 <ActionButton
                     label="Reset Layout"

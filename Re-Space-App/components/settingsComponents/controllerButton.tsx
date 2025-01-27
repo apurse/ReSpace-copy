@@ -35,11 +35,11 @@ const ControlButton = ({
     return (
         <Pressable
             onPressIn={() => {
-                sendMessage({ "control": message });
+                sendMessage({ "type": "control", "target": "respace-1", "direction": message });
                 console.log("Sending: movement:", message);
             }}
             onPressOut={() => {
-                sendMessage({ "control": "stop" });
+                sendMessage({ "type": "control", "target": "respace-1", "direction": "stop"});
                 console.log("Sending: movement:", "stop");
             }}
             style={({ pressed }) => [
