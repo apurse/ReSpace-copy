@@ -39,7 +39,7 @@ const ControlButton = ({
                 console.log("Sending: movement:", message);
             }}
             onPressOut={() => {
-                sendMessage({ "type": "control", "target": "respace-1", "direction": "stop"});
+                sendMessage({ "type": "control", "target": "respace-1", "direction": "stop" });
                 console.log("Sending: movement:", "stop");
             }}
             style={({ pressed }) => [

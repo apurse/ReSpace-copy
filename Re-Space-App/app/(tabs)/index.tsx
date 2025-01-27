@@ -57,10 +57,10 @@ const { message, color, warning, battery } = batteryLevel();
 const { messageW = "", colorW = "", warningI = null } = warnings() || {};
 
 export default function HomeScreen() {
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
-    const defaultStyles = createDefaultStyles(isDarkMode);
-    const uniqueStyles = createUniqueStyles(isDarkMode);
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const defaultStyles = createDefaultStyles(isDarkMode);
+  const uniqueStyles = createUniqueStyles(isDarkMode);
 
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
@@ -137,4 +137,4 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       fontSize: height * 0.07,
     },
 
-});
+  });

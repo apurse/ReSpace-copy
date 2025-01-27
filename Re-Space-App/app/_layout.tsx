@@ -10,10 +10,10 @@ import 'react-native-reanimated';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
-// Create websocket connection to server
-// NEED TO CHANGE AS WS DOESN'T WORK IN BROWSER
-// WebSocket works for mobile, not for browser, require('ws') works for neither
-const socket = new WebSocket("ws://Douglas-MBP.local:8002/app");
+// Setting the socket type based on device connection
+// If socket is undefined (web) use ws, else use react native API
+const socketType = (typeof WebSocket === 'undefined') ? require('ws') : WebSocket;
+const socket = new socketType("ws://Douglas-MBP.local:8002/app");
 
 
 // connection opened

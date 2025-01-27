@@ -13,7 +13,7 @@ const localJson = FileSystem.documentDirectory + 'FurnitureData.json';
 // Call function to clear the json data from device
 const clearJsonData = async () => {
   try {
-    await  FileSystem.writeAsStringAsync(localJson,JSON.stringify({ Furniture: [] }));
+    await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: [] }));
 
     console.log('Data has been cleared');
   } catch (error) {
@@ -64,7 +64,7 @@ export default function AddLayout() {
 
       // Uncomment and click 'save furniture' with nothing on the fields (need reset expo)
       //clearJsonData();
-      
+
       return;
     }
 
@@ -92,10 +92,10 @@ export default function AddLayout() {
       const updateData = [...jsonData.Furniture, newFurniture];
 
       // Write new data to json
-      await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture : updateData }));
+      await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: updateData }));
 
       // Show local json file in console
-      const data  = await FileSystem.readAsStringAsync(localJson);
+      const data = await FileSystem.readAsStringAsync(localJson);
       console.log('Furniture json updated:', data);
 
       // Show notifications of successful
@@ -133,19 +133,19 @@ export default function AddLayout() {
 
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Name</Text>
-        <TextInput 
-          value={name} 
-          onChangeText={setName} 
-          style={uniqueStyles.textInput} 
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          style={uniqueStyles.textInput}
           placeholder='*Enter name...*'
         />
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Model</Text>
-        <TextInput 
-          value={model} 
-          onChangeText={setModel} 
-          style={uniqueStyles.textInput} 
+        <TextInput
+          value={model}
+          onChangeText={setModel}
+          style={uniqueStyles.textInput}
           placeholder='Enter model type...'
         />
       </View>
@@ -156,7 +156,7 @@ export default function AddLayout() {
           value={heightF ? heightF.toString() : ''}
           // Check update value with a number
           onChangeText={(text) => setHeight(Number(text))}
-          style={uniqueStyles.textInput} 
+          style={uniqueStyles.textInput}
           placeholder='*Enter height value...*'
           keyboardType="numeric"
         />
@@ -167,8 +167,8 @@ export default function AddLayout() {
           // If there is nothing ('0') then show empty string (to keep placeholder) 
           value={widthF ? widthF.toString() : ''}
           // Check update value with a number
-          onChangeText={(text) => setWidth(Number(text))} 
-          style={uniqueStyles.textInput} 
+          onChangeText={(text) => setWidth(Number(text))}
+          style={uniqueStyles.textInput}
           placeholder='*Enter width value...*'
           keyboardType="numeric"
         />
@@ -179,8 +179,8 @@ export default function AddLayout() {
           // If there is nothing ('0') then show empty string (to keep placeholder)
           value={length ? length.toString() : ''}
           // Check update value with a number 
-          onChangeText={(text) => setLength(Number(text))} 
-          style={uniqueStyles.textInput} 
+          onChangeText={(text) => setLength(Number(text))}
+          style={uniqueStyles.textInput}
           placeholder='*Enter length value...*'
           keyboardType="numeric"
         />
@@ -191,23 +191,23 @@ export default function AddLayout() {
           // If there is nothing ('0') then show empty string (to keep placeholder)
           value={quantity ? quantity.toString() : ''}
           // Check update value with a number
-          onChangeText={(text) => setQuantity(Number(text))} 
-          style={uniqueStyles.textInput} 
+          onChangeText={(text) => setQuantity(Number(text))}
+          style={uniqueStyles.textInput}
           placeholder='*Enter quantity value...*'
           keyboardType="numeric"
         />
       </View>
       <View style={uniqueStyles.inputField}>
         <Text style={uniqueStyles.inputHeader}>Colour</Text>
-        <TextInput 
-          value={colour} 
-          onChangeText={setColour} 
-          style={uniqueStyles.textInput} 
+        <TextInput
+          value={colour}
+          onChangeText={setColour}
+          style={uniqueStyles.textInput}
           placeholder='Enter colour...'
         />
       </View>
 
-      <View style={uniqueStyles.buttonContainer}> 
+      <View style={uniqueStyles.buttonContainer}>
         {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
         <ActionButton
           label="Save Furniture"
@@ -253,7 +253,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       padding: 10,
       borderRadius: 5,
       marginBottom: 15,
-      fontSize:  16,
+      fontSize: 16,
       fontWeight: 'bold',
       textAlign: 'center',
       zIndex: 1000,
