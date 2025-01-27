@@ -14,9 +14,7 @@ furniture_positions = set()
 async def handle_connection(websocket):
     # Get IP and subsequent hostname
     connected_ip = websocket.remote_address[0]
-    connected_hostname = socket.gethostbyaddr(connected_ip)[0]
-    print(f"Successfully connected to: {connected_hostname} with ip: {connected_ip}")
-
+    connected_hostname = "N/A"
     # Check based on incoming path if its app or robot connecting
     path = websocket.request.path
     client_type = path.lstrip("/")
@@ -25,11 +23,14 @@ async def handle_connection(websocket):
         # Temporarily limit to only one app connection at a time
         if len(connected_apps) == 0:
             connected_apps.add(websocket)
+            print(f"App successfully connected with IP: {connected_ip}")
         else:
             websocket.send("App already connected!")
             return
     elif client_type == "robot":
         connected_robots.add(websocket)
+        connected_hostname = socket.gethostbyaddr(connected_ip)[0]
+        print(f"Robot \"{connected_hostname}\" successfully connected with ip: {connected_ip}")
     else:
         await websocket.close()
         return
@@ -48,7 +49,7 @@ async def handle_connection(websocket):
         pass
     finally:
         if client_type == "app":
-            print(f"Disconnected from: {connected_hostname}")
+            print(f"App disconnected with ip {connected_ip}")
             connected_apps.remove(websocket)
         elif client_type == "robot":
             print(f"Disconnected from: {connected_hostname}")
@@ -59,18 +60,20 @@ async def handle_app_message(websocket, data):
         print("Data: ", data)
         # Forward the task to the target robot
         target_robot = data["target"]
-        await forward_to_robot(target_robot, data)
+        # await forward_to_robot(target_robot, data)
 
     # Manually setting current furniture with the app
-    elif data["type"] == "current_furniture":
-        print("Todo")
+    elif data["type"] == "current_layout":
+        locations = data["locations"]
+        print(f"Current layout locations: {locations}")
         #Todo: Store locally, offer up information for swarm script
 
-    elif data["type"] == "desired_furniture":
-        print("Todo")
-        #Todo: Store locally, offer up information for swarm script
+    elif data["type"] == "desired_layout":
+        locations = data["locations"]
+        print(f"Desired layout locations: {locations}")
     else:
         print("Received unknown command!")
+        print("Unknown data: ", data)
 
 async def handle_robot_message(websocket, data):
     if data["type"] == "status":
