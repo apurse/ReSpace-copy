@@ -13,7 +13,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // Setting the socket type based on device connection
 // If socket is undefined (web) use ws, else use react native API
 const socketType = (typeof WebSocket === 'undefined') ? require('ws') : WebSocket;
-const socket = new socketType("ws://Douglas-MBP.local:8002/app");
+const socket = new socketType("ws://respace-hub.local:8002/app");
 
 
 // connection opened
