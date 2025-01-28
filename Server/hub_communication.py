@@ -1,36 +1,42 @@
+"""SETUP: pip install asyncio websockets --break-system-packages"""
+
 import asyncio
 import websockets.asyncio
 import json
 from websockets import serve
 import socket
 
-host = "localhost"
+host = "0.0.0.0"
 port = 8002
 
-connected_apps = set()
-connected_robots = set()
+connected_app = None
+connected_robots = {}
 furniture_positions = set()
 
 async def handle_connection(websocket):
     # Get IP and subsequent hostname
     connected_ip = websocket.remote_address[0]
-    connected_hostname = "N/A"
+    # connected_hostname = "N/A"
     # Check based on incoming path if its app or robot connecting
     path = websocket.request.path
     client_type = path.lstrip("/")
-    # Add connected app/robots to sets
+
+    # Assign app websocket or add robot to dictionary
     if client_type == "app":
-        # Temporarily limit to only one app connection at a time
-        if len(connected_apps) == 0:
-            connected_apps.add(websocket)
-            print(f"App successfully connected with IP: {connected_ip}")
-        else:
-            websocket.send("App already connected!")
-            return
+        print(f"App attempting to connect with IP: {connected_ip}")
+        # Limit to only one app connection at a time
+        global connected_app
+        connected_app = websocket
+        # if connected_app is None:
+        #     connected_app = websocket
+        #     print(f"App successfully connected with IP: {connected_ip}")
+        # else:
+        #     websocket.send("App already connected!")
     elif client_type == "robot":
-        connected_robots.add(websocket)
-        connected_hostname = socket.gethostbyaddr(connected_ip)[0]
-        print(f"Robot \"{connected_hostname}\" successfully connected with ip: {connected_ip}")
+        connected_robots[connected_ip] = websocket
+
+        # connected_hostname = socket.gethostbyaddr(connected_ip)[0]
+        print(f"Robot successfully connected with ip: {connected_ip}")
     else:
         await websocket.close()
         return
@@ -50,10 +56,10 @@ async def handle_connection(websocket):
     finally:
         if client_type == "app":
             print(f"App disconnected with ip {connected_ip}")
-            connected_apps.remove(websocket)
+            connected_app = None
         elif client_type == "robot":
-            print(f"Disconnected from: {connected_hostname}")
-            connected_robots.remove(websocket)
+            print(f"Disconnected from: {connected_ip}")
+            connected_robots.pop(connected_ip)
 
 async def handle_app_message(websocket, data):
     if data["type"] == "control" or data["type"] == "status":
@@ -77,6 +83,11 @@ async def handle_app_message(websocket, data):
 
 async def handle_robot_message(websocket, data):
     if data["type"] == "status":
+        connected_ip = websocket.remote_address[0]
+        host_name = data["robot_id"]
+        connected_robots.pop(connected_ip)
+        connected_robots[host_name] = websocket
+
         if data["target"] == "app":
             print(f"Received status update from {data['robot_id']}:\n{data}")
             if data["battery"] < 20: # Example of logic based on status we can do
@@ -87,9 +98,11 @@ async def handle_robot_message(websocket, data):
 
 
 async def forward_to_robot(target_robot, data):
-    for robot in connected_robots:
+    for id, robot in connected_robots.items():
+        print(f"Full remote address stuff {robot.remote_address}")
         robot_ip = robot.remote_address[0]
-        robot_hostname = (socket.gethostbyaddr(robot_ip)[0])
+        # robot_hostname = (socket.gethostbyaddr(robot_ip)[0])
+        robot_hostname = data["robot_id"]
 
         # lstrip(".") on hostname doesn't work, not sure why
         # Current solution is appending .broadband to target_robot
@@ -102,14 +115,16 @@ async def forward_to_robot(target_robot, data):
         print(f"Robot {target_robot} not found!")
 
 async def forward_to_apps(message):
-    for app in connected_apps:
-        await app.send(json.dumps(message))
+    if connected_app is not None:
+        await connected_app.send(json.dumps(message))
+    else:
+        print(f"App not connected!")
 
 async def main():
     hostname = socket.gethostname()
     print(f"Server running at ws://{hostname}:{port}")
 
-    async with serve(handle_connection, 'localhost', port):
+    async with serve(handle_connection, host, port):
         try:
             await asyncio.Future()  # Keeps the server running
         except asyncio.CancelledError:
