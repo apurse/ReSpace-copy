@@ -90,10 +90,15 @@ export default function DragAndDrop() {
         );
     };
 
+    // Track active box for highlight feature
+    const [selectedBox, setSelectedBox] = useState<number | null>(null);
 
     const createPanResponder = (id: number) =>
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
+            onPanResponderGrant: () => {
+                setSelectedBox(id); // Selected box to highlighted
+            },
             onPanResponderMove: (_, gestureState) => {
                 const { dx, dy } = gestureState;
                 updateBoxPosition(id, dx, dy);
@@ -108,7 +113,6 @@ export default function DragAndDrop() {
 
     // Check if the layout is set or not
     const [isSet, setIsSet] = useState(false);
-
 
     // Set boxes to current layout
     const setLayout = () => {
@@ -179,6 +183,10 @@ export default function DragAndDrop() {
                 {/* Display moving boxes */}
                 {boxes.map((box) => {
                     const panResponder = createPanResponder(box.id);
+
+                    // Check if box is selected to highlighted
+                    const isSelected = selectedBox === box.id;
+
                     return (
                         <View
                             key={box.id}
@@ -188,6 +196,8 @@ export default function DragAndDrop() {
                                     left: box.x,
                                     top: box.y,
                                     backgroundColor: '#964B00',
+                                    borderWidth: isSelected ? 2 : 0,
+                                    borderColor: isSelected ? 'yellow' : 'transparent',
                                 },
                             ]}
                             {...panResponder.panHandlers}
@@ -201,7 +211,17 @@ export default function DragAndDrop() {
 
             {/* Buttons */}
             <View style={uniqueStyles.buttonContainer}>
+
+                {/* Show notifications */}
                 {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+
+                {selectedBox !== null && (
+                    <Text style={uniqueStyles.coordinates}>
+                        X = {boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0},
+                        Y = {boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0}
+                    </Text>
+                )}
+
                 <ActionButton
                     label="Set Current Location"
                     onPress={setLayout}
@@ -266,6 +286,13 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             fontWeight: 'bold',
             textAlign: 'center',
             zIndex: 1000,
+        },
+        coordinates: {
+            fontSize: 12,
+            color: isDarkMode ? '#fff' : '#000',
+            textAlign: 'center',
+            marginVertical: -8,
+            top: 10,
         },
 
     });
