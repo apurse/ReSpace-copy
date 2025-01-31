@@ -6,6 +6,14 @@ import json
 from websockets import serve
 import socket
 
+__all__ = ["hub_main",
+           "get_connected_robots",
+           "get_current_furniture_positions",
+           "get_desired_furniture_positions",
+           "send_to_robot",
+           "send_to_app",
+           "get_connected_app"]
+
 host = "0.0.0.0"
 port = 8002
 
@@ -22,6 +30,9 @@ def get_desired_furniture_positions():
 
 def get_connected_robots():
     return connected_robots
+
+def get_connected_app():
+    return connected_app
 
 async def handle_connection(websocket):
     # Get IP and subsequent hostname
@@ -49,7 +60,8 @@ async def handle_connection(websocket):
         connected_app = websocket
         await update_apps_robot_list()
     elif client_type == "robot":
-        connected_robots[connection_id] = websocket
+        connected_robots[connection_id] = {"websocket": websocket}
+        print(f"Robot connected to {connected_robots[connection_id]}")
         await update_apps_robot_list()
         print(f"Robot successfully connected with ip: {connected_ip}")
     else:
@@ -115,10 +127,11 @@ async def handle_robot_message(websocket, data):
 async def send_to_robot(target_id, data):
     for robot_id, robot in connected_robots.items():
         # print(f"Forwarding: \n{data}\nto robot: {robot_id}")
+        robot_websocket = robot["websocket"]
         print(f"Robot ID: {robot_id}")
         print(f"Target ID: {target_id}")
-        if str(robot_id) == target_id:
-            await robot.send(json.dumps(data))
+        if str(robot_id) == str(target_id):
+            await robot_websocket.send(json.dumps(data))
             break
     else:
         print(f"Robot {target_id} not found!")
@@ -141,7 +154,7 @@ async def update_apps_robot_list():
         except Exception as e:
             print(f"Failed to update app with robot list: {e}")
 
-async def main():
+async def hub_main():
     hostname = socket.gethostname()
     print(f"Server running at ws://{hostname}:{port}")
 
@@ -152,4 +165,4 @@ async def main():
             print("\nShutting down server...")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    asyncio.run(hub_main())
