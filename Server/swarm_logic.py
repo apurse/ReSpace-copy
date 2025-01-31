@@ -17,7 +17,7 @@ from hub_communication import *
 
 async def swarm_logic():
     await asyncio.sleep(2)
-    print("Controller is running alongside the hub.")
+    print("Swarm Logic is running alongside the hub.")
 
     while True:
         robots = get_connected_robots()
