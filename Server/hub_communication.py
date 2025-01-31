@@ -11,7 +11,17 @@ port = 8002
 
 connected_app = None
 connected_robots = {}
-furniture_positions = set()
+current_furniture_positions = {}
+desired_furniture_positions = {}
+
+def get_current_furniture_positions():
+    return current_furniture_positions
+
+def get_desired_furniture_positions():
+    return desired_furniture_positions
+
+def get_connected_robots():
+    return connected_robots
 
 async def handle_connection(websocket):
     # Get IP and subsequent hostname
@@ -29,13 +39,14 @@ async def handle_connection(websocket):
     if client_type == "app":
         # Limit to only one app connection at a time
         global connected_app
-        if connected_app is None:
-            connected_app = websocket
-            print(f"App successfully connected with IP: {connected_ip}")
-        else:
-            print(f"App attempted to connect with IP: {connected_ip}")
-            print(f"Error: App already connected with IP: {connected_app.remote_address[0]}")
-            return
+        # if connected_app is None:
+        #     connected_app = websocket
+        #     print(f"App successfully connected with IP: {connected_ip}")
+        # else:
+        #     print(f"App attempted to connect with IP: {connected_ip}")
+        #     print(f"Error: App already connected with IP: {connected_app.remote_address[0]}")
+        #     return
+        connected_app = websocket
         await update_apps_robot_list()
     elif client_type == "robot":
         connected_robots[connection_id] = websocket
@@ -71,22 +82,26 @@ async def handle_app_message(websocket, data):
         print("Data: ", data)
         # Forward the task to the target robot
         target_robot_id = data["target_id"]
-        await forward_to_robot(target_robot_id, data)
+        await send_to_robot(target_robot_id, data)
 
     # Manually setting current furniture with the app
     elif data["type"] == "current_layout":
-        locations = data["locations"]
-        print(f"Current layout locations: {locations}")
+        global current_furniture_positions
+        current_furniture_positions = data["locations"]
+        print(f"Current layout locations: {current_furniture_positions}")
         #Todo: Store locally, offer up information for swarm script
 
     elif data["type"] == "desired_layout":
-        locations = data["locations"]
-        print(f"Desired layout locations: {locations}")
+        global desired_furniture_positions
+        desired_furniture_positions = data["locations"]
+        print(f"Desired layout locations: {desired_furniture_positions}")
     else:
         print("Received unknown command!")
         print("Unknown data: ", data)
 
 async def handle_robot_message(websocket, data):
+    print(f"Connected Robots: {connected_robots}")
+    # test_main()
     if data["type"] == "status":
         if data["target"] == "app":
             print(f"Received status update from {data['robot_id']}:\n{data}")
@@ -97,7 +112,7 @@ async def handle_robot_message(websocket, data):
             # await forward_to_app(data)
 
 
-async def forward_to_robot(target_id, data):
+async def send_to_robot(target_id, data):
     for robot_id, robot in connected_robots.items():
         # print(f"Forwarding: \n{data}\nto robot: {robot_id}")
         print(f"Robot ID: {robot_id}")
@@ -108,7 +123,7 @@ async def forward_to_robot(target_id, data):
     else:
         print(f"Robot {target_id} not found!")
 
-async def forward_to_app(message):
+async def send_to_app(message):
     if connected_app is not None:
         await connected_app.send(json.dumps(message))
     else:
