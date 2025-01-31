@@ -37,7 +37,7 @@ function calculateTime(axis: string, distance: Float) {
     return time;
 }
 
-// Boxes/furnitures in the grid
+// Boxes in the grid
 const allBoxes = [
     { id: 1, x: 0, y: 0, timeX: 0, timeY: 0 },
     { id: 2, x: 150, y: 150, timeX: 0, timeY: 0 },
@@ -116,7 +116,6 @@ export default function DragAndDrop() {
 
     // Set boxes to current layout
     const setLayout = () => {
-        if (isSet) return; // Do nothing if already set
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
         sendMessage({ type: "current_layout", locations: boxes })
@@ -136,6 +135,33 @@ export default function DragAndDrop() {
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
     };
 
+    // Add new furniture function - This is temporary, this would be change to a more complex solution
+    const addFurniture = () => {
+        // New furniture id = previous id + 1 or set to 1 if there is nothing else
+        const newId = boxes.length > 0 ? Math.max(...boxes.map((box) => box.id)) + 1 : 1;
+
+        // Default position of new box
+        const newBox = { id: newId, x: gridDimensionsPx[0]/2, y: gridDimensionsPx[1]/2, timeX: 0, timeY: 0 };
+
+        setBoxes((prevBoxes) => [...prevBoxes, newBox]);
+
+        setnotifications('Furniture \'' + newId + '\' has been added');
+        setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
+    };
+
+    // Delete selected furniture function
+    const deleteFurniture = () => {
+        if (selectedBox === null){
+            console.log('There is not furniture selected to be deleted');
+            return;
+        }
+        setBoxes((prevBoxes) => prevBoxes.filter((box) => box.id !== selectedBox));
+
+        setnotifications('You have deleted furniture \'' + selectedBox + '\'');
+        setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
+
+        setSelectedBox(null);
+    };
 
     // Send WebSocket data
     const sendMessage = async (data: Record<string, unknown>) => {
@@ -209,12 +235,12 @@ export default function DragAndDrop() {
             </View>
             {/* Need scale measurement */}
 
-            {/* Buttons */}
             <View style={uniqueStyles.buttonContainer}>
 
                 {/* Show notifications */}
                 {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
 
+                {/* Show coordinates */}
                 {selectedBox !== null && (
                     <Text style={uniqueStyles.coordinates}>
                         X = {boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0},
@@ -222,20 +248,43 @@ export default function DragAndDrop() {
                     </Text>
                 )}
 
-                <ActionButton
-                    label="Set Current Location"
-                    onPress={setLayout}
-                    style={isSet ? { backgroundColor: "rgba(76, 175, 80, 0.3)" } : {}}
-                    textS={isSet ? { color: "rgba(250, 250, 250, 0.3" } : {}}
-                />
-                <ActionButton
-                    label="Ready To Go!"
-                    onPress={() => sendMessage({ type: "desired_layout", locations: boxes })}
-                />
-                <ActionButton
-                    label="Reset Layout"
-                    onPress={resetLayout}
-                />
+                {/* Buttons */}
+                {/* Show different buttons depending in current location is set or not */}
+                {!isSet ? (
+                    <>
+                        <ActionButton
+                        label="Set Current Location"
+                        onPress={setLayout}
+                        />
+                        <ActionButton
+                        label="Delete Furniture"
+                        onPress={deleteFurniture}
+                        style={{ backgroundColor: '#fa440c'}}
+                        />
+                        <ActionButton
+                        label="Add Furniture"
+                        onPress={addFurniture}
+                        style={{ backgroundColor: '#964B00'}}
+                        />
+                    </>
+                ) : (
+                    <>
+                        <ActionButton
+                        label="Ready To Go!"
+                        onPress={() => sendMessage({ type: "desired_layout", locations: boxes })}
+                        />
+                        <ActionButton
+                        label="Reset Layout"
+                        onPress={resetLayout}
+                        style={{ backgroundColor: '#fa440c'}}
+                        />
+                        <ActionButton
+                        label="Save Layout"
+                        onPress={() => console.log('working on it')}
+                        style={{ backgroundColor: '#76f58f'}}
+                        />
+                    </>
+                )}
             </View>
         </View>
     );
