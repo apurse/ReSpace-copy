@@ -44,11 +44,11 @@ async def swarm_logic():
 
 
 async def main():
-    server_task = asyncio.create_task(hub.main())  # Start the WebSocket server
-    controller_task = asyncio.create_task(swarm_logic())  # Run the swarm logic
+    hub_communication_task = asyncio.create_task(hub.main())  # Start the WebSocket server
+    swarm_task = asyncio.create_task(swarm_logic())  # Run the swarm logic
 
     try:
-        await asyncio.gather(server_task, controller_task)  # Run both tasks concurrently
+        await asyncio.gather(hub_communication_task, swarm_task)  # Run both tasks concurrently
     except asyncio.CancelledError:
         print("Shutting down gracefully...")
 
