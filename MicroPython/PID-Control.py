@@ -2,11 +2,20 @@ from machine import Pin, PWM, Timer
 import time
 
 #Encoder and motor setup
-encoder_a = Pin(10, Pin.IN, Pin.PULL_UP)  # Replace with your encoder A pin
-encoder_b = Pin(11, Pin.IN, Pin.PULL_UP)  # Replace with your encoder B pin
-motor_pwm = PWM(Pin(0))  # Replace with your motor PWM control pin
-motor_pwm.freq(1000)  # Set PWM frequency
-motor_direction = Pin(1, Pin.OUT)  # Direction control pin
+encoder_a1 = Pin(10, Pin.IN, Pin.PULL_UP)  # Replace with your encoder A pin
+encoder_b1 = Pin(11, Pin.IN, Pin.PULL_UP)  # Replace with your encoder B pin
+
+encoder_a2 = Pin(12, Pin.IN, Pin.PULL_UP)  # Replace with your encoder A pin
+encoder_b2 = Pin(13, Pin.IN, Pin.PULL_UP)  # Replace with your encoder B pin
+
+#motor_pwm.freq(1000)  # Set PWM frequency
+
+motor_pwm1 = PWM(Pin(0))  # Replace with your motor PWM control pin
+motor_direction1 = Pin(1, Pin.OUT)  # Direction control pin
+
+motor_pwm2 = PWM(Pin(2))  # Replace with your motor PWM control pin
+motor_direction2 = Pin(3, Pin.OUT)  # Direction control pin
+
 
 #PID parameters
 Kp = 0.6
@@ -25,7 +34,9 @@ def encoder_callback(pin):
     pulse_count += 1
 
 # Attach interrupt to encoder channel A
-encoder_a.irq(trigger=Pin.IRQ_RISING, handler=encoder_callback)
+encoder_a1.irq(trigger=Pin.IRQ_RISING, handler=encoder_callback)
+
+encoder_a2.irq(trigger=Pin.IRQ_RISING, handler=encoder_callback)
 
 #PID controller function
 def pid_control(setpoint, current_value):
@@ -41,17 +52,22 @@ def pid_control(setpoint, current_value):
 def move_one_rotation():
     global pulse_count
     pulse_count = 0  # Reset encoder pulse count
-    motor_pwm.duty_u16(0)  # Start with motor off
+    motor_pwm1.duty_u16(0)  # Start with motor off
+    motor_pwm2.duty_u16(0)  # Start with motor off
 
     while pulse_count < desired_pulses:
         motor_speed = pid_control(desired_pulses, pulse_count)  # Get PID output
-        motor_pwm.duty_u16(int(motor_speed))  # Adjust motor speed
-        motor_direction.value(1)  # Set direction forward
+        motor_pwm1.duty_u16(int(motor_speed))  # Adjust motor speed
+        motor_pwm2.duty_u16(int(motor_speed))  # Adjust motor speed
+        motor_direction1.value(1)  # Set direction forward
+        motor_direction2.value(1)  # Set direction forward
         time.sleep(0.01)  # Short delay for control loop
         print("pulse count:", pulse_count)
 
-    motor_pwm.duty_u16(0)  # Stop the motor after reaching target
-    motor_direction.value(0)  # Ensure motor stops
+    motor_pwm1.duty_u16(0)  # Stop the motor after reaching target
+    motor_pwm2.duty_u16(0)  # Stop the motor after reaching target
+    motor_direction1.value(0)  # Ensure motor stops
+    motor_direction2.value(0)  # Ensure motor stops
 
 #Main loop
 print("Rotating the wheel one full rotation")
