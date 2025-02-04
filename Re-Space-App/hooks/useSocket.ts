@@ -25,10 +25,24 @@ export const useSocket = () => {
     try {
       const data = JSON.parse(e.data);
       console.log("Received:", data);
-      return data; // testing
+
+      if (data.type == "status")
+        // send to robotInfo.tsx
+        console.log("status")
+
+      else if (data.type == "robot_list")
+        // send to index.tsx
+        console.log("wprvbwiru")
+
+      else console.log(data.type);
+
+
+
+
     } catch (err) {
       console.error("Error parsing message:", err);
     };
+
   };
 
   return socket;
@@ -36,7 +50,7 @@ export const useSocket = () => {
 
 
 // Listen for response from server
-function listenForMessage(){
+function listenForMessage() {
   return new Promise((resolve, reject) => {
 
     socket.onmessage = (e: { data: string; }) => {

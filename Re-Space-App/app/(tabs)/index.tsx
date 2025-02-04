@@ -1,9 +1,12 @@
 import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
 import { createDefaultStyles } from '../../components/defaultStyles';
-import SmallLayout from '@/components/smallLayout';
+import RobotBox from '@/components/indexComponents/robotInfo';
 import React from 'react';
 import { useTheme } from '../_layout';
+
+// Need to get from websocket listen
+const robotsArray = [1, 1, 1, 1, 1, 1];
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -62,11 +65,19 @@ export default function HomeScreen() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
+
+  // Make dynamic list for number of robots
+  var addRobots = [];
+  for (let i = 0; i < robotsArray.length; i++) {
+    addRobots.push(
+      <RobotBox />
+    )
+  }
+
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
       {/* Greeting */}
       <Text style={uniqueStyles.greeting}>{getGreeting()}</Text>
-      <Icons.SearchIcon />
 
       {/* ReSpace monitoring status section */}
       <View style={[uniqueStyles.statusCard, { backgroundColor: colorW || color }]}>
@@ -79,12 +90,10 @@ export default function HomeScreen() {
         <Text style={uniqueStyles.statusText}>{currentBatteryPerc}%</Text>
       </View>
 
-      {/* Recent layouts section */}
-      <Text style={defaultStyles.sectionTitle}>Recent Layouts</Text>
-      <View style={defaultStyles.cardSectionContainer}>
-        <SmallLayout LayoutTitle="Groups of 2"></SmallLayout>
-        <SmallLayout LayoutTitle="Rows of 8"></SmallLayout>
-        <SmallLayout LayoutTitle="Rows of 4"></SmallLayout>
+      {/* Robots section */}
+      <Text style={defaultStyles.sectionTitle}>Connected Robots: {robotsArray.length}</Text>
+      <View style={uniqueStyles.robotBoxContainer}>
+        {addRobots}
       </View>
     </ScrollView>
   );
@@ -135,6 +144,19 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       marginBottom: 5,
       marginTop: 5,
       fontSize: height * 0.07,
+    },
+
+    // Robot List Section
+
+    robotBoxContainer: {
+      backgroundColor: isDarkMode ? '#000' : '#b6b7b8', // change to slightly different to background
+      width: '90%',
+      borderRadius: 8,
+      marginTop: 20,
+      padding: 10,
+      gap: '10px',
+      height: height * 0.45, // needs to go to bottom
+      overflow: 'scroll',
     },
 
   });
