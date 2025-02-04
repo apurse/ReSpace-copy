@@ -1,21 +1,11 @@
 import React from 'react';
 import { Dimensions, Pressable, StyleSheet } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
-import { useSocket } from "@/hooks/useSocket";
+import { useSocket, sendMessage } from "@/hooks/useSocket";
 
 
 const { width, height } = Dimensions.get('window');
 const socket = useSocket();
-
-
-// sends message data to websocket hook
-const sendMessage = async (data: Record<string, unknown>) => {
-    if (socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify(data));
-    } else {
-        console.error("WebSocket is not open.");
-    };
-}
 
 const ControlButton = ({
     iconName,
@@ -35,11 +25,11 @@ const ControlButton = ({
     return (
         <Pressable
             onPressIn={() => {
-                sendMessage({ "type": "control", "target": "respace-1", "direction": message });
+                sendMessage(false, { "type": "control", "target": "respace-1", "direction": message });
                 console.log("Sending: movement:", message);
             }}
             onPressOut={() => {
-                sendMessage({ "type": "control", "target": "respace-1", "direction": "stop" });
+                sendMessage(false, { "type": "control", "target": "respace-1", "direction": "stop" });
                 console.log("Sending: movement:", "stop");
             }}
             style={({ pressed }) => [

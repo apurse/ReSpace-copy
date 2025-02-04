@@ -4,7 +4,7 @@ import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
-import { useSocket } from "@/hooks/useSocket";
+import { useSocket, sendMessage } from "@/hooks/useSocket";
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -118,7 +118,7 @@ export default function DragAndDrop() {
     const setLayout = () => {
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
-        sendMessage({ type: "current_layout", locations: boxes })
+        sendMessage(false, { type: "current_layout", locations: boxes })
 
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
@@ -161,15 +161,6 @@ export default function DragAndDrop() {
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
 
         setSelectedBox(null);
-    };
-
-    // Send WebSocket data
-    const sendMessage = async (data: Record<string, unknown>) => {
-        if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify(data));
-        } else {
-            console.error("WebSocket is not open.");
-        };
     };
 
     return (
@@ -271,7 +262,7 @@ export default function DragAndDrop() {
                     <>
                         <ActionButton
                         label="Ready To Go!"
-                        onPress={() => sendMessage({ type: "desired_layout", locations: boxes })}
+                        onPress={() => sendMessage(false, { type: "desired_layout", locations: boxes })}
                         />
                         <ActionButton
                         label="Reset Layout"

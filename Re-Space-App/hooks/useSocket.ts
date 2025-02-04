@@ -57,6 +57,7 @@ function listenForMessage(){
 // send message to server
 export async function sendMessage(response: boolean, data: Record<string, unknown>) {
   if (socket.readyState === WebSocket.OPEN) {
+    console.log("Sending data to server")
     socket.send(JSON.stringify(data));
   } else {
     console.error("WebSocket is not open.");
