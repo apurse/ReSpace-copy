@@ -9,7 +9,7 @@ import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from "expo-router";
-import { useSocket } from "@/hooks/useSocket";
+import { useSocket, sendMessage } from "@/hooks/useSocket";
 
 const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
@@ -86,14 +86,19 @@ const SettingsPage = () => {
 
     }
 
-    // sends message data to websocket hook
-    const sendMessage = async(data: Record<string, unknown>) => {
-        if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify(data));
-        } else {
-            console.error("WebSocket is not open.");
+    // test latency function
+    const testSpeed = async(data: Record<string, unknown>) => {
+        console.log("Testing speed")
+        var start = new Date().getTime();
+        var response = await sendMessage(true, data);
+        
+
+        // if response given, output time
+        if (response !== null) {
+            var timeTaken = new Date().getTime() - start;
+            console.log(`Time taken: ${timeTaken} ms`);
         };
-    }
+    };
 
 
     async function onChangeFunction(settingFunction: any, key: any, value: any) {
@@ -151,7 +156,7 @@ const SettingsPage = () => {
 
                 <ActionButton
                     label="Test Connection"
-                    onPress={() => sendMessage({ type: "debug", message: "Testing message!" })}
+                    onPress={() => testSpeed({ type: "debug", message: "Testing message!" })}
                 />
             </View>
 
