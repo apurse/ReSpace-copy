@@ -16,7 +16,7 @@ Hub -> App:\
 Real current layout configuration\
 	`{type: "current_layout", locations: "{{id: <int>, x: <int>, y: <int>}, {id: <int>, x: <int>, y: <int>}}"}`\
 Robot Status\
-	`{type: "status", robot_id: <UUID>, battery: <int>, location: {x: <int>, y: <int>}, current_activity: "<task_id>"}`\
+	`{type: "status", robot_id: <Websocket UUID>, battery: <int>, location: {x: <int>, y: <int>}, current_activity: "<task_id>"}`\
 
 Robot -> Hub:\
 	Robot status\
@@ -26,8 +26,11 @@ Robot -> Hub:\
 		`{type: "furniture_location", id: <int>, location: {x: <int>, y: <int>}}`
 
 Hub -> Robot:\
-	Go-to / Move furniture to command\
-`{type: "move", location: {x: <int>, y: <int>}`
+	Go-to x/y\
+`{type: "move", location: {x: <int>, y: <int>}`\
+	Send move task\
+`{"type": "move_task", "location_from": {"x": <fromX>, "y": <fromY>}, "location_to": {"x": <toX>, "y": <toY>}}`
+
 
 Hub -> Swarm script:\
 	Current robot ID's / Status'\
@@ -35,5 +38,4 @@ Hub -> Swarm script:\
 	Current furniture positions
 
 Swarm script -> Hub:\
-	Move robot\
-	actuate_lift\
+	Send move task\
