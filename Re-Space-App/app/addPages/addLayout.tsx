@@ -4,7 +4,9 @@ import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
-import { useSocket } from "@/hooks/useSocket";
+import { useSocket, sendMessage } from "@/hooks/useSocket";
+import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
+import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -37,11 +39,11 @@ function calculateTime(axis: string, distance: Float) {
     return time;
 }
 
-// Boxes/furnitures in the grid
+// Boxes in the grid
 const allBoxes = [
-    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0 },
-    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0 },
-    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0 },
+    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0, width:70, length: 30, color: 'red' },
+    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0, width:50, length: 150, color: 'green' },
+    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0, width:50, length: 30, color: 'blue' },
 ];
 
 export default function DragAndDrop() {
@@ -55,13 +57,16 @@ export default function DragAndDrop() {
     // Notifications
     const [notifications, setnotifications] = useState<string | null>(null);
 
-    // Define 'Box' to store in 'currentPos'
+    // Define 'Box' to store in 'currentPos'  
     type Box = {
         id: number;
         x: Float;
         y: Float;
         timeX: Float;
         timeY: Float;
+        width: number;
+        length: number;
+        color: string;
     };
 
     // set boxes array
@@ -79,8 +84,8 @@ export default function DragAndDrop() {
             prevBoxes.map((box) => {
                 if (box.id === id) {
                     //
-                    const newX = Math.max(0, Math.min(gridDimensionsPx[0] - (uniqueStyles.robot.width + 3), box.x + dx)); // Clamp x position
-                    const newY = Math.max(0, Math.min(gridDimensionsPx[1] - (uniqueStyles.robot.height + 3), box.y + dy)); // Clamp y position
+                    const newX = Math.max(0, Math.min(gridDimensionsPx[0] - (box.width + 3), box.x + dx)); // Clamp x position
+                    const newY = Math.max(0, Math.min(gridDimensionsPx[1] - (box.length + 3), box.y + dy)); // Clamp y position
                     const newTimeX = calculateTime("X", newX);
                     const newTimeY = calculateTime("Y", newY);
                     return { ...box, x: newX, y: newY };
@@ -116,10 +121,9 @@ export default function DragAndDrop() {
 
     // Set boxes to current layout
     const setLayout = () => {
-        if (isSet) return; // Do nothing if already set
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
-        sendMessage({ type: "current_layout", locations: boxes })
+        sendMessage(false, { type: "current_layout", locations: boxes })
 
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
@@ -135,15 +139,62 @@ export default function DragAndDrop() {
         setnotifications('Layout has been reset');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
     };
+    
+    // Get a random colour 
+    const getRandomColour = () => {
+        const colours = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'brown', 'gray', 'black', 'white', 'cyan', 'magenta', 'lime', 'teal', 'navy', 'olive', 'maroon', 'silver', 'gold'];
+        const randomColour = Math.floor(Math.random() * colours.length);
+        return colours[randomColour];
+    };
 
+    // Validate colour from furniture data, if not, get random one
+    const validateColour = (colour: string) => {
+        const validColours = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'brown', 'gray', 'black', 'white', 'cyan', 'magenta', 'lime', 'teal', 'navy', 'olive', 'maroon', 'silver', 'gold'];
+        if (colour && validColours.includes(colour.toLowerCase())) {
+            return colour.toLowerCase();
+        }
 
-    // Send WebSocket data
-    const sendMessage = async (data: Record<string, unknown>) => {
-        if (socket.readyState === WebSocket.OPEN) {
-            socket.send(JSON.stringify(data));
-        } else {
-            console.error("WebSocket is not open.");
+        return getRandomColour();
+    };
+
+    // Add new furniture function - This is temporary, this would be change to a more complex solution
+    const addFurniture = (furniture: FurnitureItem) => {
+        // New furniture id = previous id + 1 or set to 1 if there is nothing else
+        const newId = boxes.length > 0 ? Math.max(...boxes.map((box) => box.id)) + 1 : 1;
+
+        // New box (furniture) in the grid
+        const newBox = {
+             id: newId, 
+             x: gridDimensionsPx[0]/2, 
+             y: gridDimensionsPx[1]/2, 
+             timeX: 0, 
+             timeY: 0, 
+             width: furniture.width, 
+             length: furniture.length, 
+             color: validateColour(furniture.colour),
         };
+
+        setBoxes((prevBoxes) => [...prevBoxes, newBox]);
+
+        setnotifications('Furniture \'' + newId + '\' has been added');
+        setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
+    };
+
+    // State of furniture modal (to add furniture)
+    const [isModalVisible, setModalVisible] = useState(false);
+
+    // Delete selected furniture function
+    const deleteFurniture = () => {
+        if (selectedBox === null){
+            console.log('There is not furniture selected to be deleted');
+            return;
+        }
+        setBoxes((prevBoxes) => prevBoxes.filter((box) => box.id !== selectedBox));
+
+        setnotifications('You have deleted furniture \'' + selectedBox + '\'');
+        setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
+
+        setSelectedBox(null);
     };
 
     return (
@@ -173,6 +224,8 @@ export default function DragAndDrop() {
                                 top: box.y,
                                 backgroundColor: "transparent",
                                 borderWidth: 1,
+                                width: box.width,
+                                height: box.length,
                             },
                         ]}
                     >
@@ -195,9 +248,11 @@ export default function DragAndDrop() {
                                 {
                                     left: box.x,
                                     top: box.y,
-                                    backgroundColor: '#964B00',
+                                    backgroundColor: box.color,
                                     borderWidth: isSelected ? 2 : 0,
                                     borderColor: isSelected ? 'yellow' : 'transparent',
+                                    width: box.width,
+                                    height: box.length,
                                 },
                             ]}
                             {...panResponder.panHandlers}
@@ -209,12 +264,12 @@ export default function DragAndDrop() {
             </View>
             {/* Need scale measurement */}
 
-            {/* Buttons */}
             <View style={uniqueStyles.buttonContainer}>
 
                 {/* Show notifications */}
                 {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
 
+                {/* Show coordinates */}
                 {selectedBox !== null && (
                     <Text style={uniqueStyles.coordinates}>
                         X = {boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0},
@@ -222,20 +277,48 @@ export default function DragAndDrop() {
                     </Text>
                 )}
 
-                <ActionButton
-                    label="Set Current Location"
-                    onPress={setLayout}
-                    style={isSet ? { backgroundColor: "rgba(76, 175, 80, 0.3)" } : {}}
-                    textS={isSet ? { color: "rgba(250, 250, 250, 0.3" } : {}}
-                />
-                <ActionButton
-                    label="Ready To Go!"
-                    onPress={() => sendMessage({ type: "desired_layout", locations: boxes })}
-                />
-                <ActionButton
-                    label="Reset Layout"
-                    onPress={resetLayout}
-                />
+                {/* Buttons */}
+                {/* Show different buttons depending in current location is set or not */}
+                {!isSet ? (
+                    <>
+                        <ActionButton
+                        label="Set Current Location"
+                        onPress={setLayout}
+                        />
+                        <ActionButton
+                        label="Delete Furniture"
+                        onPress={deleteFurniture}
+                        style={{ backgroundColor: '#fa440c'}}
+                        />
+                        <ActionButton
+                        label="Add Furniture"
+                        onPress={() => setModalVisible(true)}
+                        style={{ backgroundColor: '#964B00'}}
+                        />
+                        <FurnitureModal 
+                            isVisible={isModalVisible}
+                            onClose={() => setModalVisible(false)}
+                            onSelectFurniture={addFurniture}
+                         />
+                    </>
+                ) : (
+                    <>
+                        <ActionButton
+                        label="Ready To Go!"
+                        onPress={() => sendMessage(false, { type: "desired_layout", locations: boxes })}
+                        />
+                        <ActionButton
+                        label="Reset Layout"
+                        onPress={resetLayout}
+                        style={{ backgroundColor: '#fa440c'}}
+                        />
+                        <ActionButton
+                        label="Save Layout"
+                        onPress={() => console.log('working on it')}
+                        style={{ backgroundColor: '#76f58f'}}
+                        />
+                    </>
+                )}
             </View>
         </View>
     );

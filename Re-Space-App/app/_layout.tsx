@@ -15,32 +15,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 const socketType = (typeof WebSocket === 'undefined') ? require('ws') : WebSocket;
 const socket = new socketType("ws://respace-hub.local:8002/app");
 
-
-// connection opened
-socket.onopen = () => {
-  console.log("WebSocket connection established.");
-};
-
-
-// a message was received
-socket.onmessage = (e: { data: string; }) => {
-  try {
-    const data = JSON.parse(e.data);
-    console.log("Received:", data);
-  } catch (err) {
-    console.error("Error parsing message:", err);
-  };
-};
-
-
-// an error occurred
-socket.onerror = (e: any) => {console.log(e)};
-
-
-// connection closed
-socket.onclose = (e: { code: any; reason: any; }) => {console.log(e.code, e.reason)};
-
-
 // Context to pass data to children
 export const SocketContext = createContext(socket);
 
@@ -53,9 +27,6 @@ interface ISocketProvider {
 export const SocketProvider = (props: ISocketProvider) => (
   <SocketContext.Provider value={socket}>{props.children}</SocketContext.Provider>
 );
-
-
-
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.

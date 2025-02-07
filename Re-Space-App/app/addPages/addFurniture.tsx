@@ -79,6 +79,15 @@ export default function AddLayout() {
     };
 
     try {
+      // Check if json file exist
+      const checkJson = await FileSystem.getInfoAsync(localJson);
+
+      // If json file doesn't exist, create file
+      if (!checkJson.exists) {
+        await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: [] }));
+        console.log('Json file created:', localJson);
+      }
+
       // Read data from json before writing new data
       const readData = await FileSystem.readAsStringAsync(localJson);
       let jsonData = { Furniture: [] }; // Give empty array to stop showing an error
