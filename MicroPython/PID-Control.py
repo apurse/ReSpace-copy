@@ -1,75 +1,129 @@
 from machine import Pin, PWM, Timer
 import time
 
-#Encoder and motor setup
-encoder_a1 = Pin(10, Pin.IN, Pin.PULL_UP)  # Replace with your encoder A pin
-encoder_b1 = Pin(11, Pin.IN, Pin.PULL_UP)  # Replace with your encoder B pin
+# Encoder and motor setup
+encoder_a1 = Pin(10, Pin.IN, Pin.PULL_UP)
+encoder_b1 = Pin(11, Pin.IN, Pin.PULL_UP)
 
-encoder_a2 = Pin(12, Pin.IN, Pin.PULL_UP)  # Replace with your encoder A pin
-encoder_b2 = Pin(13, Pin.IN, Pin.PULL_UP)  # Replace with your encoder B pin
+encoder_a2 = Pin(12, Pin.IN, Pin.PULL_UP)
+encoder_b2 = Pin(13, Pin.IN, Pin.PULL_UP)
 
-#motor_pwm.freq(1000)  # Set PWM frequency
+encoder_a3 = Pin(14, Pin.IN, Pin.PULL_UP)
+encoder_b3 = Pin(15, Pin.IN, Pin.PULL_UP)
 
-motor_pwm1 = PWM(Pin(0))  # Replace with your motor PWM control pin
-motor_direction1 = Pin(1, Pin.OUT)  # Direction control pin
+# Motor setup (initialized)
+motor_pwm1 = PWM(Pin(0))
+motor_direction1 = Pin(1, Pin.OUT)
 
-motor_pwm2 = PWM(Pin(2))  # Replace with your motor PWM control pin
-motor_direction2 = Pin(3, Pin.OUT)  # Direction control pin
+motor_pwm2 = PWM(Pin(2))
+motor_direction2 = Pin(3, Pin.OUT)
 
+motor_pwm3 = PWM(Pin(6))
+motor_direction3 = Pin(7, Pin.OUT)
 
-#PID parameters
-Kp = 0.6
-Ki = 1
-Kd = 1
+# PID Constants
+Kp = 0.8
+Ki = 0.08
+Kd = 0.1
 
-#Variables for PID control
-desired_pulses = 1620  # Adjust based on gear ratio
-pulse_count = 0  # Current encoder pulse count
-previous_error = 6
-integral = 1
+# Encoder ticks per rotation
+ENCODER_COUNTS = [652, 615, 617]  # Encoder counts for motors 1, 2, 3
 
-# Interrupt handler for encoder
-def encoder_callback(pin):
-    global pulse_count
-    pulse_count += 1
+# Target speed (in encoder ticks per second)
+TARGET_SPEED = 100
 
-# Attach interrupt to encoder channel A
-encoder_a1.irq(trigger=Pin.IRQ_RISING, handler=encoder_callback)
+# Motor state variables
+encoder_count1 = 0
+encoder_count2 = 0
+encoder_count3 = 0
 
-encoder_a2.irq(trigger=Pin.IRQ_RISING, handler=encoder_callback)
+last_time = time.ticks_ms()
 
-#PID controller function
-def pid_control(setpoint, current_value):
-    global previous_error, integral
-    error = setpoint - current_value
-    integral += error  # Accumulate integral
-    derivative = error - previous_error  # Calculate derivative
-    previous_error = error  # Update previous error
-    output = (Kp * error) + (Ki * integral) + (Kd * derivative)
-    return max(0, min(1023, output))  # Constrain output to 0-1023 for PWM
+# Set PWM frequencies
+motor_pwm1.freq(1000)
+motor_pwm2.freq(1000)
+motor_pwm3.freq(1000)
 
-#Function to move the motor for one wheel rotation
-def move_one_rotation():
-    global pulse_count
-    pulse_count = 0  # Reset encoder pulse count
-    motor_pwm1.duty_u16(0)  # Start with motor off
-    motor_pwm2.duty_u16(0)  # Start with motor off
+# PID Controller
+def pid_compute(setpoint, measured_value, last_error, integral):
+    error = setpoint - measured_value
+    integral += error
+    derivative = error - last_error
+    output = Kp * error + Ki * integral + Kd * derivative
+    return output, error, integral
 
-    while pulse_count < desired_pulses:
-        motor_speed = pid_control(desired_pulses, pulse_count)  # Get PID output
-        motor_pwm1.duty_u16(int(motor_speed))  # Adjust motor speed
-        motor_pwm2.duty_u16(int(motor_speed))  # Adjust motor speed
-        motor_direction1.value(1)  # Set direction forward
-        motor_direction2.value(1)  # Set direction forward
-        time.sleep(0.01)  # Short delay for control loop
-        print("pulse count:", pulse_count)
+# Function to set motor speed
+def set_motor_speed(motor_pwm, speed):
+    duty = int(abs(speed) * 65535 // 100)  # Scale speed to 0-100%
+    duty = min(max(duty, 0), 65535)  # Clamp to the range 0-65535
+    motor_pwm.duty_u16(duty)
 
-    motor_pwm1.duty_u16(0)  # Stop the motor after reaching target
-    motor_pwm2.duty_u16(0)  # Stop the motor after reaching target
-    motor_direction1.value(0)  # Ensure motor stops
-    motor_direction2.value(0)  # Ensure motor stops
+# Encoder interrupt handlers
+def encoder_isr1(pin):
+    global encoder_count1
+    encoder_count1 += 1
 
-#Main loop
-print("Rotating the wheel one full rotation")
-move_one_rotation()
-print("Rotation complete!")
+def encoder_isr2(pin):
+    global encoder_count2
+    encoder_count2 += 1
+
+def encoder_isr3(pin):
+    global encoder_count3
+    encoder_count3 += 1
+
+# Attach Encoder Interrupts
+encoder_a1.irq(trigger=Pin.IRQ_RISING, handler=encoder_isr1)
+encoder_a2.irq(trigger=Pin.IRQ_RISING, handler=encoder_isr2)
+encoder_a3.irq(trigger=Pin.IRQ_RISING, handler=encoder_isr3)
+
+# Timer to update motor speeds periodically
+def update_motor_speeds(t):
+    global encoder_count1, encoder_count2, encoder_count3, last_time
+
+    # Calculate current speed (encoder ticks per second)
+    current_time = time.ticks_ms()
+    dt = time.ticks_diff(current_time, last_time) / 1000  # Convert to seconds
+    speed1 = encoder_count1 / dt
+    speed2 = encoder_count2 / dt
+    speed3 = encoder_count3 / dt
+
+    # Reset encoder counts and update last time
+    encoder_count1 = 0
+    encoder_count2 = 0
+    encoder_count3 = 0
+    last_time = current_time
+
+    print(f"Speed1: {speed1} ticks/s, Speed2: {speed2} ticks/s, Speed3: {speed3} ticks/s")  # Debug print
+
+    # Compute PID output for each motor
+    output1, _, _ = pid_compute(TARGET_SPEED, speed1, 0, 0)
+    output2, _, _ = pid_compute(TARGET_SPEED, speed2, 0, 0)
+    output3, _, _ = pid_compute(TARGET_SPEED, speed3, 0, 0)
+
+    # Adjust motor speeds
+    set_motor_speed(motor_pwm1, output1)
+    set_motor_speed(motor_pwm2, output2)
+    set_motor_speed(motor_pwm3, output3)
+
+# Initialize Timer
+timer = Timer()
+timer.init(period=100, mode=Timer.PERIODIC, callback=update_motor_speeds)
+
+# Robot movement function to move all motors in sync
+def move_all_forward():
+    set_motor_speed(motor_pwm1, TARGET_SPEED)
+    set_motor_speed(motor_pwm2, TARGET_SPEED)
+    set_motor_speed(motor_pwm3, TARGET_SPEED)
+
+# Main loop
+while True:
+    # Example: Move all motors forward for 2 seconds
+    move_all_forward()
+    time.sleep(2)
+    stop_command = input("Enter '1' to stop motors: ")
+    if stop_command.strip() == "1":
+        set_motor_speed(motor_pwm1, 0)
+        set_motor_speed(motor_pwm2, 0)
+        set_motor_speed(motor_pwm3, 0) 
+        print("Motors stopped.")
+        break  # Exit the loop
