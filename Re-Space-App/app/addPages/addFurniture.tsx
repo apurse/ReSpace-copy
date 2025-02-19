@@ -6,6 +6,7 @@ import ActionButton from '@/components/settingsComponents/actionButton';
 import furnitureData from '@/Jsons/FurnitureData.json';
 import * as FileSystem from 'expo-file-system';
 import Furniture from '@/components/LayoutComponents/furniture';
+import { ColourPickerModal } from '@/components/LayoutComponents/colourPickerModal';
 
 // Local json file with furniture data
 const localJson = FileSystem.documentDirectory + 'FurnitureData.json';
@@ -51,7 +52,10 @@ export default function AddLayout() {
   const [widthF, setWidth] = useState<number>(0);
   const [length, setLength] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(0);
-  const [colour, setColour] = useState<string>('');
+  const [selectedColour, setSelectedColour] = useState<string>('#aabbcc');
+
+  // State of furniture modal (to add furniture)
+  const [isModalVisible, setModalVisible] = useState(false);
 
   const saveFurniture = async () => {
 
@@ -63,7 +67,8 @@ export default function AddLayout() {
       setTimeout(() => setnotifications(null), 3000);
 
       // Uncomment and click 'save furniture' with nothing on the fields (need reset expo)
-      //clearJsonData();
+      //
+      //  clearJsonData();
 
       return;
     }
@@ -75,7 +80,7 @@ export default function AddLayout() {
       width: widthF,
       length,
       quantity,
-      colour,
+      selectedColour,
     };
 
     try {
@@ -120,7 +125,7 @@ export default function AddLayout() {
       setWidth(0);
       setLength(0);
       setQuantity(0);
-      setColour('');
+      setSelectedColour('#aabbcc');
     } catch (error) {
       console.error('Failed to update/save data to json file:', error);
 
@@ -206,14 +211,20 @@ export default function AddLayout() {
           keyboardType="numeric"
         />
       </View>
-      <View style={uniqueStyles.inputField}>
-        <Text style={uniqueStyles.inputHeader}>Colour</Text>
-        <TextInput
-          value={colour}
-          onChangeText={setColour}
-          style={uniqueStyles.textInput}
-          placeholder='Enter colour...'
+      <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+        {/* <Text style={uniqueStyles.inputHeader}>Colour</Text> */}
+        <ActionButton
+          label="Pick a colour"
+          onPress={() => setModalVisible(true)}
+          style={{right: 15}} 
         />
+        <ColourPickerModal
+          isVisible={isModalVisible}
+          onClose={() => setModalVisible(false)}
+          selectedColour={selectedColour}
+          onSelectedColour={setSelectedColour}
+        />
+        <Text style={[uniqueStyles.colourSelected, { backgroundColor: selectedColour}]}></Text>
       </View>
 
       <View style={uniqueStyles.buttonContainer}>
@@ -266,6 +277,11 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       fontWeight: 'bold',
       textAlign: 'center',
       zIndex: 1000,
+    },
+    colourSelected: {
+      padding: 12,
+      marginTop: 20,
+      width: 50,
     },
 
   });

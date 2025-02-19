@@ -15,7 +15,7 @@ export interface FurnitureItem {
     width: number;
     length: number;
     quantity: number;
-    colour: string;
+    selectedColour: string;
 }
 
 // Defining types for function
@@ -68,7 +68,7 @@ const FurnitureModal: React.FC<FurnitureModalProps> = ({ isVisible, onClose, onS
                             <View style={uniqueStyles.itemContainer}>
                                 <Text style={uniqueStyles.itemText}>{item.name} ({item.model})</Text>
                                 <Text style={uniqueStyles.itemDetails}>
-                                    Size: {item.width}w x {item.length}l x {item.height}h, Color: {item.colour}
+                                    Size: {item.width}w x {item.length}l x {item.height}h, Color: {item.selectedColour}
                                 </Text>
                             </View>
                         </TouchableOpacity>
@@ -127,6 +127,6 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             color: "white",
             fontSize: 16,
         },
-});
+    });
 
 export default FurnitureModal;
