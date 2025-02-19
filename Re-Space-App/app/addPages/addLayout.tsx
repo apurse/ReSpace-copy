@@ -139,26 +139,10 @@ export default function DragAndDrop() {
         setnotifications('Layout has been reset');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
     };
-    
-    // Get a random colour 
-    const getRandomColour = () => {
-        const colours = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'brown', 'gray', 'black', 'white', 'cyan', 'magenta', 'lime', 'teal', 'navy', 'olive', 'maroon', 'silver', 'gold'];
-        const randomColour = Math.floor(Math.random() * colours.length);
-        return colours[randomColour];
-    };
-
-    // Validate colour from furniture data, if not, get random one
-    const validateColour = (colour: string) => {
-        const validColours = ['red', 'green', 'blue', 'yellow', 'orange', 'purple', 'pink', 'brown', 'gray', 'black', 'white', 'cyan', 'magenta', 'lime', 'teal', 'navy', 'olive', 'maroon', 'silver', 'gold'];
-        if (colour && validColours.includes(colour.toLowerCase())) {
-            return colour.toLowerCase();
-        }
-
-        return getRandomColour();
-    };
-
+   
     // Add new furniture function - This is temporary, this would be change to a more complex solution
     const addFurniture = (furniture: FurnitureItem) => {
+
         // New furniture id = previous id + 1 or set to 1 if there is nothing else
         const newId = boxes.length > 0 ? Math.max(...boxes.map((box) => box.id)) + 1 : 1;
 
@@ -171,7 +155,7 @@ export default function DragAndDrop() {
              timeY: 0, 
              width: furniture.width, 
              length: furniture.length, 
-             color: validateColour(furniture.colour),
+             color: furniture.selectedColour,
         };
 
         setBoxes((prevBoxes) => [...prevBoxes, newBox]);
@@ -282,18 +266,18 @@ export default function DragAndDrop() {
                 {!isSet ? (
                     <>
                         <ActionButton
-                        label="Set Current Location"
-                        onPress={setLayout}
+                            label="Set Current Location"
+                            onPress={setLayout}
                         />
                         <ActionButton
-                        label="Delete Furniture"
-                        onPress={deleteFurniture}
-                        style={{ backgroundColor: '#fa440c'}}
+                            label="Delete Furniture"
+                            onPress={deleteFurniture}
+                            style={{ backgroundColor: '#fa440c'}}
                         />
                         <ActionButton
-                        label="Add Furniture"
-                        onPress={() => setModalVisible(true)}
-                        style={{ backgroundColor: '#964B00'}}
+                            label="Add Furniture"
+                            onPress={() => setModalVisible(true)}
+                            style={{ backgroundColor: '#964B00'}}
                         />
                         <FurnitureModal 
                             isVisible={isModalVisible}
