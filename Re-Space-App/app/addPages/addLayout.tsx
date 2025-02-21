@@ -111,7 +111,8 @@ export default function DragAndDrop() {
             onPanResponderRelease: () => {
                 console.log(
                     `Box ${id} updated position: `,
-                    boxes.find((box) => box.id === id)
+                    // boxes.find((box) => box.id === id) <-- old version
+                    `{${JSON.stringify(boxes.find((box) => box.id === id))}}` // Formatted to add extra bracket '{'
                 );
             },
         });
