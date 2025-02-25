@@ -7,6 +7,8 @@ import { Float } from "react-native/Libraries/Types/CodegenTypes";
 import { useSocket, sendMessage } from "@/hooks/useSocket";
 import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
+import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { useSharedValue, useAnimatedStyle } from "react-native-reanimated";
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -39,11 +41,24 @@ function calculateTime(axis: string, distance: Float) {
     return time;
 }
 
+// Define a type for 'box'  
+type Box = {
+    id: number;
+    x: Float;
+    y: Float;
+    timeX: Float;
+    timeY: Float;
+    width: number;
+    length: number;
+    color: string;
+    rotation: Float;
+};
+
 // Boxes in the grid
 const allBoxes = [
-    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0, width:70, length: 30, color: 'red' },
-    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0, width:50, length: 150, color: 'green' },
-    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0, width:50, length: 30, color: 'blue' },
+    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0, width:70, length: 30, color: 'red', rotation: 0.0 },
+    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0, width:50, length: 150, color: 'green', rotation: 0.0 },
+    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0, width:50, length: 30, color: 'blue', rotation: 0.0 },
 ];
 
 export default function DragAndDrop() {
@@ -57,25 +72,31 @@ export default function DragAndDrop() {
     // Notifications
     const [notifications, setnotifications] = useState<string | null>(null);
 
-    // Define 'Box' to store in 'currentPos'  
-    type Box = {
-        id: number;
-        x: Float;
-        y: Float;
-        timeX: Float;
-        timeY: Float;
-        width: number;
-        length: number;
-        color: string;
-    };
-
     // set boxes array
-    const [boxes, setBoxes] = useState(allBoxes);
+    const [boxes, setBoxes] = useState<Box[]>(allBoxes);
+
+    // Formatted boxes data
+    const boxesFormatted = boxes.map(({ id, x, y}) => ({ id, x, y }));
 
     // Placed boxes of current layout
     const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]);
 
     const squareRef = useRef(null);
+
+    // Animation logic for boxes
+    const angle = useSharedValue(0);
+    const startAngle = useSharedValue(0);
+    const rotation = Gesture.Rotation()
+        .onStart(() => {
+            startAngle.value = angle.value;
+        })
+        .onUpdate((event) => {
+            angle.value = startAngle.value + event.rotation;
+        });
+    
+    const boxAnimatedStyles = useAnimatedStyle(() => ({
+        transform: [{ rotate: `${angle.value}rad` }],
+    }));
 
 
     // work out new positions and timings
@@ -95,6 +116,7 @@ export default function DragAndDrop() {
         );
     };
 
+
     // Track active box for highlight feature
     const [selectedBox, setSelectedBox] = useState<number | null>(null);
 
@@ -105,14 +127,15 @@ export default function DragAndDrop() {
                 setSelectedBox(id); // Selected box to highlighted
             },
             onPanResponderMove: (_, gestureState) => {
+                    
                 const { dx, dy } = gestureState;
+
                 updateBoxPosition(id, dx, dy);
             },
             onPanResponderRelease: () => {
                 console.log(
                     `Box ${id} updated position: `,
-                    // boxes.find((box) => box.id === id) <-- old version
-                    `{${JSON.stringify(boxes.find((box) => box.id === id))}}` // Formatted to add extra bracket '{'
+                    boxes.find((box) => box.id === id)
                 );
             },
         });
@@ -124,7 +147,7 @@ export default function DragAndDrop() {
     const setLayout = () => {
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
-        sendMessage(false, { type: "current_layout", locations: boxes })
+        sendMessage(false, { type: "current_layout", locations: boxesFormatted })
 
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
@@ -157,6 +180,7 @@ export default function DragAndDrop() {
              width: furniture.width, 
              length: furniture.length, 
              color: furniture.selectedColour,
+             rotation: 0.0,
         };
 
         setBoxes((prevBoxes) => [...prevBoxes, newBox]);
@@ -211,6 +235,7 @@ export default function DragAndDrop() {
                                 borderWidth: 1,
                                 width: box.width,
                                 height: box.length,
+                                transform: [{ rotate: `${box.rotation}rad`}],
                             },
                         ]}
                     >
@@ -226,24 +251,29 @@ export default function DragAndDrop() {
                     const isSelected = selectedBox === box.id;
 
                     return (
-                        <View
-                            key={box.id}
-                            style={[
-                                uniqueStyles.robot,
-                                {
-                                    left: box.x,
-                                    top: box.y,
-                                    backgroundColor: box.color,
-                                    borderWidth: isSelected ? 2 : 0,
-                                    borderColor: isSelected ? 'yellow' : 'transparent',
-                                    width: box.width,
-                                    height: box.length,
-                                },
-                            ]}
-                            {...panResponder.panHandlers}
-                        >
-                            <Text style={uniqueStyles.boxText}>{box.id}</Text>
-                        </View>
+                        <GestureHandlerRootView style={uniqueStyles.grid}>
+                            <GestureDetector gesture={rotation}>
+                                <Animated.View
+                                key={box.id}
+                                style={[
+                                    uniqueStyles.robot,
+                                    {
+                                        left: box.x,
+                                        top: box.y,
+                                        backgroundColor: box.color,
+                                        borderWidth: isSelected ? 2 : 0,
+                                        borderColor: isSelected ? 'yellow' : 'transparent',
+                                        width: box.width,
+                                        height: box.length,
+                                    },
+                                    boxAnimatedStyles,
+                                ]}
+                                {...panResponder.panHandlers}
+                            >
+                                <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                            </Animated.View>
+                        </GestureDetector>
+                        </GestureHandlerRootView>
                     );
                 })}
             </View>
@@ -258,7 +288,8 @@ export default function DragAndDrop() {
                 {selectedBox !== null && (
                     <Text style={uniqueStyles.coordinates}>
                         X = {boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0},
-                        Y = {boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0}
+                        Y = {boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0},
+                        Angle = {boxes.find((box) => box.id === selectedBox)?.rotation.toFixed(2) || 0},
                     </Text>
                 )}
 
@@ -290,7 +321,7 @@ export default function DragAndDrop() {
                     <>
                         <ActionButton
                         label="Ready To Go!"
-                        onPress={() => sendMessage(false, { type: "desired_layout", locations: boxes })}
+                        onPress={() => sendMessage(false, { type: "desired_layout", locations: boxesFormatted })}
                         />
                         <ActionButton
                         label="Reset Layout"
