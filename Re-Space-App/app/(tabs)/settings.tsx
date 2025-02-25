@@ -9,14 +9,14 @@ import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from "expo-router";
-import { useSocket, sendMessage } from "@/hooks/useSocket";
+import { testLatency } from "@/hooks/useSocket";
 
 const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
-    const socket = useSocket();
     let hasLoaded = false;
+
 
     // Add state for each independent toggle
     const [stopWhenHumansPresent, setStopWhenHumansPresent] = useState(false);
@@ -86,20 +86,6 @@ const SettingsPage = () => {
 
     }
 
-    // test latency function
-    const testSpeed = async(data: Record<string, unknown>) => {
-        console.log("Testing speed")
-        var start = new Date().getTime();
-        var response = await sendMessage(true, data);
-        
-
-        // if response given, output time
-        if (response !== null) {
-            var timeTaken = new Date().getTime() - start;
-            console.log(`Time taken: ${timeTaken} ms`);
-        };
-    };
-
 
     async function onChangeFunction(settingFunction: any, key: any, value: any) {
         if (value != null) {
@@ -156,7 +142,10 @@ const SettingsPage = () => {
 
                 <ActionButton
                     label="Test Connection"
-                    onPress={() => testSpeed({ type: "debug", message: "Testing message!" })}
+                    onPress={async () => {
+                        let timeTaken = await testLatency({ type: "debug", message: "Testing message!" })
+                        alert(`${timeTaken}ms`);
+                    }}
                 />
             </View>
 

@@ -3,7 +3,7 @@ import * as Icons from './Icons';
 import { useTheme } from '../../app/_layout';
 
 
-export default function robotInfo() {
+export default function robotInfo({ robot }: { robot: any }) {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const uniqueStyles = createUniqueStyles(isDarkMode);
@@ -18,7 +18,7 @@ export default function robotInfo() {
     return (
         <View style={uniqueStyles.container}>
             {/* image of robot */}
-            <Text style={uniqueStyles.text}>robot.robot_id</Text>
+            <Text style={uniqueStyles.text}>ID: {robot}</Text>
             <Text style={uniqueStyles.text}>robot.battery</Text>
             <Text style={uniqueStyles.text}>robot.current_activity</Text>
             <Text style={uniqueStyles.text}>robot.location.x</Text>
