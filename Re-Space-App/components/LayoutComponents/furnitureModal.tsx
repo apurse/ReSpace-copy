@@ -3,6 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native
 import Modal from "react-native-modal";
 import * as FileSystem from "expo-file-system";
 import { useTheme } from "@/app/_layout";
+import { Float } from "react-native/Libraries/Types/CodegenTypes";
 
 // Local json file with furniture data
 const localJson = FileSystem.documentDirectory + "FurnitureData.json";

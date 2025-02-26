@@ -6,7 +6,19 @@ import React from 'react';
 import { useTheme } from '../_layout';
 
 // Need to get from websocket listen
-const robotsArray = [1, 1, 1, 1, 1, 1];
+var robotsArray: any[] = [];
+
+
+// Update robot list
+export async function updateList(data: any) {
+  for (let i = 0; i < data.robot_ids.length; i++){
+    robotsArray[i] = data.robot_ids[i];
+    console.log(robotsArray[i])
+  }
+
+  return null;
+};
+
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -70,7 +82,7 @@ export default function HomeScreen() {
   var addRobots = [];
   for (let i = 0; i < robotsArray.length; i++) {
     addRobots.push(
-      <RobotBox />
+      <RobotBox robot={robotsArray[i]}/>
     )
   }
 

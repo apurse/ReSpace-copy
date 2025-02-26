@@ -1,6 +1,7 @@
 // WebSocket hook for passing connection data across app
 import { SocketContext } from '@/app/_layout';
 import { useContext } from "react";
+import { updateList } from '@/app/(tabs)/index';
 
 const socket = useContext(SocketContext);
 
@@ -26,17 +27,18 @@ export const useSocket = () => {
       const data = JSON.parse(e.data);
       console.log("Received:", data);
 
+
+      // send to robotInfo.tsx
       if (data.type == "status")
-        // send to robotInfo.tsx
         console.log("status")
 
+
+      // send to index.tsx
       else if (data.type == "robot_list")
-        // send to index.tsx
-        console.log("wprvbwiru")
+        updateList(data);
 
+      
       else console.log(data.type);
-
-
 
 
     } catch (err) {
@@ -87,3 +89,19 @@ export async function sendMessage(response: boolean, data: Record<string, unknow
   return null;
 };
 
+// test latency function
+export async function testLatency(data: Record<string, unknown>) {
+  console.log("Testing speed")
+  var start = new Date().getTime();
+  var response = await sendMessage(true, data);
+
+
+  // if response given, output time
+  if (response !== null) {
+    var timeTaken = new Date().getTime() - start;
+    console.log(`Time taken: ${timeTaken} ms`);
+    return timeTaken;
+  };
+
+  return null;
+};

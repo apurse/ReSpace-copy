@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, Text, PanResponder, StyleSheet, Dimensions } from "react-native";
+import { View, Text, PanResponder, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
 import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
@@ -7,6 +7,8 @@ import { Float } from "react-native/Libraries/Types/CodegenTypes";
 import { useSocket, sendMessage } from "@/hooks/useSocket";
 import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { CurrentRenderContext } from "@react-navigation/native";
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -41,9 +43,9 @@ function calculateTime(axis: string, distance: Float) {
 
 // Boxes in the grid
 const allBoxes = [
-    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0, width:70, length: 30, color: 'red' },
-    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0, width:50, length: 150, color: 'green' },
-    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0, width:50, length: 30, color: 'blue' },
+    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0, width:70, length: 30, color: 'red', rotation: 0.0},
+    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0, width:50, length: 150, color: 'green', rotation: 0.0 },
+    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0, width:50, length: 30, color: 'blue', rotation: 0.0 },
 ];
 
 export default function DragAndDrop() {
@@ -67,10 +69,14 @@ export default function DragAndDrop() {
         width: number;
         length: number;
         color: string;
+        rotation: Float;
     };
 
     // set boxes array
     const [boxes, setBoxes] = useState(allBoxes);
+
+    // Formatted boxes data
+    const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation }));
 
     // Placed boxes of current layout
     const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]);
@@ -83,19 +89,96 @@ export default function DragAndDrop() {
         setBoxes((prevBoxes) =>
             prevBoxes.map((box) => {
                 if (box.id === id) {
-                    //
-                    const newX = Math.max(0, Math.min(gridDimensionsPx[0] - (box.width + 3), box.x + dx)); // Clamp x position
-                    const newY = Math.max(0, Math.min(gridDimensionsPx[1] - (box.length + 3), box.y + dy)); // Clamp y position
-                    const newTimeX = calculateTime("X", newX);
-                    const newTimeY = calculateTime("Y", newY);
-                    return { ...box, x: newX, y: newY };
+                    // Convert degrees to radians
+                    const radians = (box.rotation * Math.PI) / 180;
+                    
+                    // Calculate the axis-aligned bounding box dimensions
+                    const rotatedWidth = Math.abs(Math.cos(radians) * box.width) + Math.abs(Math.sin(radians) * box.length);
+                    const rotatedHeight = Math.abs(Math.sin(radians) * box.width) + Math.abs(Math.cos(radians) * box.length);
+
+                    const centerX = box.x + box.width / 2 + dx;
+                    const centerY = box.y + box.length / 2 + dy;
+
+                    const minX = rotatedWidth / 2;
+                    const minY = rotatedHeight / 2;
+                    const maxX = gridDimensionsPx[0] - rotatedWidth / 2;
+                    const maxY = gridDimensionsPx[1] - rotatedHeight / 2;
+
+                    const clampedX = Math.max(minX, Math.min(maxX, centerX));
+                    const clampedY = Math.max(minY, Math.min(maxY, centerY));
+
+                    const finalX = clampedX - box.width / 2;
+                    const finalY = clampedY - box.length / 2;
+                    // const newTimeX = calculateTime("X", newX);
+                    // const newTimeY = calculateTime("Y", newY);
+
+
+                    return { ...box, x: finalX, y: finalY };
                 }
                 return box;
             })
         );
     };
 
-    // Track active box for highlight feature
+    // Track rotation interval
+    const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null);
+    const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
+
+
+    //Rotate clockwise function
+    const rotateBoxRight = (id: number) => {
+        let counter = 0; // Slowly increase for speed
+
+        const interval = setInterval(() => {
+            // console.log("Seconds:", Math.round(counter / 10), "counter", counter);
+
+            setBoxes((prevBoxes) =>
+                prevBoxes.map((box) => {
+                    if (box.id === id) {
+                        const newRotation = (box.rotation + 1 + Math.round(counter / 10)) % 360; // Degree incremention (1)
+                        return { ...box, rotation: newRotation };
+                    }
+                    return box;
+                })
+            );
+            counter++; // Increase counter
+            if (counter >= 95) { counter = 95} // Limit the speed
+        }, currentSpeed);
+    
+        setRotationInterval(interval);
+    };
+
+    // Rotate counterclockwise function
+    const rotateBoxLeft = (id: number) => {
+        let counter = 0; // Slowly increase for speed
+
+        const interval = setInterval(() => {;
+            setBoxes((prevBoxes) =>
+                prevBoxes.map((box) => {
+                    if (box.id === id) {
+                        const newRotation = ((box.rotation - 1 - Math.round(counter / 10)) + 360) % 360; // Degree decremention (-1)
+                        return { ...box, rotation: newRotation };
+                    }
+                    return box;
+                })
+            );
+            counter++; // Increase counter
+            if (counter >= 95) { counter = 95} // Limit the speed
+        }, currentSpeed); 
+    
+        setRotationInterval(interval);
+    }
+
+    // Stop rotation when button is released
+    const stopRotation = () => {
+        if (rotationInterval) {
+            clearInterval(rotationInterval);
+            setRotationInterval(null);
+        }
+        setCurrentSpeed(50); // Reset speed back to 50
+    };
+
+    //Track active box for highlight feature
     const [selectedBox, setSelectedBox] = useState<number | null>(null);
 
     const createPanResponder = (id: number) =>
@@ -111,7 +194,8 @@ export default function DragAndDrop() {
             onPanResponderRelease: () => {
                 console.log(
                     `Box ${id} updated position: `,
-                    boxes.find((box) => box.id === id)
+                    // boxes.find((box) => box.id === id) <-- old version
+                    `{${JSON.stringify(boxes.find((box) => box.id === id))}}` // Formatted to add extra bracket '{'
                 );
             },
         });
@@ -123,7 +207,7 @@ export default function DragAndDrop() {
     const setLayout = () => {
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
-        sendMessage(false, { type: "current_layout", locations: boxes })
+        sendMessage(false, { type: "current_layout", locations: boxesFormatted })
 
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
@@ -156,6 +240,7 @@ export default function DragAndDrop() {
              width: furniture.width, 
              length: furniture.length, 
              color: furniture.selectedColour,
+             rotation: 0.0,
         };
 
         setBoxes((prevBoxes) => [...prevBoxes, newBox]);
@@ -183,9 +268,33 @@ export default function DragAndDrop() {
 
     return (
         <View style={defaultStyles.body}>
+
             {/* Title */}
             <View style={defaultStyles.pageTitleSection}>
                 <Text style={defaultStyles.pageTitle}>Add Layout</Text>
+
+                {/* Rotation buttons */}
+                {/* Rotation to right */}
+                <TouchableOpacity
+                    style={uniqueStyles.rotationRight}
+                    onPressIn={() => selectedBox && rotateBoxRight(selectedBox)}
+                    onPressOut={stopRotation}
+                >
+                    <View>
+                        <Icon name="undo" size={25} style={{transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000',}}/>
+                    </View>
+                </TouchableOpacity>
+
+                {/* Rotation to left */}
+                <TouchableOpacity
+                    style={uniqueStyles.rotationLeft}
+                    onPressIn={() => selectedBox && rotateBoxLeft(selectedBox)}
+                    onPressOut={stopRotation}
+                >
+                    <View>
+                        <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000',}}/>
+                    </View>
+                </TouchableOpacity>
             </View>
 
             {/* Grid */}
@@ -210,6 +319,7 @@ export default function DragAndDrop() {
                                 borderWidth: 1,
                                 width: box.width,
                                 height: box.length,
+                                transform: [{ rotate: `${box.rotation}deg` }],
                             },
                         ]}
                     >
@@ -237,6 +347,7 @@ export default function DragAndDrop() {
                                     borderColor: isSelected ? 'yellow' : 'transparent',
                                     width: box.width,
                                     height: box.length,
+                                    transform: [{ rotate: `${box.rotation}deg` }],
                                 },
                             ]}
                             {...panResponder.panHandlers}
@@ -257,7 +368,8 @@ export default function DragAndDrop() {
                 {selectedBox !== null && (
                     <Text style={uniqueStyles.coordinates}>
                         X = {boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0},
-                        Y = {boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0}
+                        Y = {boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0},
+                        Angle = {boxes.find((box) => box.id === selectedBox)?.rotation.toFixed(2) || 0}
                     </Text>
                 )}
 
@@ -289,7 +401,7 @@ export default function DragAndDrop() {
                     <>
                         <ActionButton
                         label="Ready To Go!"
-                        onPress={() => sendMessage(false, { type: "desired_layout", locations: boxes })}
+                        onPress={() => sendMessage(false, { type: "desired_layout", locations: boxesFormatted })}
                         />
                         <ActionButton
                         label="Reset Layout"
@@ -361,5 +473,27 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             marginVertical: -8,
             top: 10,
         },
+        rotationLeft: {
+            width: 25,
+            height: 25,
+            left: '30%',
+            bottom: '15%',
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            backgroundColor: 'transparent', 
+            borderWidth: 1,  
+            borderColor: 'transparent',
+        },
+        rotationRight: {
+            width: 25,
+            height: 25,
+            left: '40%',
+            top: '10%',
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            backgroundColor: 'transparent', 
+            borderWidth: 1,  
+            borderColor: 'transparent',
+        }
 
     });
