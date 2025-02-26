@@ -9,6 +9,7 @@ import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { CurrentRenderContext } from "@react-navigation/native";
+import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -306,56 +307,65 @@ export default function DragAndDrop() {
                     console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
                 }}
             >
-                {/* Display not moving boxes */}
-                {placedBoxes.map((box) => (
-                    <View
-                        key={`placed-${box.id}`} // Create unique id for placed boxes
-                        style={[
-                            uniqueStyles.robot,
-                            {
-                                left: box.x,
-                                top: box.y,
-                                backgroundColor: "transparent",
-                                borderWidth: 1,
-                                width: box.width,
-                                height: box.length,
-                                transform: [{ rotate: `${box.rotation}deg` }],
-                            },
-                        ]}
-                    >
-                        <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
-                    </View>
-                ))}
-
-                {/* Display moving boxes */}
-                {boxes.map((box) => {
-                    const panResponder = createPanResponder(box.id);
-
-                    // Check if box is selected to highlighted
-                    const isSelected = selectedBox === box.id;
-
-                    return (
+                <ReactNativeZoomableView
+                maxZoom={10}
+                minZoom={1}
+                initialZoom={1}
+                disablePanOnInitialZoom={true}
+                contentWidth={gridDimensionsPx[0]}
+                contentHeight={gridDimensionsPx[1]}
+                >
+                    {/* Display not moving boxes */}
+                    {placedBoxes.map((box) => (
                         <View
-                            key={box.id}
+                            key={`placed-${box.id}`} // Create unique id for placed boxes
                             style={[
                                 uniqueStyles.robot,
                                 {
                                     left: box.x,
                                     top: box.y,
-                                    backgroundColor: box.color,
-                                    borderWidth: isSelected ? 2 : 0,
-                                    borderColor: isSelected ? 'yellow' : 'transparent',
+                                    backgroundColor: "transparent",
+                                    borderWidth: 1,
                                     width: box.width,
                                     height: box.length,
                                     transform: [{ rotate: `${box.rotation}deg` }],
                                 },
                             ]}
-                            {...panResponder.panHandlers}
                         >
-                            <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                            <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
                         </View>
-                    );
-                })}
+                    ))}
+
+                    {/* Display moving boxes */}
+                    {boxes.map((box) => {
+                        const panResponder = createPanResponder(box.id);
+
+                        // Check if box is selected to highlighted
+                        const isSelected = selectedBox === box.id;
+
+                        return (
+                            <View
+                                key={box.id}
+                                style={[
+                                    uniqueStyles.robot,
+                                    {
+                                        left: box.x,
+                                        top: box.y,
+                                        backgroundColor: box.color,
+                                        borderWidth: isSelected ? 2 : 0,
+                                        borderColor: isSelected ? 'yellow' : 'transparent',
+                                        width: box.width,
+                                        height: box.length,
+                                        transform: [{ rotate: `${box.rotation}deg` }],
+                                    },
+                                ]}
+                                {...panResponder.panHandlers}
+                            >
+                                <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                            </View>
+                        );
+                    })}
+                </ReactNativeZoomableView>
             </View>
             {/* Need scale measurement */}
 

@@ -16,9 +16,10 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@openspacelabs/react-native-zoomable-view": "^2.3.1",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/slider": "^4.5.5",
-    "@react-navigation/native": "^7.0.0",
+    "@react-navigation/native": "^7.0.14",
     "expo": "^52.0.8",
     "expo-constants": "~17.0.3",
     "expo-font": "~13.0.1",
