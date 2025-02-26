@@ -74,6 +74,7 @@ class Motor:
         """
         current_time = time.ticks_ms()
         dt = time.ticks_diff(current_time, self.last_time) / 1000.0  # Convert to seconds
+        
         # Calculate measured RPM based on encoder counts.
         rpm = (self.encoder_count * 60 / self.ticks_per_rev) / dt if dt > 0 else 0
         
@@ -84,14 +85,18 @@ class Motor:
         # Compute error between target and actual RPM.
         error = self.target_rpm - rpm
         
-        self.integral = self.integral + error * dt
-        
-        # A simple proportional control (you can extend this to full PID using Ki and Kd)
+        # Leaky Accumulator: Decay integral when target RPM is zero
+        if self.target_rpm == 0:
+            self.integral *= 0.9  # Leak factor (adjust 0.9 to control decay speed)
+        else:
+            self.integral += error * dt  # Normal integral accumulation
+
+        # Compute PID output (P + I control)
         output = (self.Kp * error) + (self.Ki * self.integral)
         
-        # For debugging, print out the values.
-#         print("Target RPM: {:0.2f}, Measured RPM: {:.2f}, Error: {:.2f}, Output: {:.2f}".format(self.target_rpm, rpm, error, output))
-        print("Target RPM: {:0.2f}, Measured RPM: {:.2f}".format(self.target_rpm, rpm))
+        # Debug output
+        print("Target RPM: {:0.2f}, Measured RPM: {:.2f}, Error: {:.2f}, Integral: {:.2f}, Output: {:.2f}"
+              .format(self.target_rpm, rpm, error, self.integral, output))
         
         # Set motor speed with the computed output.
         self.set_motor_speed(output)
@@ -99,21 +104,68 @@ class Motor:
 
 
 
+
 motor1 = Motor(pwm_pin_forward=0, pwm_pin_reverse=1, encoder_pin_a=11, encoder_pin_b=10)
 motor2 = Motor(pwm_pin_forward=2, pwm_pin_reverse=3, encoder_pin_a=13, encoder_pin_b=12)
+# motor3 = Motor(pwm_pin_forward=6, pwm_pin_reverse=7, encoder_pin_a=15, encoder_pin_b=14)
+motor3 = Motor(pwm_pin_forward=8, pwm_pin_reverse=9, encoder_pin_a=17, encoder_pin_b=16)
+
+def reverse():
+    motor1.target_rpm = -50 
+    motor3.target_rpm = 50
+def forward():
+    motor1.target_rpm = 50 
+    motor3.target_rpm = -50
+def rotateR():
+    motor1.target_rpm = 50
+    motor2.target_rpm = 50
+    motor3.target_rpm = 50
+def rotateL():
+    motor1.target_rpm = -50
+    motor2.target_rpm = -50
+    motor3.target_rpm = -50
+def stop():
+    motor1.target_rpm = 0
+    motor2 .target_rpm = 0
+    motor3.target_rpm = 0
+
+#forwards and reverse in the right direction
+def forwardR():
+    motor2.target_rpm = -50 
+    motor3.target_rpm = 50
+
+def reverseR():
+    motor2.target_rpm = 50 
+    motor3.target_rpm = -50
+    
+#forwards and reverse in the left direction
+def forwardL():
+    motor2.target_rpm = -50 
+    motor1.target_rpm = 50
+
+def reverseL():
+    motor2.target_rpm = 50 
+    motor1.target_rpm = -50
+    
+    
+    
 
 
 while True:
-    motor1.target_rpm = -120
-    motor2.target_rpm = -120
-    time.sleep(3)
-    motor1.target_rpm = 0
-    motor2.target_rpm = 0
+    forward()
     time.sleep(5)
-    motor1.target_rpm = 120
-    motor2.target_rpm = 120
+    stop()
     time.sleep(3)
-    motor1.target_rpm = 0
-    motor2.target_rpm = 0
+    rotateR()
     time.sleep(5)
+    stop()
+    time.sleep(3)
+    reverse()
+    time.sleep(5)
+    stop()
+    time.sleep(3)
+    rotateL()
+    time.sleep(5)
+    stop()
+    time.sleep(3)
 
