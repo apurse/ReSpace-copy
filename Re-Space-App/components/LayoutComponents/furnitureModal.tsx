@@ -17,7 +17,6 @@ export interface FurnitureItem {
     length: number;
     quantity: number;
     selectedColour: string;
-    rotation: Float;
 }
 
 // Defining types for function
