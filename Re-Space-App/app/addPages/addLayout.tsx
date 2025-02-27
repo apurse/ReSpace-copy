@@ -9,6 +9,9 @@ import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { CurrentRenderContext } from "@react-navigation/native";
+import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
+import { setGestureState } from "react-native-reanimated";
+
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -49,16 +52,7 @@ const allBoxes = [
 ];
 
 export default function DragAndDrop() {
-    // dark mode
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
-    const defaultStyles = createDefaultStyles(isDarkMode);
-    const uniqueStyles = createUniqueStyles(isDarkMode);
-    const socket = useSocket();
-
-    // Notifications
-    const [notifications, setnotifications] = useState<string | null>(null);
-
+    
     // Define 'Box' to store in 'currentPos'  
     type Box = {
         id: number;
@@ -71,18 +65,26 @@ export default function DragAndDrop() {
         color: string;
         rotation: Float;
     };
+    
+    // dark mode
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    const uniqueStyles = createUniqueStyles(isDarkMode);
 
-    // set boxes array
-    const [boxes, setBoxes] = useState(allBoxes);
+    //const socket = useSocket(); <-- Not being use
 
-    // Formatted boxes data
-    const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation }));
-
-    // Placed boxes of current layout
-    const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]);
-
+    const [notifications, setnotifications] = useState<string | null>(null); // Notifications
+    const [boxes, setBoxes] = useState(allBoxes); // set boxes array
+    const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation })); // Formatted boxes data
+    const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]); // Placed boxes of current layout
     const squareRef = useRef(null);
-
+    const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null); // Track rotation interval
+    const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
+    const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
+    const [isSet, setIsSet] = useState(false); // Check if the layout is set or not
+    const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
+    const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
 
     // work out new positions and timings
     const updateBoxPosition = (id: number, dx: number, dy: number) => {
@@ -119,11 +121,6 @@ export default function DragAndDrop() {
             })
         );
     };
-
-    // Track rotation interval
-    const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null);
-    const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
-
 
     //Rotate clockwise function
     const rotateBoxRight = (id: number) => {
@@ -178,9 +175,6 @@ export default function DragAndDrop() {
         setCurrentSpeed(50); // Reset speed back to 50
     };
 
-    //Track active box for highlight feature
-    const [selectedBox, setSelectedBox] = useState<number | null>(null);
-
     const createPanResponder = (id: number) =>
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
@@ -199,9 +193,6 @@ export default function DragAndDrop() {
                 );
             },
         });
-
-    // Check if the layout is set or not
-    const [isSet, setIsSet] = useState(false);
 
     // Set boxes to current layout
     const setLayout = () => {
@@ -249,9 +240,6 @@ export default function DragAndDrop() {
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
     };
 
-    // State of furniture modal (to add furniture)
-    const [isModalVisible, setModalVisible] = useState(false);
-
     // Delete selected furniture function
     const deleteFurniture = () => {
         if (selectedBox === null){
@@ -272,7 +260,7 @@ export default function DragAndDrop() {
             {/* Title */}
             <View style={defaultStyles.pageTitleSection}>
                 <Text style={defaultStyles.pageTitle}>Add Layout</Text>
-
+                <Text style={uniqueStyles.zoomStyle}>Zoom: {(zoomLevel - 1).toFixed(2)}</Text>
                 {/* Rotation buttons */}
                 {/* Rotation to right */}
                 <TouchableOpacity
@@ -306,56 +294,68 @@ export default function DragAndDrop() {
                     console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
                 }}
             >
-                {/* Display not moving boxes */}
-                {placedBoxes.map((box) => (
-                    <View
-                        key={`placed-${box.id}`} // Create unique id for placed boxes
-                        style={[
-                            uniqueStyles.robot,
-                            {
-                                left: box.x,
-                                top: box.y,
-                                backgroundColor: "transparent",
-                                borderWidth: 1,
-                                width: box.width,
-                                height: box.length,
-                                transform: [{ rotate: `${box.rotation}deg` }],
-                            },
-                        ]}
-                    >
-                        <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
-                    </View>
-                ))}
+                <ReactNativeZoomableView
+                    maxZoom={10}
+                    minZoom={1}
+                    initialZoom={1}
+                    disablePanOnInitialZoom={true}
 
-                {/* Display moving boxes */}
-                {boxes.map((box) => {
-                    const panResponder = createPanResponder(box.id);
-
-                    // Check if box is selected to highlighted
-                    const isSelected = selectedBox === box.id;
-
-                    return (
+                    // Update zoom level
+                    onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
+                        setZoomLevel(zoomableViewEventObject.zoomLevel); 
+                    }}
+                >
+                    {/* Display not moving boxes */}
+                    {placedBoxes.map((box) => (
                         <View
-                            key={box.id}
+                            key={`placed-${box.id}`} // Create unique id for placed boxes
                             style={[
                                 uniqueStyles.robot,
                                 {
                                     left: box.x,
                                     top: box.y,
-                                    backgroundColor: box.color,
-                                    borderWidth: isSelected ? 2 : 0,
-                                    borderColor: isSelected ? 'yellow' : 'transparent',
+                                    backgroundColor: "transparent",
+                                    borderWidth: 1,
                                     width: box.width,
                                     height: box.length,
                                     transform: [{ rotate: `${box.rotation}deg` }],
                                 },
                             ]}
-                            {...panResponder.panHandlers}
                         >
-                            <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                            <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
                         </View>
-                    );
-                })}
+                    ))}
+
+                    {/* Display moving boxes */}
+                    {boxes.map((box) => {
+                        const panResponder = createPanResponder(box.id);
+
+                        // Check if box is selected to highlighted
+                        const isSelected = selectedBox === box.id;
+
+                        return (
+                            <View
+                                key={box.id}
+                                style={[
+                                    uniqueStyles.robot,
+                                    {
+                                        left: box.x,
+                                        top: box.y,
+                                        backgroundColor: box.color,
+                                        borderWidth: isSelected ? 2 : 0,
+                                        borderColor: isSelected ? 'yellow' : 'transparent',
+                                        width: box.width,
+                                        height: box.length,
+                                        transform: [{ rotate: `${box.rotation}deg` }],
+                                    },
+                                ]}
+                                {...panResponder.panHandlers}
+                            >
+                                <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                            </View>
+                        );
+                    })}
+                </ReactNativeZoomableView>
             </View>
             {/* Need scale measurement */}
 
@@ -423,8 +423,8 @@ export default function DragAndDrop() {
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
         grid: {
-            width: gridDimensionsPx[0], // * scaleX once visuals are done
-            height: gridDimensionsPx[1], // * scaleY once visuals are done
+            width: gridDimensionsPx[0] + 5, // * scaleX once visuals are done
+            height: gridDimensionsPx[1] + 5, // * scaleY once visuals are done
             backgroundColor: '#D3D3D3',
             position: "relative",
             borderWidth: 2,
@@ -494,6 +494,13 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             backgroundColor: 'transparent', 
             borderWidth: 1,  
             borderColor: 'transparent',
-        }
+        },
+        zoomStyle: {
+            position: 'absolute',
+            fontSize: 10,
+            color: isDarkMode ? '#fff' : '#000',
+            top: 85,
+            left: 25,
+        },
 
     });
