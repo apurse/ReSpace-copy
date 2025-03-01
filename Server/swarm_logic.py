@@ -56,8 +56,8 @@ def distance(x1,y1,x2,y2):
 
 async def main():
     hub_communication_task = asyncio.create_task(hub.main())  # Start the WebSocket server
-    # swarm_task = asyncio.create_task(swarm_logic())  # Run the swarm logic
-    swarm_task = asyncio.create_task(test())
+    swarm_task = asyncio.create_task(swarm_logic())  # Run the swarm logic
+    # swarm_task = asyncio.create_task(test())
     try:
         await asyncio.gather(hub_communication_task, swarm_task)  # Run both tasks concurrently
     except asyncio.CancelledError:

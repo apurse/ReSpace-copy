@@ -13,7 +13,7 @@ host = "0.0.0.0"
 port = 8002
 
 connected_app = None
-connected_robots = []
+connected_robots = {}
 current_furniture_positions = []
 desired_furniture_positions = []
 
@@ -73,6 +73,7 @@ class HubInterface:
 hub = HubInterface()
 
 async def handle_connection(websocket):
+    global connected_app
     connected_ip = websocket.local_address[0]
     robot = None
 
@@ -83,22 +84,19 @@ async def handle_connection(websocket):
     # Assign app websocket or add robot object to list
     if client_type == "app":
         # Limit to only one app connection at a time
-        global connected_app
-        # Todo: Fix issue in app where app attempts to connect multiple times
-        # if connected_app is None:
-        #     connected_app = websocket
-        #     print(f"App successfully connected with IP: {connected_ip}")
-        # else:
-        #     print(f"App attempted to connect with IP: {connected_ip}")
-        #     print(f"Error: App already connected with IP: {connected_app.remote_address[0]}")
-        #     return
-        connected_app = websocket
+        if connected_app is None:
+            connected_app = websocket
+            print(f"App successfully connected with IP: {connected_ip}")
+        else:
+            print(f"App attempted to connect with IP: {connected_ip}")
+            print(f"Error: App already connected with IP: {connected_app.remote_address[0]}")
+            return
         await update_apps_robot_list()
 
     elif client_type == "robot":
         robot = Robot(str(websocket.id), websocket)
-        connected_robots.append(robot)
-        await update_apps_robot_list()
+        connected_robots[robot.id] = robot
+        # await update_apps_robot_list()
         print(f"Robot successfully connected with ip: {connected_ip}")
     else:
         await websocket.close()
@@ -123,7 +121,7 @@ async def handle_connection(websocket):
             connected_app = None
         elif client_type == "robot":
             print(f"Disconnected from: {connected_ip}")
-            connected_robots.remove(robot)
+            connected_robots.pop(robot.id)
             await update_apps_robot_list()
 
 
@@ -131,17 +129,21 @@ async def handle_app_message(data):
     if data["type"] == "control":
         print("App control data: ", data)
         # Forward the task to the target robot
-        target_robot_id = data["target_id"]
+
+        # Todo: Change this back vvv
+        # target_robot_id = data["target_id"]
+        target_robot_id = "1"
         await send_to_robot(target_robot_id, data)
 
     # Manually setting current furniture with the app
     elif data["type"] == "current_layout":
         global current_furniture_positions
-        for location in data["locations"]:
-            print(f"Adding: {location}")
-            furniture = Furniture(location["id"], (30, 30), location["x"], location["y"])
-            current_furniture_positions.append(furniture)
+        # for location in data["locations"]:
+        #     print(f"Adding: {location}")
+        #     furniture = Furniture(location["id"], (30, 30), location["x"], location["y"])
+        #     current_furniture_positions.append(furniture)
         print(f"Current layout locations: {current_furniture_positions}")
+        await send_to_robot("1", data)
 
     elif data["type"] == "desired_layout":
         global desired_furniture_positions
@@ -154,6 +156,9 @@ async def handle_app_message(data):
         target_robot_id = data["target_id"]
         await send_to_robot(target_robot_id, data)
 
+    elif data["type"] == "debug":
+        await send_to_app({"type": "debug", "data": "Hello world!"})
+
     else:
         print("Received unknown command!")
         print("Unknown data: ", data)
@@ -162,10 +167,24 @@ async def handle_app_message(data):
 async def handle_robot_message(robot, data):
     if data["type"] == "status":
         # Forward status to the app
-        robot.send_status_to_app()
+        robot.battery = data["battery"]
+        robot.locationX = data["location"]["x"]
+        robot.locationY = data["location"]["y"]
+        robot.current_activity = data["current_activity"]
+        # connected_robots[robot.id] = robot
+        print("Updating robot status: ", robot.to_dict())
+        await update_apps_robot_list()
+        # await robot.send_status_to_app()
 
-    if data["type"] == "furniture_location":
+    elif data["type"] == "furniture_location":
         print("Todo: furniture location")
+
+    elif data["type"] == "debug":
+        print("Received debug message: ", data)
+
+    else:
+        print("Received unknown command!")
+        print("Unknown data: ", data)
 
 
 
@@ -176,10 +195,11 @@ async def send_to_robot(target_id, data):
         # Debug messages:
         # print(f"Robot ID: {robot_id}")
         # print(f"Target ID: {target_id}")
-        if str(robot_id) == str(target_id):
-            print(f"Forwarding: \n{data}\nto robot: {robot_id}")
-            await robot_websocket.send(json.dumps(data))
-            break
+        # Todo: Uncomment this vvv
+        # if str(robot_id) == str(target_id):
+        print(f"Forwarding: \n{data}\nto robot: {robot_id}")
+        await robot_websocket.send(json.dumps(data))
+        break
     else:
         print(f"Robot {target_id} not found!")
 
@@ -205,17 +225,30 @@ async def update_apps_robot_list():
         try:
             message = json.dumps({
                 "type": "robot_list",
-                "robot_ids": [str(key) for key in connected_robots.keys()]
+                "robots": [robot.to_dict() for robot in connected_robots.values()]
             })
             print(f"Sending message to app: {message}")
             await connected_app.send(message)
         except Exception as e:
             print(f"Failed to update app with robot list: {e}")
+    elif connected_app is not None:
+        try:
+            message = json.dumps({
+                "type": "robot_list",
+                "robot_ids": "None"
+            })
+            print(f"Sending message to app: {message}")
+            await connected_app.send(message)
+        except Exception as e:
+            print(f"Failed to update app with robot list: {e}")
+    else:
+        print(f"Error: App not connected!")
+
 
 
 async def main():
     hostname = socket.gethostname()
-    print(f"Server running at ws://{hostname}:{port}")
+    print(f"Server running at ws://{hostname}.local:{port}")
 
     async with serve(handle_connection, host, port):
         try:
