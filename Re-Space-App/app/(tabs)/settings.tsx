@@ -1,6 +1,6 @@
 // https://reactnative.dev/docs/network
 
-import React, { useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import { StyleSheet, ScrollView, Text, View, Pressable, Dimensions } from 'react-native';
 import ToggleSetting from '@/components/settingsComponents/toggle';
 import SliderSetting from '@/components/settingsComponents/slider';
@@ -9,6 +9,8 @@ import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from "expo-router";
+import {useSocket} from "@/hooks/useSocket";
+import { Robot } from "@/components/models/Robot";
 // import { testLatency } from "@/hooks/useSocket";
 
 const SettingsPage = () => {
@@ -26,6 +28,15 @@ const SettingsPage = () => {
     // const [test, setTest] = useState(false);
     const [movementSpeed, setMovementSpeed] = useState(2);
     const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
+    const { socket, isConnected, robotData, sendMessage} = useSocket();
+    // Convert dictionary into an array of robots for iteration
+
+
+    // Use this in future to dynamically update
+    // useEffect(() => {
+    //     console.log("UI Component Updated with robotData:", robotData); // Logs when UI receives updates
+    // }, [robotData]); // Triggers only when robotData updates
+
 
     useEffect(() => {
         loadLocalSettings();
@@ -97,7 +108,6 @@ const SettingsPage = () => {
         }
     }
 
-
     return (
         <ScrollView contentContainerStyle={defaultStyles.body}>
             <View style={defaultStyles.pageTitleSection}>
@@ -143,6 +153,14 @@ const SettingsPage = () => {
                 <ActionButton
                     label="Test Connection"
                     onPress={async () => {
+                        if (isConnected) {
+                            // alert("Connected")
+                            robotData.forEach((robot: Robot) => {
+                                console.log(`🦾 ID: ${robot.robot_id}, 🔋 Battery: ${robot.battery}%`);
+                            })
+                        } else {
+                            alert("No connection to the WebSocket.");
+                        }
                         // let timeTaken = await testLatency({ type: "debug", message: "Testing message!" })
                         // alert(`${timeTaken}ms`);
                         alert("Todo, fix test Connection");

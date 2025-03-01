@@ -1,15 +1,17 @@
 import React, { createContext, useState, useEffect, useRef, useCallback } from "react";
 import { AppState } from "react-native";
+import { Robot } from "@/components/models/Robot";
 
 // Create the WebSocket Context
 export const WebSocketContext = createContext<any>(null);
 
 const WS_URL = "ws://respace-hub.local:8002/app";
 
+
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
-    const [robotData, setRobotData] = useState<Record<string, any>>({});
+    const [robotData, setRobotData] = useState<Robot[]>([]);
     const reconnectInterval = useRef<NodeJS.Timeout | null>(null);
 
     // Function to connect WebSocket
@@ -67,16 +69,23 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
         ws.onmessage = (e) => {
             try {
                 const data = JSON.parse(e.data);
-                console.log("Received:", data);
+                // console.log("Received:", data);
 
                 // Only update state if type === "status"
-                if (data.type == "robot_list") {
-                    console.log("Updating robot list with status data");
-                    // Todo: set robot data
-                    // setRobotData((prevData) => ({
-                    //     ...prevData,
-                    //     [data.type]: data,
-                    // }));
+                if (data.type === "robot_list" && Array.isArray(data.robots)) {
+                    console.log("Initial Data incoming: ", data.robots);
+                    // Convert JSON data into Robot objects
+                    const newRobotData = data.robots.map((robot: { robot_id: string; battery: number; location: { x: number; y: number; }; current_activity: string; carrying: string | null; }) =>
+                        new Robot(
+                            robot.robot_id,
+                            robot.battery,
+                            robot.location,
+                            robot.current_activity,
+                            robot.carrying
+                        )
+                    );
+                    setRobotData(newRobotData); // Array of robot objects
+
                 } else {
                     console.log("Ignored message (not status):", data.type);
                 }
@@ -120,7 +129,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }, [isConnected, connectWebSocket]);
 
     return (
-        <WebSocketContext.Provider value={{ socket, isConnected }}>
+        <WebSocketContext.Provider value={{ socket, isConnected, robotData }}>
             {children}
         </WebSocketContext.Provider>
     );
