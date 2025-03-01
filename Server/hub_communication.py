@@ -129,10 +129,7 @@ async def handle_app_message(data):
     if data["type"] == "control":
         print("App control data: ", data)
         # Forward the task to the target robot
-
-        # Todo: Change this back vvv
-        # target_robot_id = data["target_id"]
-        target_robot_id = "1"
+        target_robot_id = data["target"]
         await send_to_robot(target_robot_id, data)
 
     # Manually setting current furniture with the app
@@ -142,8 +139,9 @@ async def handle_app_message(data):
         #     print(f"Adding: {location}")
         #     furniture = Furniture(location["id"], (30, 30), location["x"], location["y"])
         #     current_furniture_positions.append(furniture)
+        target_robot_id = data["target"]
         print(f"Current layout locations: {current_furniture_positions}")
-        await send_to_robot("1", data)
+        await send_to_robot(target_robot_id, data)
 
     elif data["type"] == "desired_layout":
         global desired_furniture_positions
@@ -153,7 +151,7 @@ async def handle_app_message(data):
         # print(f"Desired layout locations: {desired_furniture_positions}")
 
     elif data["type"] == "power":
-        target_robot_id = data["target_id"]
+        target_robot_id = data["target"]
         await send_to_robot(target_robot_id, data)
 
     elif data["type"] == "debug":
@@ -189,17 +187,11 @@ async def handle_robot_message(robot, data):
 
 
 async def send_to_robot(target_id, data):
-    for robot in connected_robots:
-        robot_id = robot.id
-        robot_websocket = robot.websocket
-        # Debug messages:
-        # print(f"Robot ID: {robot_id}")
-        # print(f"Target ID: {target_id}")
-        # Todo: Uncomment this vvv
-        # if str(robot_id) == str(target_id):
-        print(f"Forwarding: \n{data}\nto robot: {robot_id}")
-        await robot_websocket.send(json.dumps(data))
-        break
+    print("Target ID: ", target_id)
+    print("Data: ", connected_robots.keys())
+    if target_id in connected_robots.keys():
+        print(f"Forwarding: \n{data}\nto robot: {target_id}")
+        await connected_robots[target_id].websocket.send(json.dumps(data))
     else:
         print(f"Robot {target_id} not found!")
 
