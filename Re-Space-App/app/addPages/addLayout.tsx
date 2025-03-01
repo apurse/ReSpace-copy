@@ -4,7 +4,7 @@ import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
-import { useSocket, sendMessage } from "@/hooks/useSocket";
+import { useSocket } from "@/hooks/useSocket";
 import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -196,9 +196,10 @@ export default function DragAndDrop() {
 
     // Set boxes to current layout
     const setLayout = () => {
+        const { sendMessage } = useSocket();
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
-        sendMessage(false, { type: "current_layout", locations: boxesFormatted })
+        sendMessage({ type: "current_layout", locations: boxesFormatted })
 
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
@@ -401,7 +402,10 @@ export default function DragAndDrop() {
                     <>
                         <ActionButton
                         label="Ready To Go!"
-                        onPress={() => sendMessage(false, { type: "desired_layout", locations: boxesFormatted })}
+                        onPress={() => {
+                            const { sendMessage } = useSocket();
+                            sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                        }}
                         />
                         <ActionButton
                         label="Reset Layout"

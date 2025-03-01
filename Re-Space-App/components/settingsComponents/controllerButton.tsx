@@ -1,40 +1,38 @@
-import React from 'react';
-import { Dimensions, Pressable, StyleSheet } from 'react-native';
-import { AntDesign } from '@expo/vector-icons';
-import { useSocket, sendMessage } from "@/hooks/useSocket";
+import React, { useState } from "react";
+import { Dimensions, Pressable, StyleSheet } from "react-native";
+import { AntDesign } from "@expo/vector-icons";
+import { useSocket } from "@/hooks/useSocket";
 
-
-const { width, height } = Dimensions.get('window');
-const socket = useSocket();
+const { width } = Dimensions.get("window");
 
 const ControlButton = ({
-    iconName,
-    iconSize = 24,
-    iconColor = 'black',
-    buttonStyle,
-    message,
-}: {
-    onPressIn?: () => void;
-    onPressOut?: () => void;
+                           iconName,
+                           iconSize = 24,
+                           iconColor = "black",
+                           buttonStyle,
+                           message,
+                       }: {
     iconName: keyof typeof AntDesign.glyphMap;
     iconSize?: number;
     iconColor?: string;
     buttonStyle?: object;
     message: string;
 }) => {
+    const { sendMessage, robotData, isConnected  } = useSocket();
+
     return (
         <Pressable
             onPressIn={() => {
-                sendMessage(false, { "type": "control", "target": "respace-1", "direction": message });
-                console.log("Sending: movement:", message);
+                sendMessage({ type: "control", target: "respace-1", direction: message });
+                console.log("🚀 Sending movement:", message);
             }}
             onPressOut={() => {
-                sendMessage(false, { "type": "control", "target": "respace-1", "direction": "stop" });
-                console.log("Sending: movement:", "stop");
+                sendMessage({ type: "control", target: "respace-1", direction: "stop" });
+                console.log("🛑 Stopping movement");
             }}
             style={({ pressed }) => [
                 {
-                    backgroundColor: pressed ? 'lightgrey' : 'grey',
+                    backgroundColor: pressed ? "lightgrey" : "grey",
                 },
                 styles.button,
                 buttonStyle,
@@ -52,10 +50,8 @@ const styles = StyleSheet.create({
         height: width * 0.2,
         marginBottom: 10,
         marginLeft: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-        // backgroundColor: isDarkMode ? '#fff' : '#000',
-        // backgroundColor: 'lightgrey'
+        alignItems: "center",
+        justifyContent: "center",
     },
 });
 

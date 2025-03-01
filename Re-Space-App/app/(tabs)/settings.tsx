@@ -9,7 +9,7 @@ import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from "expo-router";
-import { testLatency } from "@/hooks/useSocket";
+// import { testLatency } from "@/hooks/useSocket";
 
 const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
@@ -143,8 +143,9 @@ const SettingsPage = () => {
                 <ActionButton
                     label="Test Connection"
                     onPress={async () => {
-                        let timeTaken = await testLatency({ type: "debug", message: "Testing message!" })
-                        alert(`${timeTaken}ms`);
+                        // let timeTaken = await testLatency({ type: "debug", message: "Testing message!" })
+                        // alert(`${timeTaken}ms`);
+                        alert("Todo, fix test Connection");
                     }}
                 />
             </View>

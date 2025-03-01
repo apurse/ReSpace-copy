@@ -8,25 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-
-// Setting the socket type based on device connection
-// If socket is undefined (web) use ws, else use react native API
-const socketType = (typeof WebSocket === 'undefined') ? require('ws') : WebSocket;
-const socket = new socketType("ws://respace-hub.local:8002/app");
-
-// Context to pass data to children
-export const SocketContext = createContext(socket);
-
-interface ISocketProvider {
-  children: ReactChild;
-}
-
-
-// Make a new prop
-export const SocketProvider = (props: ISocketProvider) => (
-  <SocketContext.Provider value={socket}>{props.children}</SocketContext.Provider>
-);
+import { SocketProvider } from "./context/webSocketProvider";
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
