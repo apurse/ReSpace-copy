@@ -40,6 +40,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             console.log("WebSocket Error:", error);
             setIsConnected(false);
             setSocket(null);
+            setRobotData([]);
 
             // Start reconnection loop if not already running
             if (!reconnectInterval.current) {
@@ -54,6 +55,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
             console.warn(`WebSocket closed: ${e.reason}`);
             setIsConnected(false);
             setSocket(null);
+            setRobotData([]);
 
             // Start reconnection loop if not already running
             if (!reconnectInterval.current) {

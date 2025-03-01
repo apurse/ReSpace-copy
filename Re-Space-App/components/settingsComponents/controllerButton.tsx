@@ -11,12 +11,14 @@ const ControlButton = ({
                            iconColor = "black",
                            buttonStyle,
                            message,
+                           targetRobot,
                        }: {
     iconName: keyof typeof AntDesign.glyphMap;
     iconSize?: number;
     iconColor?: string;
     buttonStyle?: object;
     message: string;
+    targetRobot: string;
 }) => {
     const { sendMessage, isConnected } = useSocket();
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -28,10 +30,10 @@ const ControlButton = ({
         }
 
         console.log("Starting repeated movement:", message);
-        sendMessage({ type: "control", target: "respace-1", direction: message });
+        sendMessage({ type: "control", target: targetRobot, direction: message });
 
         intervalRef.current = setInterval(() => {
-            sendMessage({ type: "control", target: "respace-1", direction: message });
+            sendMessage({ type: "control", target: targetRobot, direction: message });
         }, 100); // Send message every 100ms
     };
 
@@ -41,7 +43,7 @@ const ControlButton = ({
             clearInterval(intervalRef.current); // Stop interval
             intervalRef.current = null;
         }
-        sendMessage({ type: "control", target: "respace-1", direction: "stop" });
+        sendMessage({ type: "control", target: targetRobot, direction: "stop" });
     };
 
     return (
