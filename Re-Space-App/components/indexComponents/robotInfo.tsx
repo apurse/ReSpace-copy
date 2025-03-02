@@ -15,11 +15,11 @@ export default function robotInfo({ robot }: { robot: Robot }) {
     return (
         <View style={uniqueStyles.container}>
             {/* image of robot */}
-            <Text style={uniqueStyles.text}>ID: {robot.robot_id}</Text>
+            <Text style={uniqueStyles.text}>ID: {robot.robot_id.slice(0, 6)}</Text>
             <Text style={uniqueStyles.text}>Battery: {robot.battery}</Text>
             <Text style={uniqueStyles.text}>Current activity: {robot.current_activity}</Text>
-            <Text style={uniqueStyles.text}>Location X: {robot.locationX}</Text>
-            <Text style={uniqueStyles.text}>Location Y: {robot.locationY}</Text>
+            <Text style={uniqueStyles.text}>Location X: {robot.locationX.toFixed(2)}</Text>
+            <Text style={uniqueStyles.text}>Location Y: {robot.locationY.toFixed(2)}</Text>
         </View>
     );
 };
@@ -35,7 +35,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             borderColor: isDarkMode ? '#fff' : '#000',
             borderWidth: 1,
             borderRadius: 8,
-            height: 130,
+            height: 115,
             padding: 8,
             alignItems: 'center',
         },

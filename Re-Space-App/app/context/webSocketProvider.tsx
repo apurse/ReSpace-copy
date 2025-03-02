@@ -75,7 +75,12 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                 // console.log("Received:", data);
 
                 // Only update state if type === "status"
-                if (data.type === "robot_list" && Array.isArray(data.robots)) {
+                if (data.type === "robot_list") {
+                    // If empty, update to empty list
+                    if (!Array.isArray(data.robots)) {
+                        setRobotData([]);
+                        return
+                    }
                     console.log("Initial Data incoming: ", data.robots);
                     // Convert JSON data into Robot objects
                     const newRobotData = data.robots.map((robot: { robot_id: string; battery: number; location: { x: number; y: number; }; current_activity: string; carrying: string | null; }) =>
