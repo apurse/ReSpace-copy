@@ -28,14 +28,14 @@ const SettingsPage = () => {
     // const [test, setTest] = useState(false);
     const [movementSpeed, setMovementSpeed] = useState(2);
     const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
-    const { socket, isConnected, robotData, sendMessage} = useSocket();
+    const { socket, isConnected, robotData, sendMessage, latencyData} = useSocket();
     // Convert dictionary into an array of robots for iteration
 
-
-    // Use this in future to dynamically update
-    // useEffect(() => {
-    //     console.log("UI Component Updated with robotData:", robotData); // Logs when UI receives updates
-    // }, [robotData]); // Triggers only when robotData updates
+    useEffect(() => {
+        if (latencyData != undefined) {
+            alert(`Websocket latency: ${latencyData}ms`);
+        }
+    }, [latencyData]); // Triggers only when latencyData updates
 
 
     useEffect(() => {
@@ -153,17 +153,12 @@ const SettingsPage = () => {
                 <ActionButton
                     label="Test Connection"
                     onPress={async () => {
+                        // Result comes back to the useEffect at the top of this page
                         if (isConnected) {
-                            // alert("Connected")
-                            robotData.forEach((robot: Robot) => {
-                                console.log(`🦾 ID: ${robot.robot_id}, 🔋 Battery: ${robot.battery}%`);
-                            })
+                            sendMessage({type: "latency_test", start_time: Date.now()});
                         } else {
                             alert("No connection to the WebSocket.");
                         }
-                        // let timeTaken = await testLatency({ type: "debug", message: "Testing message!" })
-                        // alert(`${timeTaken}ms`);
-                        alert("Todo, fix test Connection");
                     }}
                 />
             </View>

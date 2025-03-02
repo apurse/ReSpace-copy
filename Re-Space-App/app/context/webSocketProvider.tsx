@@ -12,6 +12,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [isConnected, setIsConnected] = useState(false);
     const [robotData, setRobotData] = useState<Robot[]>([]);
+    const [latencyData, setLatencyData] = useState<number>();
     const reconnectInterval = useRef<NodeJS.Timeout | null>(null);
 
     // Function to connect WebSocket
@@ -88,6 +89,16 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                     );
                     setRobotData(newRobotData); // Array of robot objects
 
+                } else if (data.type === "latency_test") {
+                    const timeTaken = Date.now() - Number(data.start_time);
+                    setLatencyData(timeTaken)
+                    console.log("Time taken: ${timeTaken} ms");
+                    // Reset to undefined after 1 second
+                    // This prevents the same result not notifying the user due to no data update
+                    setTimeout(() => {
+                        setLatencyData(undefined);
+                        console.log("Latency data reset");
+                    }, 1000);
                 } else {
                     console.log("Ignored message (not status):", data.type);
                 }
@@ -131,7 +142,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }, [isConnected, connectWebSocket]);
 
     return (
-        <WebSocketContext.Provider value={{ socket, isConnected, robotData }}>
+        <WebSocketContext.Provider value={{ socket, isConnected, robotData, latencyData }}>
             {children}
         </WebSocketContext.Provider>
     );
