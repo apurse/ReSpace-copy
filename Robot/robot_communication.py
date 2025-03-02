@@ -14,7 +14,8 @@ status_update_interval = 20  # Seconds
 reconnect_interval = 5  # Seconds
 
 battery = 15
-location = {"x": 60, "y": 10}
+locationX = 60
+locationY = 40
 current_activity = "idle"
 
 async def connect_to_server():
@@ -41,9 +42,10 @@ async def send_status_updates(websocket):
         while True:
             # Send the status message
             await websocket.send(json.dumps({
-                "type": "status",
+                "type": "status_update",
                 "battery": battery,
-                "location": location,
+                "locationX": locationX,
+                "locationY": locationY,
                 "current_activity": current_activity,
             }))
 
@@ -63,6 +65,8 @@ async def handle_hub_message(websocket):
                 handle_manual_control(data)
             elif data.get("type") == "move":
                 handle_move(data)
+            elif data.get("type") == "move_task":
+                print(data)
             else:
                 print("Unknown command received!")
     except websockets.ConnectionClosed:
