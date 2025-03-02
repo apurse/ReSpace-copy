@@ -46,9 +46,9 @@ function calculateTime(axis: string, distance: Float) {
 
 // Boxes in the grid
 const allBoxes = [
-    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0, width:70, length: 30, color: 'red', rotation: 0.0},
-    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0, width:50, length: 150, color: 'green', rotation: 0.0 },
-    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0, width:50, length: 30, color: 'blue', rotation: 0.0 },
+    { id: 1, x: 0, y: 0, width:70, length: 30, color: 'red', rotation: 0.0},
+    { id: 2, x: 150, y: 150, width:50, length: 150, color: 'green', rotation: 0.0 },
+    { id: 3, x: 100, y: 100, width:50, length: 30, color: 'blue', rotation: 0.0 },
 ];
 
 export default function DragAndDrop() {
@@ -58,8 +58,6 @@ export default function DragAndDrop() {
         id: number;
         x: Float;
         y: Float;
-        timeX: Float;
-        timeY: Float;
         width: number;
         length: number;
         color: string;
@@ -85,6 +83,7 @@ export default function DragAndDrop() {
     const [isSet, setIsSet] = useState(false); // Check if the layout is set or not
     const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
     const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
+    const { sendMessage } = useSocket();
 
     // work out new positions and timings
     const updateBoxPosition = (id: number, dx: number, dy: number) => {
@@ -111,8 +110,6 @@ export default function DragAndDrop() {
 
                     const finalX = clampedX - box.width / 2;
                     const finalY = clampedY - box.length / 2;
-                    // const newTimeX = calculateTime("X", newX);
-                    // const newTimeY = calculateTime("Y", newY);
 
 
                     return { ...box, x: finalX, y: finalY };
@@ -196,7 +193,6 @@ export default function DragAndDrop() {
 
     // Set boxes to current layout
     const setLayout = () => {
-        const { sendMessage } = useSocket();
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
         sendMessage({ type: "current_layout", locations: boxesFormatted })
@@ -226,9 +222,7 @@ export default function DragAndDrop() {
         const newBox = {
              id: newId, 
              x: gridDimensionsPx[0]/2, 
-             y: gridDimensionsPx[1]/2, 
-             timeX: 0, 
-             timeY: 0, 
+             y: gridDimensionsPx[1]/2,
              width: furniture.width, 
              length: furniture.length, 
              color: furniture.selectedColour,
@@ -403,7 +397,6 @@ export default function DragAndDrop() {
                         <ActionButton
                         label="Ready To Go!"
                         onPress={() => {
-                            const { sendMessage } = useSocket();
                             sendMessage({ type: "desired_layout", locations: boxesFormatted })
                         }}
                         />
