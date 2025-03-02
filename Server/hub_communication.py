@@ -31,7 +31,7 @@ class HubInterface:
         Retrieve the currently connected robots.
 
         Returns:
-            list[Robot]: A list of Robot objects that are currently connected.
+            robot (dict): A dictionary of Robot objects that are currently connected.
         """
         return connected_robots
 
@@ -88,6 +88,7 @@ async def handle_connection(websocket):
             connected_app = websocket
             print(f"App successfully connected with IP: {connected_ip}")
         else:
+            # Todo: Add a force overwrite of the connected_app websocket
             print(f"App attempted to connect with IP: {connected_ip}")
             print(f"Error: App already connected with IP: {connected_app.remote_address[0]}")
             return
@@ -134,28 +135,35 @@ async def handle_app_message(data):
 
     # Manually setting current furniture with the app
     elif data["type"] == "current_layout":
-        global current_furniture_positions
-        # for location in data["locations"]:
-        #     print(f"Adding: {location}")
-        #     furniture = Furniture(location["id"], (30, 30), location["x"], location["y"])
-        #     current_furniture_positions.append(furniture)
-        target_robot_id = data["target"]
-        print(f"Current layout locations: {current_furniture_positions}")
-        await send_to_robot(target_robot_id, data)
+        current_furniture_positions.clear()
+        for locationData in data["locations"]:
+            print("Adding current data: ", locationData)
+            furniture_id = locationData["id"]
+            # size = locationData["size"] # Todo: setup size
+            furniture_size = (1, 1)
+            furniture_locationX = locationData["x"]
+            furniture_locationY = locationData["y"]
+            fun = Furniture(furniture_id, furniture_size, furniture_locationX, furniture_locationY)
+            current_furniture_positions.append(fun)
 
     elif data["type"] == "desired_layout":
-        global desired_furniture_positions
-        for location in data["locations"]:
-            print(f"Adding: {location}")
-            # desired_furniture_positions.append(location)
-        # print(f"Desired layout locations: {desired_furniture_positions}")
+        desired_furniture_positions.clear()
+        for locationData in data["locations"]:
+            print("Adding desired data: ", locationData)
+            furniture_id = locationData["id"]
+            # size = locationData["size"] # Todo: setup size
+            furniture_size = (1, 1)
+            furniture_locationX = locationData["x"]
+            furniture_locationY = locationData["y"]
+            fun = Furniture(furniture_id, furniture_size, furniture_locationX, furniture_locationY)
+            desired_furniture_positions.append(fun)
 
     elif data["type"] == "power":
         target_robot_id = data["target"]
         await send_to_robot(target_robot_id, data)
 
-    elif data["type"] == "debug":
-        await send_to_app({"type": "debug", "data": "Hello world!"})
+    elif data["type"] == "latency_test":
+        await send_to_app({"type": "latency_test", "start_time": data["start_time"]})
 
     else:
         print("Received unknown command!")
@@ -163,11 +171,12 @@ async def handle_app_message(data):
 
 
 async def handle_robot_message(robot, data):
-    if data["type"] == "status":
+    if data["type"] == "status_update":
         # Forward status to the app
-        robot.battery = data["battery"]
-        robot.locationX = data["location"]["x"]
-        robot.locationY = data["location"]["y"]
+        # robot.battery = data["battery"] # Todo: add battery (probably read from arduino using ros status_update node)
+        robot.battery = 69
+        robot.locationX = data["locationX"]
+        robot.locationY = data["locationY"]
         robot.current_activity = data["current_activity"]
         # connected_robots[robot.id] = robot
         print("Updating robot status: ", robot.to_dict())
