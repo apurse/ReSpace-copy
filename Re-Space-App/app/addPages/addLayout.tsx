@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, Text, PanResponder, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import { View, Text, PanResponder, StyleSheet, Dimensions, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform} from "react-native";
 import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
@@ -185,8 +185,8 @@ export default function DragAndDrop() {
             onPanResponderRelease: () => {
                 console.log(
                     `Box ${id} updated position: `,
-                    // boxes.find((box) => box.id === id) <-- old version
-                    `{${JSON.stringify(boxes.find((box) => box.id === id))}}` // Formatted to add extra bracket '{'
+                    boxes.find((box) => box.id === id),
+                    console.log(selectedBox)
                 );
             },
         });
@@ -249,171 +249,236 @@ export default function DragAndDrop() {
         setSelectedBox(null);
     };
 
+    const updateX = (e : string) => {
+        const newX = parseFloat(e);
+
+        setBoxes((prevBoxes) => 
+            prevBoxes.map((box) => 
+                box.id === selectedBox ? {...box, x: newX} : box
+            )
+        );
+    };
+
+    const updateY = (e : string) => {
+        const newY = parseFloat(e);
+
+        setBoxes((prevBoxes) => 
+            prevBoxes.map((box) => 
+                box.id === selectedBox ? {...box, y: newY} : box
+            )
+        );
+    };
+
+    const updateAngle = (e : string) => {
+        const newRotation = parseFloat(e);
+
+        setBoxes((prevBoxes) => 
+            prevBoxes.map((box) => 
+                box.id === selectedBox ? {...box, rotation: newRotation} : box
+            )
+        );
+    };
+
+    let coordinateX = boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0
+    let coordinateY = boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0
+    let rotationAngle = boxes.find((box) => box.id === selectedBox)?.rotation.toFixed(2) || 0
+
     return (
-        <View style={defaultStyles.body}>
-
-            {/* Title */}
-            <View style={defaultStyles.pageTitleSection}>
-                <Text style={defaultStyles.pageTitle}>Add Layout</Text>
-                <Text style={uniqueStyles.zoomStyle}>Zoom: {(zoomLevel - 1).toFixed(2)}</Text>
-                {/* Rotation buttons */}
-                {/* Rotation to right */}
-                <TouchableOpacity
-                    style={uniqueStyles.rotationRight}
-                    onPressIn={() => selectedBox && rotateBoxRight(selectedBox)}
-                    onPressOut={stopRotation}
-                >
-                    <View>
-                        <Icon name="undo" size={25} style={{transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000',}}/>
-                    </View>
-                </TouchableOpacity>
-
-                {/* Rotation to left */}
-                <TouchableOpacity
-                    style={uniqueStyles.rotationLeft}
-                    onPressIn={() => selectedBox && rotateBoxLeft(selectedBox)}
-                    onPressOut={stopRotation}
-                >
-                    <View>
-                        <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000',}}/>
-                    </View>
-                </TouchableOpacity>
-            </View>
-
-            {/* Grid */}
-            <View
-                ref={squareRef}
-                style={uniqueStyles.grid}
-                onLayout={(e) => {
-                    const { x, y, width, height } = e.nativeEvent.layout;
-                    console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
-                }}
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
+        >
+            <ScrollView 
+                contentContainerStyle={{ flexGrow: 1 }} 
+                keyboardShouldPersistTaps="handled"
             >
-                <ReactNativeZoomableView
-                    maxZoom={10}
-                    minZoom={1}
-                    initialZoom={1}
-                    disablePanOnInitialZoom={true}
+                <View style={defaultStyles.body}>
 
-                    // Update zoom level
-                    onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
-                        setZoomLevel(zoomableViewEventObject.zoomLevel); 
-                    }}
-                >
-                    {/* Display not moving boxes */}
-                    {placedBoxes.map((box) => (
-                        <View
-                            key={`placed-${box.id}`} // Create unique id for placed boxes
-                            style={[
-                                uniqueStyles.robot,
-                                {
-                                    left: box.x,
-                                    top: box.y,
-                                    backgroundColor: "transparent",
-                                    borderWidth: 1,
-                                    width: box.width,
-                                    height: box.length,
-                                    transform: [{ rotate: `${box.rotation}deg` }],
-                                },
-                            ]}
+                    {/* Title */}
+                    <View style={defaultStyles.pageTitleSection}>
+                        <Text style={defaultStyles.pageTitle}>Add Layout</Text>
+                        <Text style={uniqueStyles.zoomStyle}>Zoom: {(zoomLevel - 1).toFixed(2)}</Text>
+                        {/* Rotation buttons */}
+                        {/* Rotation to right */}
+                        <TouchableOpacity
+                            style={uniqueStyles.rotationRight}
+                            onPressIn={() => selectedBox && rotateBoxRight(selectedBox)}
+                            onPressOut={stopRotation}
                         >
-                            <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
-                        </View>
-                    ))}
-
-                    {/* Display moving boxes */}
-                    {boxes.map((box) => {
-                        const panResponder = createPanResponder(box.id);
-
-                        // Check if box is selected to highlighted
-                        const isSelected = selectedBox === box.id;
-
-                        return (
-                            <View
-                                key={box.id}
-                                style={[
-                                    uniqueStyles.robot,
-                                    {
-                                        left: box.x,
-                                        top: box.y,
-                                        backgroundColor: box.color,
-                                        borderWidth: isSelected ? 2 : 0,
-                                        borderColor: isSelected ? 'yellow' : 'transparent',
-                                        width: box.width,
-                                        height: box.length,
-                                        transform: [{ rotate: `${box.rotation}deg` }],
-                                    },
-                                ]}
-                                {...panResponder.panHandlers}
-                            >
-                                <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                            <View>
+                                <Icon name="undo" size={25} style={{transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000',}}/>
                             </View>
-                        );
-                    })}
-                </ReactNativeZoomableView>
-            </View>
-            {/* Need scale measurement */}
+                        </TouchableOpacity>
 
-            <View style={uniqueStyles.buttonContainer}>
+                        {/* Rotation to left */}
+                        <TouchableOpacity
+                            style={uniqueStyles.rotationLeft}
+                            onPressIn={() => selectedBox && rotateBoxLeft(selectedBox)}
+                            onPressOut={stopRotation}
+                        >
+                            <View>
+                                <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000',}}/>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
 
-                {/* Show notifications */}
-                {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
-
-                {/* Show coordinates */}
-                {selectedBox !== null && (
-                    <Text style={uniqueStyles.coordinates}>
-                        X = {boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0},
-                        Y = {boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0},
-                        Angle = {boxes.find((box) => box.id === selectedBox)?.rotation.toFixed(2) || 0}
-                    </Text>
-                )}
-
-                {/* Buttons */}
-                {/* Show different buttons depending in current location is set or not */}
-                {!isSet ? (
-                    <>
-                        <ActionButton
-                            label="Set Current Location"
-                            onPress={setLayout}
-                        />
-                        <ActionButton
-                            label="Delete Furniture"
-                            onPress={deleteFurniture}
-                            style={{ backgroundColor: '#fa440c'}}
-                        />
-                        <ActionButton
-                            label="Add Furniture"
-                            onPress={() => setModalVisible(true)}
-                            style={{ backgroundColor: '#964B00'}}
-                        />
-                        <FurnitureModal 
-                            isVisible={isModalVisible}
-                            onClose={() => setModalVisible(false)}
-                            onSelectFurniture={addFurniture}
-                         />
-                    </>
-                ) : (
-                    <>
-                        <ActionButton
-                        label="Ready To Go!"
-                        onPress={() => {
-                            sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                    {/* Grid */}
+                    <View
+                        ref={squareRef}
+                        style={uniqueStyles.grid}
+                        onLayout={(e) => {
+                            const { x, y, width, height } = e.nativeEvent.layout;
+                            console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
                         }}
-                        />
-                        <ActionButton
-                        label="Reset Layout"
-                        onPress={resetLayout}
-                        style={{ backgroundColor: '#fa440c'}}
-                        />
-                        <ActionButton
-                        label="Save Layout"
-                        onPress={() => console.log('working on it')}
-                        style={{ backgroundColor: '#76f58f'}}
-                        />
-                    </>
-                )}
-            </View>
-        </View>
+                    >
+                        <ReactNativeZoomableView
+                            maxZoom={10}
+                            minZoom={1}
+                            initialZoom={1}
+                            disablePanOnInitialZoom={true}
+
+                            // Update zoom level
+                            onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
+                                setZoomLevel(zoomableViewEventObject.zoomLevel); 
+                            }}
+                        >
+                            {/* Display not moving boxes */}
+                            {placedBoxes.map((box) => (
+                                <View
+                                    key={`placed-${box.id}`} // Create unique id for placed boxes
+                                    style={[
+                                        uniqueStyles.robot,
+                                        {
+                                            left: box.x,
+                                            top: box.y,
+                                            backgroundColor: "transparent",
+                                            borderWidth: 1,
+                                            width: box.width,
+                                            height: box.length,
+                                            transform: [{ rotate: `${box.rotation}deg` }],
+                                        },
+                                    ]}
+                                >
+                                    <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
+                                </View>
+                            ))}
+
+                            {/* Display moving boxes */}
+                            {boxes.map((box) => {
+                                const panResponder = createPanResponder(box.id);
+
+                                // Check if box is selected to highlighted
+                                const isSelected = selectedBox === box.id;
+
+                                return (
+                                    <View
+                                        key={box.id}
+                                        style={[
+                                            uniqueStyles.robot,
+                                            {
+                                                left: box.x,
+                                                top: box.y,
+                                                backgroundColor: box.color,
+                                                borderWidth: isSelected ? 2 : 0,
+                                                borderColor: isSelected ? 'yellow' : 'transparent',
+                                                width: box.width,
+                                                height: box.length,
+                                                transform: [{ rotate: `${box.rotation}deg` }],
+                                            },
+                                        ]}
+                                        {...panResponder.panHandlers}
+                                    >
+                                        <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                                    </View>
+                                );
+                            })}
+                        </ReactNativeZoomableView>
+                    </View>
+                    {/* Need scale measurement */}
+                    <View style={uniqueStyles.buttonContainer}>
+
+                        {/* Show notifications */}
+                        {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+
+                        {/* Show coordinates */}
+                        {selectedBox !== null && (
+
+                            <View style={uniqueStyles.coordinatesContainer}>
+                                <Text style={uniqueStyles.coordinates}>X =</Text>
+                                <TextInput
+                                    value={String(coordinateX)}
+                                    onChangeText={(e) => updateX(e)}
+                                    style={uniqueStyles.textInput}
+                                    keyboardType="numeric"
+                                    placeholder={String(coordinateX)}
+                                />
+                                <Text style={uniqueStyles.coordinates}>Y =</Text>
+                                <TextInput
+                                    value={String(coordinateY)}
+                                    onChangeText={(e) => updateY(e)}
+                                    style={uniqueStyles.textInput}
+                                    keyboardType="numeric"
+                                    placeholder={String(coordinateY)}
+                                />
+                                <Text style={uniqueStyles.coordinates}>Angle =</Text>
+                                <TextInput
+                                    value={String(rotationAngle)}
+                                    onChangeText={(e) => updateAngle(e)}
+                                    style={uniqueStyles.textInput}
+                                    keyboardType="numeric"
+                                    placeholder={String(rotationAngle)}
+                                />
+                            </View>
+                        )}
+
+                        {/* Buttons */}
+                        {/* Show different buttons depending in current location is set or not */}
+                        {!isSet ? (
+                            <>
+                                <ActionButton
+                                    label="Set Current Location"
+                                    onPress={setLayout}
+                                />
+                                <ActionButton
+                                    label="Delete Furniture"
+                                    onPress={deleteFurniture}
+                                    style={{ backgroundColor: '#fa440c'}}
+                                />
+                                <ActionButton
+                                    label="Add Furniture"
+                                    onPress={() => setModalVisible(true)}
+                                    style={{ backgroundColor: '#964B00'}}
+                                />
+                                <FurnitureModal 
+                                    isVisible={isModalVisible}
+                                    onClose={() => setModalVisible(false)}
+                                    onSelectFurniture={addFurniture}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <ActionButton
+                                label="Ready To Go!"
+                                onPress={() => {
+                                    sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                                }}
+                                />
+                                <ActionButton
+                                label="Reset Layout"
+                                onPress={resetLayout}
+                                style={{ backgroundColor: '#fa440c'}}
+                                />
+                                <ActionButton
+                                label="Save Layout"
+                                onPress={() => console.log('working on it')}
+                                style={{ backgroundColor: '#76f58f'}}
+                                />
+                            </>
+                        )}
+                    </View>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -467,8 +532,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             fontSize: 12,
             color: isDarkMode ? '#fff' : '#000',
             textAlign: 'center',
-            marginVertical: -8,
             top: 10,
+            letterSpacing: 2,
         },
         rotationLeft: {
             width: 25,
@@ -499,5 +564,16 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             top: 85,
             left: 25,
         },
+        textInput: {
+            color: isDarkMode ? '#fff' : '#000',
+            paddingBottom: 0,
+            paddingTop: 0,
+            top: 10,
+        },
+        coordinatesContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            left: '15%',
+        }
 
     });
