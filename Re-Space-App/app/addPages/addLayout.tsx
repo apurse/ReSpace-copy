@@ -4,12 +4,14 @@ import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
-import { useSocket, sendMessage } from "@/hooks/useSocket";
+import { useSocket } from "@/hooks/useSocket";
 import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { CurrentRenderContext } from "@react-navigation/native";
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
+import { setGestureState } from "react-native-reanimated";
+
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -44,46 +46,44 @@ function calculateTime(axis: string, distance: Float) {
 
 // Boxes in the grid
 const allBoxes = [
-    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0, width:70, length: 30, color: 'red', rotation: 0.0},
-    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0, width:50, length: 150, color: 'green', rotation: 0.0 },
-    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0, width:50, length: 30, color: 'blue', rotation: 0.0 },
+    { id: 1, x: 0, y: 0, width:70, length: 30, color: 'red', rotation: 0.0},
+    { id: 2, x: 150, y: 150, width:50, length: 150, color: 'green', rotation: 0.0 },
+    { id: 3, x: 100, y: 100, width:50, length: 30, color: 'blue', rotation: 0.0 },
 ];
 
 export default function DragAndDrop() {
-    // dark mode
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
-    const defaultStyles = createDefaultStyles(isDarkMode);
-    const uniqueStyles = createUniqueStyles(isDarkMode);
-    const socket = useSocket();
-
-    // Notifications
-    const [notifications, setnotifications] = useState<string | null>(null);
-
+    
     // Define 'Box' to store in 'currentPos'  
     type Box = {
         id: number;
         x: Float;
         y: Float;
-        timeX: Float;
-        timeY: Float;
         width: number;
         length: number;
         color: string;
         rotation: Float;
     };
+    
+    // dark mode
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    const uniqueStyles = createUniqueStyles(isDarkMode);
 
-    // set boxes array
-    const [boxes, setBoxes] = useState(allBoxes);
+    //const socket = useSocket(); <-- Not being use
 
-    // Formatted boxes data
-    const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation }));
-
-    // Placed boxes of current layout
-    const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]);
-
+    const [notifications, setnotifications] = useState<string | null>(null); // Notifications
+    const [boxes, setBoxes] = useState(allBoxes); // set boxes array
+    const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation })); // Formatted boxes data
+    const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]); // Placed boxes of current layout
     const squareRef = useRef(null);
-
+    const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null); // Track rotation interval
+    const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
+    const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
+    const [isSet, setIsSet] = useState(false); // Check if the layout is set or not
+    const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
+    const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
+    const { sendMessage } = useSocket();
 
     // work out new positions and timings
     const updateBoxPosition = (id: number, dx: number, dy: number) => {
@@ -110,8 +110,6 @@ export default function DragAndDrop() {
 
                     const finalX = clampedX - box.width / 2;
                     const finalY = clampedY - box.length / 2;
-                    // const newTimeX = calculateTime("X", newX);
-                    // const newTimeY = calculateTime("Y", newY);
 
 
                     return { ...box, x: finalX, y: finalY };
@@ -120,11 +118,6 @@ export default function DragAndDrop() {
             })
         );
     };
-
-    // Track rotation interval
-    const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null);
-    const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
-
 
     //Rotate clockwise function
     const rotateBoxRight = (id: number) => {
@@ -179,9 +172,6 @@ export default function DragAndDrop() {
         setCurrentSpeed(50); // Reset speed back to 50
     };
 
-    //Track active box for highlight feature
-    const [selectedBox, setSelectedBox] = useState<number | null>(null);
-
     const createPanResponder = (id: number) =>
         PanResponder.create({
             onStartShouldSetPanResponder: () => true,
@@ -201,14 +191,11 @@ export default function DragAndDrop() {
             },
         });
 
-    // Check if the layout is set or not
-    const [isSet, setIsSet] = useState(false);
-
     // Set boxes to current layout
     const setLayout = () => {
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
-        sendMessage(false, { type: "current_layout", locations: boxesFormatted })
+        sendMessage({ type: "current_layout", locations: boxesFormatted })
 
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
@@ -235,9 +222,7 @@ export default function DragAndDrop() {
         const newBox = {
              id: newId, 
              x: gridDimensionsPx[0]/2, 
-             y: gridDimensionsPx[1]/2, 
-             timeX: 0, 
-             timeY: 0, 
+             y: gridDimensionsPx[1]/2,
              width: furniture.width, 
              length: furniture.length, 
              color: furniture.selectedColour,
@@ -249,9 +234,6 @@ export default function DragAndDrop() {
         setnotifications('Furniture \'' + newId + '\' has been added');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
     };
-
-    // State of furniture modal (to add furniture)
-    const [isModalVisible, setModalVisible] = useState(false);
 
     // Delete selected furniture function
     const deleteFurniture = () => {
@@ -273,7 +255,7 @@ export default function DragAndDrop() {
             {/* Title */}
             <View style={defaultStyles.pageTitleSection}>
                 <Text style={defaultStyles.pageTitle}>Add Layout</Text>
-
+                <Text style={uniqueStyles.zoomStyle}>Zoom: {(zoomLevel - 1).toFixed(2)}</Text>
                 {/* Rotation buttons */}
                 {/* Rotation to right */}
                 <TouchableOpacity
@@ -308,12 +290,15 @@ export default function DragAndDrop() {
                 }}
             >
                 <ReactNativeZoomableView
-                maxZoom={10}
-                minZoom={1}
-                initialZoom={1}
-                disablePanOnInitialZoom={true}
-                contentWidth={gridDimensionsPx[0]}
-                contentHeight={gridDimensionsPx[1]}
+                    maxZoom={10}
+                    minZoom={1}
+                    initialZoom={1}
+                    disablePanOnInitialZoom={true}
+
+                    // Update zoom level
+                    onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
+                        setZoomLevel(zoomableViewEventObject.zoomLevel); 
+                    }}
                 >
                     {/* Display not moving boxes */}
                     {placedBoxes.map((box) => (
@@ -411,7 +396,9 @@ export default function DragAndDrop() {
                     <>
                         <ActionButton
                         label="Ready To Go!"
-                        onPress={() => sendMessage(false, { type: "desired_layout", locations: boxesFormatted })}
+                        onPress={() => {
+                            sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                        }}
                         />
                         <ActionButton
                         label="Reset Layout"
@@ -433,8 +420,8 @@ export default function DragAndDrop() {
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
         grid: {
-            width: gridDimensionsPx[0], // * scaleX once visuals are done
-            height: gridDimensionsPx[1], // * scaleY once visuals are done
+            width: gridDimensionsPx[0] + 5, // * scaleX once visuals are done
+            height: gridDimensionsPx[1] + 5, // * scaleY once visuals are done
             backgroundColor: '#D3D3D3',
             position: "relative",
             borderWidth: 2,
@@ -504,6 +491,13 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             backgroundColor: 'transparent', 
             borderWidth: 1,  
             borderColor: 'transparent',
-        }
+        },
+        zoomStyle: {
+            position: 'absolute',
+            fontSize: 10,
+            color: isDarkMode ? '#fff' : '#000',
+            top: 85,
+            left: 25,
+        },
 
     });

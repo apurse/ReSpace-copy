@@ -13,7 +13,7 @@ host = "0.0.0.0"
 port = 8002
 
 connected_app = None
-connected_robots = []
+connected_robots = {}
 current_furniture_positions = []
 desired_furniture_positions = []
 
@@ -31,7 +31,7 @@ class HubInterface:
         Retrieve the currently connected robots.
 
         Returns:
-            list[Robot]: A list of Robot objects that are currently connected.
+            robot (dict): A dictionary of Robot objects that are currently connected.
         """
         return connected_robots
 
@@ -73,6 +73,7 @@ class HubInterface:
 hub = HubInterface()
 
 async def handle_connection(websocket):
+    global connected_app
     connected_ip = websocket.local_address[0]
     robot = None
 
@@ -83,22 +84,20 @@ async def handle_connection(websocket):
     # Assign app websocket or add robot object to list
     if client_type == "app":
         # Limit to only one app connection at a time
-        global connected_app
-        # Todo: Fix issue in app where app attempts to connect multiple times
-        # if connected_app is None:
-        #     connected_app = websocket
-        #     print(f"App successfully connected with IP: {connected_ip}")
-        # else:
-        #     print(f"App attempted to connect with IP: {connected_ip}")
-        #     print(f"Error: App already connected with IP: {connected_app.remote_address[0]}")
-        #     return
-        connected_app = websocket
+        if connected_app is None:
+            connected_app = websocket
+            print(f"App successfully connected with IP: {connected_ip}")
+        else:
+            # Todo: Add a force overwrite of the connected_app websocket
+            print(f"App attempted to connect with IP: {connected_ip}")
+            print(f"Error: App already connected with IP: {connected_app.remote_address[0]}")
+            return
         await update_apps_robot_list()
 
     elif client_type == "robot":
         robot = Robot(str(websocket.id), websocket)
-        connected_robots.append(robot)
-        await update_apps_robot_list()
+        connected_robots[robot.id] = robot
+        # await update_apps_robot_list()
         print(f"Robot successfully connected with ip: {connected_ip}")
     else:
         await websocket.close()
@@ -123,7 +122,7 @@ async def handle_connection(websocket):
             connected_app = None
         elif client_type == "robot":
             print(f"Disconnected from: {connected_ip}")
-            connected_robots.remove(robot)
+            connected_robots.pop(robot.id)
             await update_apps_robot_list()
 
 
@@ -131,28 +130,40 @@ async def handle_app_message(data):
     if data["type"] == "control":
         print("App control data: ", data)
         # Forward the task to the target robot
-        target_robot_id = data["target_id"]
+        target_robot_id = data["target"]
         await send_to_robot(target_robot_id, data)
 
     # Manually setting current furniture with the app
     elif data["type"] == "current_layout":
-        global current_furniture_positions
-        for location in data["locations"]:
-            print(f"Adding: {location}")
-            furniture = Furniture(location["id"], (30, 30), location["x"], location["y"])
-            current_furniture_positions.append(furniture)
-        print(f"Current layout locations: {current_furniture_positions}")
+        current_furniture_positions.clear()
+        for locationData in data["locations"]:
+            print("Adding current data: ", locationData)
+            furniture_id = locationData["id"]
+            # size = locationData["size"] # Todo: setup size
+            furniture_size = (1, 1)
+            furniture_locationX = locationData["x"]
+            furniture_locationY = locationData["y"]
+            fun = Furniture(furniture_id, furniture_size, furniture_locationX, furniture_locationY)
+            current_furniture_positions.append(fun)
 
     elif data["type"] == "desired_layout":
-        global desired_furniture_positions
-        for location in data["locations"]:
-            print(f"Adding: {location}")
-            # desired_furniture_positions.append(location)
-        # print(f"Desired layout locations: {desired_furniture_positions}")
+        desired_furniture_positions.clear()
+        for locationData in data["locations"]:
+            print("Adding desired data: ", locationData)
+            furniture_id = locationData["id"]
+            # size = locationData["size"] # Todo: setup size
+            furniture_size = (1, 1)
+            furniture_locationX = locationData["x"]
+            furniture_locationY = locationData["y"]
+            fun = Furniture(furniture_id, furniture_size, furniture_locationX, furniture_locationY)
+            desired_furniture_positions.append(fun)
 
     elif data["type"] == "power":
-        target_robot_id = data["target_id"]
+        target_robot_id = data["target"]
         await send_to_robot(target_robot_id, data)
+
+    elif data["type"] == "latency_test":
+        await send_to_app({"type": "latency_test", "start_time": data["start_time"]})
 
     else:
         print("Received unknown command!")
@@ -160,26 +171,36 @@ async def handle_app_message(data):
 
 
 async def handle_robot_message(robot, data):
-    if data["type"] == "status":
+    if data["type"] == "status_update":
         # Forward status to the app
-        robot.send_status_to_app()
+        # robot.battery = data["battery"] # Todo: add battery (probably read from arduino using ros status_update node)
+        robot.battery = 69
+        robot.locationX = data["locationX"]
+        robot.locationY = data["locationY"]
+        robot.current_activity = data["current_activity"]
+        # connected_robots[robot.id] = robot
+        print("Updating robot status: ", robot.to_dict())
+        await update_apps_robot_list()
+        # await robot.send_status_to_app()
 
-    if data["type"] == "furniture_location":
+    elif data["type"] == "furniture_location":
         print("Todo: furniture location")
+
+    elif data["type"] == "debug":
+        print("Received debug message: ", data)
+
+    else:
+        print("Received unknown command!")
+        print("Unknown data: ", data)
 
 
 
 async def send_to_robot(target_id, data):
-    for robot in connected_robots:
-        robot_id = robot.id
-        robot_websocket = robot.websocket
-        # Debug messages:
-        # print(f"Robot ID: {robot_id}")
-        # print(f"Target ID: {target_id}")
-        if str(robot_id) == str(target_id):
-            print(f"Forwarding: \n{data}\nto robot: {robot_id}")
-            await robot_websocket.send(json.dumps(data))
-            break
+    print("Target ID: ", target_id)
+    print("Data: ", connected_robots.keys())
+    if target_id in connected_robots.keys():
+        print(f"Forwarding: \n{data}\nto robot: {target_id}")
+        await connected_robots[target_id].websocket.send(json.dumps(data))
     else:
         print(f"Robot {target_id} not found!")
 
@@ -205,17 +226,30 @@ async def update_apps_robot_list():
         try:
             message = json.dumps({
                 "type": "robot_list",
-                "robot_ids": [str(key) for key in connected_robots.keys()]
+                "robots": [robot.to_dict() for robot in connected_robots.values()]
             })
             print(f"Sending message to app: {message}")
             await connected_app.send(message)
         except Exception as e:
             print(f"Failed to update app with robot list: {e}")
+    elif connected_app is not None:
+        try:
+            message = json.dumps({
+                "type": "robot_list",
+                "robot_ids": "None"
+            })
+            print(f"Sending message to app: {message}")
+            await connected_app.send(message)
+        except Exception as e:
+            print(f"Failed to update app with robot list: {e}")
+    else:
+        print(f"Error: App not connected!")
+
 
 
 async def main():
     hostname = socket.gethostname()
-    print(f"Server running at ws://{hostname}:{port}")
+    print(f"Server running at ws://{hostname}.local:{port}")
 
     async with serve(handle_connection, host, port):
         try:

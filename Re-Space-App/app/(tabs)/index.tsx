@@ -1,24 +1,11 @@
 import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
-import { createDefaultStyles } from '../../components/defaultStyles';
+import { createDefaultStyles } from '@/components/defaultStyles';
 import RobotBox from '@/components/indexComponents/robotInfo';
 import React from 'react';
 import { useTheme } from '../_layout';
-
-// Need to get from websocket listen
-var robotsArray: any[] = [];
-
-
-// Update robot list
-export async function updateList(data: any) {
-  for (let i = 0; i < data.robot_ids.length; i++){
-    robotsArray[i] = data.robot_ids[i];
-    console.log(robotsArray[i])
-  }
-
-  return null;
-};
-
+import {useSocket} from "@/hooks/useSocket";
+import { Robot } from "@/components/models/Robot";
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -54,7 +41,7 @@ const batteryLevel = () => {
     { threshold: -1, message: "No battery", color: "#ec1a01", warning: Icons.BatteryIconCharge, battery: Icons.BatteryIconNull }
   ];
 
-  return batteryStatus.find(item => currentBatteryPerc > item.threshold) || { message: "Error", color: "#ec1a01", warning: Icons.WarningIcon, battery: Icons.WarningIcon };;
+  return batteryStatus.find(item => currentBatteryPerc > item.threshold) || { message: "Error", color: "#ec1a01", warning: Icons.WarningIcon, battery: Icons.WarningIcon }
 };
 
 // Change status if any issues found
@@ -76,15 +63,14 @@ export default function HomeScreen() {
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
+  const { socket, isConnected, robotData, sendMessage} = useSocket();
 
 
   // Make dynamic list for number of robots
-  var addRobots = [];
-  for (let i = 0; i < robotsArray.length; i++) {
-    addRobots.push(
-      <RobotBox robot={robotsArray[i]}/>
-    )
-  }
+  var addRobots: any = [];
+  robotData.forEach((robot: Robot) => {
+    addRobots.push(<RobotBox key={robot.robot_id} robot={robot}/>)
+  })
 
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
@@ -103,7 +89,7 @@ export default function HomeScreen() {
       </View>
 
       {/* Robots section */}
-      <Text style={defaultStyles.sectionTitle}>Connected Robots: {robotsArray.length}</Text>
+      <Text style={defaultStyles.sectionTitle}>Connected Robots: {robotData.length}</Text>
       <View style={uniqueStyles.robotBoxContainer}>
         {addRobots}
       </View>
