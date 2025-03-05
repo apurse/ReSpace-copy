@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { View, Text, PanResponder, StyleSheet, Dimensions, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform} from "react-native";
 import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { CurrentRenderContext } from "@react-navigation/native";
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 import { setGestureState } from "react-native-reanimated";
+import { isPosition } from "react-native-drax";
 
 
 // Get dimensions of the screen
@@ -73,17 +74,29 @@ export default function DragAndDrop() {
     //const socket = useSocket(); <-- Not being use
 
     const [notifications, setnotifications] = useState<string | null>(null); // Notifications
+
     const [boxes, setBoxes] = useState(allBoxes); // set boxes array
     const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation })); // Formatted boxes data
     const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]); // Placed boxes of current layout
+
     const squareRef = useRef(null);
+
     const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null); // Track rotation interval
     const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
+
     const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
     const [isSet, setIsSet] = useState(false); // Check if the layout is set or not
     const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
     const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
+
     const { sendMessage } = useSocket();
+
+    const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
+    const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
+    const [inputAngle, setInputAngle] = useState(''); // Value of angle of the rotation furniture
+
+    const [gridWidth, setGridWidth] = useState(0); // Actual grid 'x' width display on grid
+    const [gridHeight, setGridHeight] = useState(0); // Actual grid 'y' height display on grid
 
     // work out new positions and timings
     const updateBoxPosition = (id: number, dx: number, dy: number) => {
@@ -249,36 +262,57 @@ export default function DragAndDrop() {
         setSelectedBox(null);
     };
 
-    const updateX = (e : string) => {
-        const newX = parseFloat(e);
+    useEffect(() => {
+        if (selectedBox !== null) {
+            const box = boxes.find((box) => box.id === selectedBox);
+            if (box) {
+                setInputX(box.x.toFixed(2));
+                setInputY(box.y.toFixed(2));
+                setInputAngle(box.rotation.toFixed(0));
+            }
+        }
+    }, [selectedBox, boxes])
 
-        setBoxes((prevBoxes) => 
-            prevBoxes.map((box) => 
-                box.id === selectedBox ? {...box, x: newX} : box
-            )
-        );
+    const updateX = (e : string) => {
+        let newX = parseFloat(e);
+        if (!isNaN(newX)) {
+            newX = Math.min(Math.max(newX, 0), 280);
+
+            setBoxes((prevBoxes) => 
+                prevBoxes.map((box) => 
+                    box.id === selectedBox ? {...box, x: newX} : box
+                )
+            );
+        }
     };
 
     const updateY = (e : string) => {
-        const newY = parseFloat(e);
+        let newY = parseFloat(e);
+        if (!isNaN(newY)) {
+            newY = Math.min(Math.max(newY, 0), 180);
 
-        setBoxes((prevBoxes) => 
-            prevBoxes.map((box) => 
-                box.id === selectedBox ? {...box, y: newY} : box
-            )
-        );
+            setBoxes((prevBoxes) => 
+                prevBoxes.map((box) => 
+                    box.id === selectedBox ? {...box, y: newY} : box
+                )
+            );
+        }
     };
 
     const updateAngle = (e : string) => {
-        const newRotation = parseFloat(e);
-
-        setBoxes((prevBoxes) => 
-            prevBoxes.map((box) => 
-                box.id === selectedBox ? {...box, rotation: newRotation} : box
-            )
-        );
+        let newRotation = parseFloat(e);
+        if (!isNaN(newRotation)) {
+            newRotation = Math.min(Math.max(newRotation, 0), 360);
+            
+            setBoxes((prevBoxes) => 
+                prevBoxes.map((box) => 
+                    box.id === selectedBox ? {...box, rotation: newRotation} : box
+                )
+            );
+        }
     };
 
+    // Placeholders to show present coodinates and rotation
     let coordinateX = boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0
     let coordinateY = boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0
     let rotationAngle = boxes.find((box) => box.id === selectedBox)?.rotation.toFixed(2) || 0
@@ -297,7 +331,7 @@ export default function DragAndDrop() {
                     {/* Title */}
                     <View style={defaultStyles.pageTitleSection}>
                         <Text style={defaultStyles.pageTitle}>Add Layout</Text>
-                        <Text style={uniqueStyles.zoomStyle}>Zoom: {(zoomLevel - 1).toFixed(2)}</Text>
+                        <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
                         {/* Rotation buttons */}
                         {/* Rotation to right */}
                         <TouchableOpacity
@@ -406,24 +440,27 @@ export default function DragAndDrop() {
                             <View style={uniqueStyles.coordinatesContainer}>
                                 <Text style={uniqueStyles.coordinates}>X =</Text>
                                 <TextInput
-                                    value={String(coordinateX)}
-                                    onChangeText={(e) => updateX(e)}
+                                    value={inputX}
+                                    onChangeText={(e) => setInputX(e)}
+                                    onBlur={() => updateX(inputX)}
                                     style={uniqueStyles.textInput}
                                     keyboardType="numeric"
                                     placeholder={String(coordinateX)}
                                 />
                                 <Text style={uniqueStyles.coordinates}>Y =</Text>
                                 <TextInput
-                                    value={String(coordinateY)}
-                                    onChangeText={(e) => updateY(e)}
+                                    value={inputY}
+                                    onChangeText={(e) => setInputY(e)}
+                                    onBlur={() => updateY(inputY)}
                                     style={uniqueStyles.textInput}
                                     keyboardType="numeric"
                                     placeholder={String(coordinateY)}
                                 />
                                 <Text style={uniqueStyles.coordinates}>Angle =</Text>
                                 <TextInput
-                                    value={String(rotationAngle)}
-                                    onChangeText={(e) => updateAngle(e)}
+                                    value={inputAngle}
+                                    onChangeText={(e) => setInputAngle(e)}
+                                    onBlur={() => updateAngle(inputAngle)}
                                     style={uniqueStyles.textInput}
                                     keyboardType="numeric"
                                     placeholder={String(rotationAngle)}
@@ -512,6 +549,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         },
         buttonContainer: {
             width: gridDimensionsPx[0],
+            top: 10,
         },
         notificationText: {
             position: 'absolute',
@@ -573,6 +611,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         coordinatesContainer: {
             flexDirection: 'row',
             alignItems: 'center',
+            position: 'absolute',
+            top: -15,
             left: '15%',
         }
 
