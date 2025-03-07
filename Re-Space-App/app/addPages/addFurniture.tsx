@@ -1,5 +1,5 @@
-import { View, ScrollView, StyleSheet, Text, Dimensions, TextInput } from 'react-native';
-import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, Text, Dimensions, TextInput, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '@/app/_layout';
 import ActionButton from '@/components/settingsComponents/actionButton';
@@ -7,9 +7,12 @@ import furnitureData from '@/Jsons/FurnitureData.json';
 import * as FileSystem from 'expo-file-system';
 import Furniture from '@/components/LayoutComponents/furniture';
 import { ColourPickerModal } from '@/components/LayoutComponents/colourPickerModal';
+import { useSocket } from "@/hooks/useSocket";
+
 
 // Local json file with furniture data
 const localJson = FileSystem.documentDirectory + 'FurnitureData.json';
+
 
 // Call function to clear the json data from device
 const clearJsonData = async () => {
@@ -53,9 +56,38 @@ export default function AddLayout() {
   const [length, setLength] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(0);
   const [selectedColour, setSelectedColour] = useState<string>('#aabbcc');
+  // const [QRData, setQRData] = useState<string>('');
+  const { socket, isConnected, robotData, sendMessage, QRCode } = useSocket();
+
 
   // State of furniture modal (to add furniture)
   const [isModalVisible, setModalVisible] = useState(false);
+
+  var addQRCode: any = [];
+
+  // When the QRcode has been recieved
+  if (QRCode != null && addQRCode.length == 0) {
+    // setQRData(QRCode);
+    
+    addQRCode.push(
+      <View style={{ alignItems: 'center' }}>
+        {/* QR generation */}
+        <View style={uniqueStyles.pngContainer}>
+          <Image
+            style={uniqueStyles.imageBody}
+            source={{ uri: (`data:image/png;base64, ${QRCode}`) }} />
+        </View>
+        {/* Print button */}
+        <View style={uniqueStyles.buttonContainer}>
+          {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+          <ActionButton
+            label="Print QR Code"
+            onPress={alert}
+            />
+        </View>
+      </View>
+    )
+  }
 
   const saveFurniture = async () => {
 
@@ -81,6 +113,7 @@ export default function AddLayout() {
       length,
       quantity,
       selectedColour,
+      // QRData
     };
 
     try {
@@ -105,6 +138,14 @@ export default function AddLayout() {
       // Adding data to json
       const updateData = [...jsonData.Furniture, newFurniture];
 
+
+
+      // Send furniture across to server
+      if (isConnected) {
+        sendMessage({ type: "new_furniture", data: newFurniture });
+      } else {
+        alert("No connection to the WebSocket.");
+      }
       // Write new data to json
       await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: updateData }));
 
@@ -126,7 +167,13 @@ export default function AddLayout() {
       setLength(0);
       setQuantity(0);
       setSelectedColour('#aabbcc');
-    } catch (error) {
+      // setQRData('');
+      console.log(addQRCode.length)
+      addQRCode.pop();
+      console.log(addQRCode.length)
+      
+    }
+    catch (error) {
       console.error('Failed to update/save data to json file:', error);
 
       // Show notifications of failure
@@ -211,12 +258,12 @@ export default function AddLayout() {
           keyboardType="numeric"
         />
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center'}}>
+      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         {/* <Text style={uniqueStyles.inputHeader}>Colour</Text> */}
         <ActionButton
           label="Pick a colour"
           onPress={() => setModalVisible(true)}
-          style={{right: 15}} 
+          style={{ right: 15 }}
         />
         <ColourPickerModal
           isVisible={isModalVisible}
@@ -224,7 +271,7 @@ export default function AddLayout() {
           selectedColour={selectedColour}
           onSelectedColour={setSelectedColour}
         />
-        <Text style={[uniqueStyles.colourSelected, { backgroundColor: selectedColour}]}></Text>
+        <Text style={[uniqueStyles.colourSelected, { backgroundColor: selectedColour }]}></Text>
       </View>
 
       <View style={uniqueStyles.buttonContainer}>
@@ -234,6 +281,8 @@ export default function AddLayout() {
           onPress={saveFurniture}
         />
       </View>
+
+      {addQRCode}
 
     </ScrollView>
   );
@@ -283,5 +332,17 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       marginTop: 20,
       width: 50,
     },
+    pngContainer: {
+      marginTop: 20,
+      width: 200,
+      borderColor: isDarkMode ? '#fff' : '#ddd',
+      borderWidth: 1,
+      height: 200,
+      alignItems: 'center',
+    },
+    imageBody: {
+      width: '100%',
+      height: '100%',
+    }
 
   });
