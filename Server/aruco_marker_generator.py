@@ -1,5 +1,6 @@
 import qrcode
 import base64
+from io import BytesIO
 
 saving = True
 
@@ -16,11 +17,8 @@ def generateQRCode(data):
     qr.add_data(data)
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
-    if saving == True:
-        img.save("qrcode.png")
-    
-    # Encode into base64
-    with open("qrcode.png", "rb") as image_file:
-        encodedString = base64.b64encode(image_file.read())
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    encodedString = base64.b64encode(buffered.getvalue()).decode("utf-8")
 
     return encodedString

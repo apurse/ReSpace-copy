@@ -6,6 +6,7 @@ import json
 from websockets import serve
 import socket
 
+from aruco_marker_generator import generateQRCode
 from robot import Robot
 from furniture import Furniture
 
@@ -164,6 +165,12 @@ async def handle_app_message(data):
 
     elif data["type"] == "latency_test":
         await send_to_app({"type": "latency_test", "start_time": data["start_time"]})
+
+    elif data["type"] == "new_furniture":
+        print(data["data"])
+        base64_string = generateQRCode(data["data"]) # Use qr code generation script
+        print(base64_string)
+        await send_to_app({"type": "new_furniture", "base64": base64_string})
 
     else:
         print("Received unknown command!")
