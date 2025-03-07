@@ -1,4 +1,4 @@
-from Server.furniture import Furniture
+from furniture import Furniture
 class Robot:
     def __init__(self, robot_id, websocket):
         """
@@ -16,7 +16,7 @@ class Robot:
         self.current_activity = "idle"
         self.carrying = None
 
-    def send_status_to_app(self):
+    async def send_status_to_app(self):
         """Sends the robot's current status to the app."""
         from hub_communication import hub
         status_message = {
@@ -26,7 +26,7 @@ class Robot:
             "location": {"x": self.locationX, "y": self.locationY},
             "current_activity": self.current_activity,
         }
-        hub.send_to_app(status_message)
+        await hub.send_to_app(status_message)
         print(f"Status update sent: {status_message}")
 
     async def move_to(self, x, y):
@@ -79,3 +79,13 @@ class Robot:
         from hub_communication import hub
         print(f"Sending data: {data}")
         await hub.send_to_robot(self.id, data)
+
+    def to_dict(self):
+        """Converts the Robot instance into a dictionary."""
+        return {
+            "robot_id": self.id,
+            "battery": self.battery,
+            "location": {"x": self.locationX, "y": self.locationY},
+            "current_activity": self.current_activity,
+            "carrying": self.carrying,
+        }

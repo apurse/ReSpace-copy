@@ -1,16 +1,17 @@
-import React, { useState, useRef } from "react";
-import { View, Text, PanResponder, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import { View, Text, PanResponder, StyleSheet, Dimensions, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform} from "react-native";
 import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
-import { useSocket, sendMessage } from "@/hooks/useSocket";
+import { useSocket } from "@/hooks/useSocket";
 import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { CurrentRenderContext } from "@react-navigation/native";
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 import { setGestureState } from "react-native-reanimated";
+import { isPosition } from "react-native-drax";
 
 
 // Get dimensions of the screen
@@ -46,9 +47,9 @@ function calculateTime(axis: string, distance: Float) {
 
 // Boxes in the grid
 const allBoxes = [
-    { id: 1, x: 0, y: 0, timeX: 0, timeY: 0, width:70, length: 30, color: 'red', rotation: 0.0},
-    { id: 2, x: 150, y: 150, timeX: 0, timeY: 0, width:50, length: 150, color: 'green', rotation: 0.0 },
-    { id: 3, x: 100, y: 100, timeX: 0, timeY: 0, width:50, length: 30, color: 'blue', rotation: 0.0 },
+    { id: 1, x: 0, y: 0, width:70, length: 30, color: 'red', rotation: 0.0},
+    { id: 2, x: 150, y: 150, width:50, length: 150, color: 'green', rotation: 0.0 },
+    { id: 3, x: 100, y: 100, width:50, length: 30, color: 'blue', rotation: 0.0 },
 ];
 
 export default function DragAndDrop() {
@@ -58,8 +59,6 @@ export default function DragAndDrop() {
         id: number;
         x: Float;
         y: Float;
-        timeX: Float;
-        timeY: Float;
         width: number;
         length: number;
         color: string;
@@ -75,16 +74,29 @@ export default function DragAndDrop() {
     //const socket = useSocket(); <-- Not being use
 
     const [notifications, setnotifications] = useState<string | null>(null); // Notifications
+
     const [boxes, setBoxes] = useState(allBoxes); // set boxes array
     const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation })); // Formatted boxes data
     const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]); // Placed boxes of current layout
+
     const squareRef = useRef(null);
+
     const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null); // Track rotation interval
     const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
+
     const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
     const [isSet, setIsSet] = useState(false); // Check if the layout is set or not
     const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
     const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
+
+    const { sendMessage } = useSocket();
+
+    const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
+    const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
+    const [inputAngle, setInputAngle] = useState(''); // Value of angle of the rotation furniture
+
+    const [gridWidth, setGridWidth] = useState(0); // Actual grid 'x' width display on grid
+    const [gridHeight, setGridHeight] = useState(0); // Actual grid 'y' height display on grid
 
     // work out new positions and timings
     const updateBoxPosition = (id: number, dx: number, dy: number) => {
@@ -111,8 +123,6 @@ export default function DragAndDrop() {
 
                     const finalX = clampedX - box.width / 2;
                     const finalY = clampedY - box.length / 2;
-                    // const newTimeX = calculateTime("X", newX);
-                    // const newTimeY = calculateTime("Y", newY);
 
 
                     return { ...box, x: finalX, y: finalY };
@@ -188,8 +198,8 @@ export default function DragAndDrop() {
             onPanResponderRelease: () => {
                 console.log(
                     `Box ${id} updated position: `,
-                    // boxes.find((box) => box.id === id) <-- old version
-                    `{${JSON.stringify(boxes.find((box) => box.id === id))}}` // Formatted to add extra bracket '{'
+                    boxes.find((box) => box.id === id),
+                    console.log(selectedBox)
                 );
             },
         });
@@ -198,7 +208,7 @@ export default function DragAndDrop() {
     const setLayout = () => {
         setIsSet(true); // Disable button function
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
-        sendMessage(false, { type: "current_layout", locations: boxesFormatted })
+        sendMessage({ type: "current_layout", locations: boxesFormatted })
 
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
@@ -225,9 +235,7 @@ export default function DragAndDrop() {
         const newBox = {
              id: newId, 
              x: gridDimensionsPx[0]/2, 
-             y: gridDimensionsPx[1]/2, 
-             timeX: 0, 
-             timeY: 0, 
+             y: gridDimensionsPx[1]/2,
              width: furniture.width, 
              length: furniture.length, 
              color: furniture.selectedColour,
@@ -254,169 +262,260 @@ export default function DragAndDrop() {
         setSelectedBox(null);
     };
 
+    useEffect(() => {
+        if (selectedBox !== null) {
+            const box = boxes.find((box) => box.id === selectedBox);
+            if (box) {
+                setInputX(box.x.toFixed(2));
+                setInputY(box.y.toFixed(2));
+                setInputAngle(box.rotation.toFixed(0));
+            }
+        }
+    }, [selectedBox, boxes])
+
+    const updateX = (e : string) => {
+        let newX = parseFloat(e);
+        if (!isNaN(newX)) {
+            newX = Math.min(Math.max(newX, 0), 280);
+
+            setBoxes((prevBoxes) => 
+                prevBoxes.map((box) => 
+                    box.id === selectedBox ? {...box, x: newX} : box
+                )
+            );
+        }
+    };
+
+    const updateY = (e : string) => {
+        let newY = parseFloat(e);
+        if (!isNaN(newY)) {
+            newY = Math.min(Math.max(newY, 0), 180);
+
+            setBoxes((prevBoxes) => 
+                prevBoxes.map((box) => 
+                    box.id === selectedBox ? {...box, y: newY} : box
+                )
+            );
+        }
+    };
+
+    const updateAngle = (e : string) => {
+        let newRotation = parseFloat(e);
+        if (!isNaN(newRotation)) {
+            newRotation = Math.min(Math.max(newRotation, 0), 360);
+            
+            setBoxes((prevBoxes) => 
+                prevBoxes.map((box) => 
+                    box.id === selectedBox ? {...box, rotation: newRotation} : box
+                )
+            );
+        }
+    };
+
+    // Placeholders to show present coodinates and rotation
+    let coordinateX = boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0
+    let coordinateY = boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0
+    let rotationAngle = boxes.find((box) => box.id === selectedBox)?.rotation.toFixed(2) || 0
+
     return (
-        <View style={defaultStyles.body}>
-
-            {/* Title */}
-            <View style={defaultStyles.pageTitleSection}>
-                <Text style={defaultStyles.pageTitle}>Add Layout</Text>
-                <Text style={uniqueStyles.zoomStyle}>Zoom: {(zoomLevel - 1).toFixed(2)}</Text>
-                {/* Rotation buttons */}
-                {/* Rotation to right */}
-                <TouchableOpacity
-                    style={uniqueStyles.rotationRight}
-                    onPressIn={() => selectedBox && rotateBoxRight(selectedBox)}
-                    onPressOut={stopRotation}
-                >
-                    <View>
-                        <Icon name="undo" size={25} style={{transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000',}}/>
-                    </View>
-                </TouchableOpacity>
-
-                {/* Rotation to left */}
-                <TouchableOpacity
-                    style={uniqueStyles.rotationLeft}
-                    onPressIn={() => selectedBox && rotateBoxLeft(selectedBox)}
-                    onPressOut={stopRotation}
-                >
-                    <View>
-                        <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000',}}/>
-                    </View>
-                </TouchableOpacity>
-            </View>
-
-            {/* Grid */}
-            <View
-                ref={squareRef}
-                style={uniqueStyles.grid}
-                onLayout={(e) => {
-                    const { x, y, width, height } = e.nativeEvent.layout;
-                    console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
-                }}
+        <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={{ flex: 1 }}
+        >
+            <ScrollView 
+                contentContainerStyle={{ flexGrow: 1 }} 
+                keyboardShouldPersistTaps="handled"
             >
-                <ReactNativeZoomableView
-                    maxZoom={10}
-                    minZoom={1}
-                    initialZoom={1}
-                    disablePanOnInitialZoom={true}
+                <View style={defaultStyles.body}>
 
-                    // Update zoom level
-                    onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
-                        setZoomLevel(zoomableViewEventObject.zoomLevel); 
-                    }}
-                >
-                    {/* Display not moving boxes */}
-                    {placedBoxes.map((box) => (
-                        <View
-                            key={`placed-${box.id}`} // Create unique id for placed boxes
-                            style={[
-                                uniqueStyles.robot,
-                                {
-                                    left: box.x,
-                                    top: box.y,
-                                    backgroundColor: "transparent",
-                                    borderWidth: 1,
-                                    width: box.width,
-                                    height: box.length,
-                                    transform: [{ rotate: `${box.rotation}deg` }],
-                                },
-                            ]}
+                    {/* Title */}
+                    <View style={defaultStyles.pageTitleSection}>
+                        <Text style={defaultStyles.pageTitle}>Add Layout</Text>
+                        <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
+                        {/* Rotation buttons */}
+                        {/* Rotation to right */}
+                        <TouchableOpacity
+                            style={uniqueStyles.rotationRight}
+                            onPressIn={() => selectedBox && rotateBoxRight(selectedBox)}
+                            onPressOut={stopRotation}
                         >
-                            <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
-                        </View>
-                    ))}
-
-                    {/* Display moving boxes */}
-                    {boxes.map((box) => {
-                        const panResponder = createPanResponder(box.id);
-
-                        // Check if box is selected to highlighted
-                        const isSelected = selectedBox === box.id;
-
-                        return (
-                            <View
-                                key={box.id}
-                                style={[
-                                    uniqueStyles.robot,
-                                    {
-                                        left: box.x,
-                                        top: box.y,
-                                        backgroundColor: box.color,
-                                        borderWidth: isSelected ? 2 : 0,
-                                        borderColor: isSelected ? 'yellow' : 'transparent',
-                                        width: box.width,
-                                        height: box.length,
-                                        transform: [{ rotate: `${box.rotation}deg` }],
-                                    },
-                                ]}
-                                {...panResponder.panHandlers}
-                            >
-                                <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                            <View>
+                                <Icon name="undo" size={25} style={{transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000',}}/>
                             </View>
-                        );
-                    })}
-                </ReactNativeZoomableView>
-            </View>
-            {/* Need scale measurement */}
+                        </TouchableOpacity>
 
-            <View style={uniqueStyles.buttonContainer}>
+                        {/* Rotation to left */}
+                        <TouchableOpacity
+                            style={uniqueStyles.rotationLeft}
+                            onPressIn={() => selectedBox && rotateBoxLeft(selectedBox)}
+                            onPressOut={stopRotation}
+                        >
+                            <View>
+                                <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000',}}/>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
 
-                {/* Show notifications */}
-                {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+                    {/* Grid */}
+                    <View
+                        ref={squareRef}
+                        style={uniqueStyles.grid}
+                        onLayout={(e) => {
+                            const { x, y, width, height } = e.nativeEvent.layout;
+                            console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
+                        }}
+                    >
+                        <ReactNativeZoomableView
+                            maxZoom={10}
+                            minZoom={1}
+                            initialZoom={1}
+                            disablePanOnInitialZoom={true}
 
-                {/* Show coordinates */}
-                {selectedBox !== null && (
-                    <Text style={uniqueStyles.coordinates}>
-                        X = {boxes.find((box) => box.id === selectedBox)?.x.toFixed(2) || 0},
-                        Y = {boxes.find((box) => box.id === selectedBox)?.y.toFixed(2) || 0},
-                        Angle = {boxes.find((box) => box.id === selectedBox)?.rotation.toFixed(2) || 0}
-                    </Text>
-                )}
+                            // Update zoom level
+                            onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
+                                setZoomLevel(zoomableViewEventObject.zoomLevel); 
+                            }}
+                        >
+                            {/* Display not moving boxes */}
+                            {placedBoxes.map((box) => (
+                                <View
+                                    key={`placed-${box.id}`} // Create unique id for placed boxes
+                                    style={[
+                                        uniqueStyles.robot,
+                                        {
+                                            left: box.x,
+                                            top: box.y,
+                                            backgroundColor: "transparent",
+                                            borderWidth: 1,
+                                            width: box.width,
+                                            height: box.length,
+                                            transform: [{ rotate: `${box.rotation}deg` }],
+                                        },
+                                    ]}
+                                >
+                                    <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
+                                </View>
+                            ))}
 
-                {/* Buttons */}
-                {/* Show different buttons depending in current location is set or not */}
-                {!isSet ? (
-                    <>
-                        <ActionButton
-                            label="Set Current Location"
-                            onPress={setLayout}
-                        />
-                        <ActionButton
-                            label="Delete Furniture"
-                            onPress={deleteFurniture}
-                            style={{ backgroundColor: '#fa440c'}}
-                        />
-                        <ActionButton
-                            label="Add Furniture"
-                            onPress={() => setModalVisible(true)}
-                            style={{ backgroundColor: '#964B00'}}
-                        />
-                        <FurnitureModal 
-                            isVisible={isModalVisible}
-                            onClose={() => setModalVisible(false)}
-                            onSelectFurniture={addFurniture}
-                         />
-                    </>
-                ) : (
-                    <>
-                        <ActionButton
-                        label="Ready To Go!"
-                        onPress={() => sendMessage(false, { type: "desired_layout", locations: boxesFormatted })}
-                        />
-                        <ActionButton
-                        label="Reset Layout"
-                        onPress={resetLayout}
-                        style={{ backgroundColor: '#fa440c'}}
-                        />
-                        <ActionButton
-                        label="Save Layout"
-                        onPress={() => console.log('working on it')}
-                        style={{ backgroundColor: '#76f58f'}}
-                        />
-                    </>
-                )}
-            </View>
-        </View>
+                            {/* Display moving boxes */}
+                            {boxes.map((box) => {
+                                const panResponder = createPanResponder(box.id);
+
+                                // Check if box is selected to highlighted
+                                const isSelected = selectedBox === box.id;
+
+                                return (
+                                    <View
+                                        key={box.id}
+                                        style={[
+                                            uniqueStyles.robot,
+                                            {
+                                                left: box.x,
+                                                top: box.y,
+                                                backgroundColor: box.color,
+                                                borderWidth: isSelected ? 2 : 0,
+                                                borderColor: isSelected ? 'yellow' : 'transparent',
+                                                width: box.width,
+                                                height: box.length,
+                                                transform: [{ rotate: `${box.rotation}deg` }],
+                                            },
+                                        ]}
+                                        {...panResponder.panHandlers}
+                                    >
+                                        <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                                    </View>
+                                );
+                            })}
+                        </ReactNativeZoomableView>
+                    </View>
+                    {/* Need scale measurement */}
+                    <View style={uniqueStyles.buttonContainer}>
+
+                        {/* Show notifications */}
+                        {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+
+                        {/* Show coordinates */}
+                        {selectedBox !== null && (
+
+                            <View style={uniqueStyles.coordinatesContainer}>
+                                <Text style={uniqueStyles.coordinates}>X =</Text>
+                                <TextInput
+                                    value={inputX}
+                                    onChangeText={(e) => setInputX(e)}
+                                    onBlur={() => updateX(inputX)}
+                                    style={uniqueStyles.textInput}
+                                    keyboardType="numeric"
+                                    placeholder={String(coordinateX)}
+                                />
+                                <Text style={uniqueStyles.coordinates}>Y =</Text>
+                                <TextInput
+                                    value={inputY}
+                                    onChangeText={(e) => setInputY(e)}
+                                    onBlur={() => updateY(inputY)}
+                                    style={uniqueStyles.textInput}
+                                    keyboardType="numeric"
+                                    placeholder={String(coordinateY)}
+                                />
+                                <Text style={uniqueStyles.coordinates}>Angle =</Text>
+                                <TextInput
+                                    value={inputAngle}
+                                    onChangeText={(e) => setInputAngle(e)}
+                                    onBlur={() => updateAngle(inputAngle)}
+                                    style={uniqueStyles.textInput}
+                                    keyboardType="numeric"
+                                    placeholder={String(rotationAngle)}
+                                />
+                            </View>
+                        )}
+
+                        {/* Buttons */}
+                        {/* Show different buttons depending in current location is set or not */}
+                        {!isSet ? (
+                            <>
+                                <ActionButton
+                                    label="Set Current Location"
+                                    onPress={setLayout}
+                                />
+                                <ActionButton
+                                    label="Delete Furniture"
+                                    onPress={deleteFurniture}
+                                    style={{ backgroundColor: '#fa440c'}}
+                                />
+                                <ActionButton
+                                    label="Add Furniture"
+                                    onPress={() => setModalVisible(true)}
+                                    style={{ backgroundColor: '#964B00'}}
+                                />
+                                <FurnitureModal 
+                                    isVisible={isModalVisible}
+                                    onClose={() => setModalVisible(false)}
+                                    onSelectFurniture={addFurniture}
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <ActionButton
+                                label="Ready To Go!"
+                                onPress={() => {
+                                    sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                                }}
+                                />
+                                <ActionButton
+                                label="Reset Layout"
+                                onPress={resetLayout}
+                                style={{ backgroundColor: '#fa440c'}}
+                                />
+                                <ActionButton
+                                label="Save Layout"
+                                onPress={() => console.log('working on it')}
+                                style={{ backgroundColor: '#76f58f'}}
+                                />
+                            </>
+                        )}
+                    </View>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 };
 
@@ -450,6 +549,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         },
         buttonContainer: {
             width: gridDimensionsPx[0],
+            top: 10,
         },
         notificationText: {
             position: 'absolute',
@@ -470,8 +570,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             fontSize: 12,
             color: isDarkMode ? '#fff' : '#000',
             textAlign: 'center',
-            marginVertical: -8,
             top: 10,
+            letterSpacing: 2,
         },
         rotationLeft: {
             width: 25,
@@ -502,5 +602,18 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             top: 85,
             left: 25,
         },
+        textInput: {
+            color: isDarkMode ? '#fff' : '#000',
+            paddingBottom: 0,
+            paddingTop: 0,
+            top: 10,
+        },
+        coordinatesContainer: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            position: 'absolute',
+            top: -15,
+            left: '15%',
+        }
 
     });

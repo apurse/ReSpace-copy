@@ -1,44 +1,83 @@
-import { View, StyleSheet, Text, Dimensions } from 'react-native';
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Text, Dimensions } from "react-native";
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import ControllerButton from "@/components/settingsComponents/controllerButton";
+import DropDownPicker from "react-native-dropdown-picker"; // ✅ Import new dropdown
+import { useSocket } from "@/hooks/useSocket";
+import { Robot } from "@/components/models/Robot";
+import RobotBox from "@/components/indexComponents/robotInfo";
 
-// expo navigation: https://docs.expo.dev/router/navigating-pages/
-// Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
-
-
 
 export default function Controller() {
     const { theme } = useTheme();
+    const { robotData } = useSocket();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
 
+    // State for dropdown
+    const [selectedRobot, setSelectedRobot] = useState(
+        robotData.length > 0 ? robotData[0].robot_id : ""
+    );
+    const [open, setOpen] = useState(false); // Open/close dropdown
+    const [robotList, setRobotList] = useState<{ label: string; value: string }[]>([]);
+
+    useEffect(() => {
+        const updatedRobotList = robotData.map((robot: Robot) => ({
+            label: robot.robot_id,
+            value: robot.robot_id,
+        }));
+
+        setRobotList(updatedRobotList);
+
+        // ✅ Auto-select the first robot if none is selected
+        if (updatedRobotList.length > 0 && !selectedRobot) {
+            setSelectedRobot(updatedRobotList[0].value);
+        }
+    }, [robotData]);
 
     return (
         <View style={defaultStyles.body}>
 
-            {/* Content */}
+            {/* Page Title */}
             <View style={defaultStyles.pageTitleSection}>
                 <Text style={defaultStyles.pageTitle}>Controller</Text>
             </View>
 
+            {/* Dropdown Box */}
+            <View style={uniqueStyles.dropdownContainer}>
+                <Text style={uniqueStyles.label}>Select Robot:</Text>
+                <DropDownPicker
+                    open={open}
+                    value={selectedRobot}
+                    items={robotList}
+                    setOpen={setOpen}
+                    setValue={setSelectedRobot}
+                    setItems={setRobotList}
+                    placeholder="Select a Robot"
+                    style={uniqueStyles.picker}
+                    dropDownContainerStyle={uniqueStyles.dropDownContainer}
+                />
+            </View>
+
+            {/* Controller Buttons */}
             <View style={uniqueStyles.controller}>
                 <View>
                     <View style={uniqueStyles.button}></View>
-                    <ControllerButton iconName={"caretleft"} message='left'></ControllerButton>
+                    <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot}></ControllerButton>
                     <View style={uniqueStyles.button}></View>
                 </View>
                 <View>
-                    <ControllerButton iconName={"caretup"} message='forward'></ControllerButton>
-                    <ControllerButton iconName={"closecircleo"} message='stop'></ControllerButton>
-                    <ControllerButton iconName={"caretdown"} message='backward'></ControllerButton>
+                    <ControllerButton iconName={"caretup"} message='forward' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"closecircleo"} message='stop' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"caretdown"} message='backward' targetRobot={selectedRobot}></ControllerButton>
                 </View>
                 <View>
-                    <ControllerButton iconName={"arrowup"} message='raise'></ControllerButton>
-                    <ControllerButton iconName={"caretright"} message='right'></ControllerButton>
-                    <ControllerButton iconName={"arrowdown"} message='lower'></ControllerButton>
+                    <ControllerButton iconName={"arrowup"} message='raise' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"caretright"} message='right' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"arrowdown"} message='lower' targetRobot={selectedRobot}></ControllerButton>
                 </View>
             </View>
 
@@ -48,34 +87,40 @@ export default function Controller() {
 
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
-        buttonContainer: {
-            gap: width * 0.2,
+        dropdownContainer: {
+            width: "95%",
+            alignSelf: "center",
         },
-        button: {
-            borderRadius: 20,
-            width: width*0.2,
-            height: width*0.2,
-            marginBottom:10,
-            marginLeft:10,
-            // backgroundColor: isDarkMode ? '#fff' : '#000',
-            // backgroundColor: 'lightgrey'
+        label: {
+            fontSize: 18,
+            fontWeight: "bold",
+            textAlign: "center",
+            marginBottom: 5,
+            color: isDarkMode ? "#fff" : "#000",
+        },
+        picker: {
+            backgroundColor: "#f0f0f0",
+            borderRadius: 5,
+            paddingHorizontal: 10,
+            zIndex: 100,
+        },
+        dropDownContainer: {
+            backgroundColor: "#fff",
+            borderColor: "#ccc",
+            zIndex: 100, // Ensures dropdown appears on top
         },
         controller: {
             flexDirection: 'row',
-            flex: 1, // the number of columns you want to divide the screen into
+            flex: 1,
             justifyContent: 'center',
             marginHorizontal: "auto",
             alignItems: 'center',
-            // width: 400,
-            // backgroundColor: "red"
         },
-        row: {
-            flexDirection: "row"
+        button: {
+            borderRadius: 20,
+            width: width * 0.2,
+            height: width * 0.2,
+            marginBottom: 10,
+            marginLeft: 10,
         },
-        text: {
-            textAlign: 'center',
-            fontSize: 24,
-            color: isDarkMode ? '#000' : '#fff',
-
-        }
     });

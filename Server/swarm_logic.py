@@ -17,28 +17,51 @@ import numpy as np
 from hub_communication import hub
 
 
-# Todo: Build this out, everything in this function is placeholder code
 async def swarm_logic():
     await asyncio.sleep(2)
     print("Swarm Logic is running alongside the hub.")
+    furniture_to_move = []
 
     while True:
-
         await asyncio.sleep(5)
         robots = hub.get_connected_robots()
-        for robot in robots:
+        closest_funiture = None
+        desired_furniture = None
+
+        # Check if any furniture actually needs moving
+        for cf in hub.get_current_furniture_positions():
+            for df in hub.get_desired_furniture_positions():
+                if distance(cf.locationX, cf.locationY, df.locationX, df.locationY) > 5:
+                    furniture_to_move.append(cf.id)
+
+        if len(furniture_to_move) == 0:
+            continue
+
+        for robot in robots.values():
+            # Skip if robot is busy
+            if robot.current_activity != "idle":
+                continue
+            print("robot: ", robot.to_dict())
             prev = np.inf
             # give first robot closest funiture location
             for funiture in hub.get_current_furniture_positions():
-                distance = distance(robot.locationX,robot.locationY,funiture.locationX,funiture.locationY)
-                if distance < prev:
+                if funiture.id not in furniture_to_move:
+                    continue
+                dist = distance(robot.locationX,robot.locationY,funiture.locationX,funiture.locationY)
+                if dist < prev:
                     closest_funiture = funiture
-                    prev = distance
+                    prev = dist
                     for desired in hub.get_desired_furniture_positions():
                         if desired.id == closest_funiture.id:
                             desired_furniture = desired
 
-            robot.send_move_task(closest_funiture,desired_furniture)
+            if (closest_funiture is not None) and (desired_furniture is not None):
+                # Update the current furniture item
+                hub.get_current_furniture_positions().remove(closest_funiture)
+                hub.get_current_furniture_positions().append(desired_furniture)
+                await robot.send_move_task(closest_funiture,desired_furniture)
+
+        furniture_to_move.clear()
 
 # Testing the node com_handler connection
 # async def test():
@@ -56,12 +79,16 @@ def distance(x1,y1,x2,y2):
 
 async def main():
     hub_communication_task = asyncio.create_task(hub.main())  # Start the WebSocket server
-    # swarm_task = asyncio.create_task(swarm_logic())  # Run the swarm logic
-    swarm_task = asyncio.create_task(test())
+    swarm_task = asyncio.create_task(swarm_logic())  # Run the swarm logic
+    # swarm_task = asyncio.create_task(test())
     try:
         await asyncio.gather(hub_communication_task, swarm_task)  # Run both tasks concurrently
     except asyncio.CancelledError:
         print("Shutting down gracefully...")
+    except Exception as ex:
+        # Reboot if crashed
+        print(ex)
+        await main()
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 // https://reactnative.dev/docs/network
 
-import React, { useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import { StyleSheet, ScrollView, Text, View, Pressable, Dimensions } from 'react-native';
 import ToggleSetting from '@/components/settingsComponents/toggle';
 import SliderSetting from '@/components/settingsComponents/slider';
@@ -9,7 +9,9 @@ import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from "expo-router";
-import { testLatency } from "@/hooks/useSocket";
+import {useSocket} from "@/hooks/useSocket";
+import { Robot } from "@/components/models/Robot";
+// import { testLatency } from "@/hooks/useSocket";
 
 const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
@@ -26,6 +28,15 @@ const SettingsPage = () => {
     // const [test, setTest] = useState(false);
     const [movementSpeed, setMovementSpeed] = useState(2);
     const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
+    const { socket, isConnected, robotData, sendMessage, latencyData} = useSocket();
+    // Convert dictionary into an array of robots for iteration
+
+    useEffect(() => {
+        if (latencyData != undefined) {
+            alert(`Websocket latency: ${latencyData}ms`);
+        }
+    }, [latencyData]); // Triggers only when latencyData updates
+
 
     useEffect(() => {
         loadLocalSettings();
@@ -97,7 +108,6 @@ const SettingsPage = () => {
         }
     }
 
-
     return (
         <ScrollView contentContainerStyle={defaultStyles.body}>
             <View style={defaultStyles.pageTitleSection}>
@@ -143,8 +153,12 @@ const SettingsPage = () => {
                 <ActionButton
                     label="Test Connection"
                     onPress={async () => {
-                        let timeTaken = await testLatency({ type: "debug", message: "Testing message!" })
-                        alert(`${timeTaken}ms`);
+                        // Result comes back to the useEffect at the top of this page
+                        if (isConnected) {
+                            sendMessage({type: "latency_test", start_time: Date.now()});
+                        } else {
+                            alert("No connection to the WebSocket.");
+                        }
                     }}
                 />
             </View>
