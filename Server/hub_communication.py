@@ -6,7 +6,7 @@ import json
 from websockets import serve
 import socket
 
-from aruco_marker_generator import generateQRCode
+from qr_generator import generateQRCode
 from robot import Robot
 from furniture import Furniture
 
