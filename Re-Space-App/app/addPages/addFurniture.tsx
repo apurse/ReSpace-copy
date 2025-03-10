@@ -167,7 +167,7 @@ export default function AddLayout() {
 
   // When the QRcode has been recieved
   if (QRCode != null && addQRCode.length == 0) {
-    setQRData(QRCode);
+    // setQRData(QRCode);
 
     addQRCode.push(
       <View style={{ alignItems: 'center' }}>
@@ -175,7 +175,7 @@ export default function AddLayout() {
         <View style={uniqueStyles.pngContainer}>
           <Image
             style={uniqueStyles.imageBody}
-            source={{ uri: (`data:image/png;base64, ${QRCode}`) }} />
+            source={{ uri: (`data:image/png;base64,${QRCode}`) }} />
         </View>
         {/* Print button */}
         <View style={uniqueStyles.buttonContainer}>
@@ -370,10 +370,12 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       width: 200,
       borderColor: isDarkMode ? '#fff' : '#ddd',
       borderWidth: 1,
-      height: 200 * 1.5,
+      height: 200 * 1.7,
       alignItems: 'center',
     },
     imageBody: {
+      // width: 180,
+      // height: 300,
       width: '100%',
       height: '100%',
     }

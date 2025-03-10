@@ -70,5 +70,9 @@ def generateQRCode(data):
     buffered = BytesIO()
     combined.save(buffered, format="PNG")
     encodedString = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    # print(encodedString)
+    qr.clear()
 
     return encodedString
+
+# generateQRCode('{"name":"test"}')
