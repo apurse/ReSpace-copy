@@ -13,6 +13,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [isConnected, setIsConnected] = useState(false);
     const [robotData, setRobotData] = useState<Robot[]>([]);
     const [latencyData, setLatencyData] = useState<number>();
+    const [QRCode, setQRCode] = useState<string>();
     const reconnectInterval = useRef<NodeJS.Timeout | null>(null);
 
     // Function to connect WebSocket
@@ -104,6 +105,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                         setLatencyData(undefined);
                         console.log("Latency data reset");
                     }, 1000);
+
+                } else if (data.type === "new_furniture") {
+
+                    const base64String = data.base64;
+                    setQRCode(base64String);
+                    // console.log(base64String);
+
                 } else {
                     console.log("Ignored message (not status):", data.type);
                 }
@@ -147,7 +155,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }, [isConnected, connectWebSocket]);
 
     return (
-        <WebSocketContext.Provider value={{ socket, isConnected, robotData, latencyData }}>
+        <WebSocketContext.Provider value={{ socket, isConnected, robotData, latencyData, QRCode }}>
             {children}
         </WebSocketContext.Provider>
     );
