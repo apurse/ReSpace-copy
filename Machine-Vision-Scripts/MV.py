@@ -1,12 +1,5 @@
 import cv2
-import cv2.aruco as aruco
 import numpy as np
-
-# Choose the marker dictionary
-aruco_dict = aruco.getPredefinedDictionary(aruco.DICT_6X6_250)
-parameters = aruco.DetectorParameters()
-parameters.adaptiveThreshConstant = 7
-parameters.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
 
 # Open a connection to the camera
 cap = cv2.VideoCapture(0)
@@ -14,7 +7,9 @@ if not cap.isOpened():
     print("Error: Could not open camera.")
     exit()
 
-print("Aruco detection script started. Press 'q' to exit.")
+
+# Initialize the QR code detector
+qr_detector = cv2.QRCodeDetector()
 
 while True:
     ret, frame = cap.read()
@@ -29,38 +24,39 @@ while True:
     # Draw a circle at the center of the frame
     cv2.circle(frame, (frame_center_x, frame_center_y), 10, (255, 0, 0), 2)
 
-    # Convert frame to grayscale for marker detection
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    corners, ids, _ = aruco.detectMarkers(gray, aruco_dict, parameters=parameters)
+    # Detect QR code
+    data, bbox, _ = qr_detector.detectAndDecode(frame)
 
-    if ids is not None:
-        print("Centering: True")  # Aruco marker detected
-        aruco.drawDetectedMarkers(frame, corners, ids)
-        for i, marker_id in enumerate(ids.flatten()):
-            marker_corners = corners[i].reshape((4, 2))
-            marker_center_x = int(marker_corners[:, 0].mean())
-            marker_center_y = int(marker_corners[:, 1].mean())
+    if bbox is not None and len(bbox) > 0:
+        print("Centering: True")  # QR code detected
+        bbox = bbox[0].astype(int)
+        cv2.polylines(frame, [bbox], isClosed=True, color=(0, 255, 0), thickness=2)
 
-            # Relative position
-            offset_x = marker_center_x - frame_center_x
-            offset_y = frame_center_y - marker_center_y
+        # Compute center of detected QR code
+        qr_center_x = int(bbox[:, 0].mean())
+        qr_center_y = int(bbox[:, 1].mean())
 
-            print(f"Marker {marker_id}: Offset X: {offset_x}, Offset Y: {offset_y}")
+        # Relative position
+        offset_x = qr_center_x - frame_center_x
+        offset_y = frame_center_y - qr_center_y
 
-            # Define a threshold for centering
-            tolerance = 20  # Pixels
-            if abs(offset_x) < tolerance and abs(offset_y) < tolerance:
-                print("Scissor Lift Activate")
-            else:
-                print(f"Offset X: {offset_x}, Offset Y: {offset_y}")
+        print(f"QR Code: Offset X: {offset_x}, Offset Y: {offset_y}")
+        if data:
+            print(f"Data: {data}")
+
+        # Define a threshold for centering
+        tolerance = 20  # Pixels
+        if abs(offset_x) < tolerance and abs(offset_y) < tolerance:
+            print("Scissor Lift Activate")
+        else:
+            print(f"Offset X: {offset_x}, Offset Y: {offset_y}")
     else:
         print("Centering: False")
 
     # Display frame (for debugging)
-    cv2.imshow('Aruco Detection', frame)
+    cv2.imshow('QR Code Detection', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
-# Cleanup
 cap.release()
 cv2.destroyAllWindows()
