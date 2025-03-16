@@ -15,7 +15,7 @@ import { isPosition } from "react-native-drax";
 
 
 // Get dimensions of the screen
-//const { width, height } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
 // -------- Grid Visuals --------
@@ -23,11 +23,19 @@ import { isPosition } from "react-native-drax";
 // const pixelsPerMM = 3.78;
 // const robotDimensions = [250, 250]; // mm
 
-const roomDimensionsMM = [1600, 1600];
-
+const roomDimensionsMM = [1200, 1200];
 const gridWidth = roomDimensionsMM[0];
 const gridHeight = roomDimensionsMM[1];
 
+// const initialZoom = 0.5;
+const viewGridWidth = 350;
+const viewGridHeigh = 350;
+// Dynamically calculate the initial zoom level based on the room size and screen size
+const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh + 150) / gridHeight);
+
+// Calculate the initial offsets to center the room in the grid
+const initialOffsetX = -(screenWidth - gridWidth * initialZoom) - 350 / 2;
+const initialOffsetY = (screenHeight - gridHeight * initialZoom) - 800 / 2;
 
 // var scaleX = roomDimensionsMM[0] / roomDimensionsMM[0];
 // var scaleY = roomDimensionsMM[1] / roomDimensionsMM[1];
@@ -89,13 +97,16 @@ export default function DragAndDrop() {
     const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
     const [isSet, setIsSet] = useState(false); // Check if the layout is set or not
     const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
-    const [zoomLevel, setZoomLevel] = useState(0.5); // Check zoom level
+    const [zoomLevel, setZoomLevel] = useState(initialZoom); // Check zoom level
 
     const { sendMessage } = useSocket();
 
     const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
     const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
     const [inputAngle, setInputAngle] = useState(''); // Value of angle of the rotation furniture
+
+    const [offsetX, setOffsetX] = useState(0);  
+    const [offsetY, setOffsetY] = useState(0);
 
     // work out new positions and timings
     const updateBoxPosition = (id: number, dx: number, dy: number) => {
@@ -279,7 +290,7 @@ export default function DragAndDrop() {
     const updateX = (e : string) => {
         let newX = parseFloat(e);
         if (!isNaN(newX)) {
-            newX = Math.min(Math.max(newX, 0), 280);
+            newX = Math.min(Math.max(newX, 0), gridWidth);
 
             setBoxes((prevBoxes) => 
                 prevBoxes.map((box) => 
@@ -292,7 +303,7 @@ export default function DragAndDrop() {
     const updateY = (e : string) => {
         let newY = parseFloat(e);
         if (!isNaN(newY)) {
-            newY = Math.min(Math.max(newY, 0), 180);
+            newY = Math.min(Math.max(newY, 0), gridHeight);
 
             setBoxes((prevBoxes) => 
                 prevBoxes.map((box) => 
@@ -369,66 +380,94 @@ export default function DragAndDrop() {
                         }}
                     >
                         <ReactNativeZoomableView
+                            initialOffsetX={initialOffsetX}
+                            initialOffsetY={initialOffsetY}
                             maxZoom={10}
-                            minZoom={0}
-                            initialZoom={0.5}
-                            disablePanOnInitialZoom={true}
-
-                            // Update zoom level
+                            minZoom={0.1}
+                            initialZoom={initialZoom}
+                            bindToBorders={false}
+                            // Set zoom center to user's gesture position (not resetting to center)
                             onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
-                                setZoomLevel(zoomableViewEventObject.zoomLevel); 
+                                setZoomLevel(zoomableViewEventObject.zoomLevel);
+
+                                // Calculate the new offsets based on the zoom level
+                                const zoomLevel = zoomableViewEventObject.zoomLevel;
+
+                                // Get the current zoom position 
+                                const gestureCenterX = zoomableViewEventObject.offsetX;
+                                const gestureCenterY = zoomableViewEventObject.offsetY;
+
+                                // Adjust the offsets 
+                                const newOffsetX = gestureCenterX - (gestureCenterX - offsetX) * zoomLevel;
+                                const newOffsetY = gestureCenterY - (gestureCenterY - offsetY) * zoomLevel;
+
+                                // Apply the new offsets 
+                                setOffsetX(newOffsetX);
+                                setOffsetY(newOffsetY);
                             }}
                         >
-                            {/* Display not moving boxes */}
-                            {placedBoxes.map((box) => (
-                                <View
-                                    key={`placed-${box.id}`} // Create unique id for placed boxes
-                                    style={[
-                                        uniqueStyles.robot,
-                                        {
-                                            left: box.x,
-                                            top: box.y,
-                                            backgroundColor: "transparent",
-                                            borderWidth: 1,
-                                            width: box.width,
-                                            height: box.length,
-                                            transform: [{ rotate: `${box.rotation}deg` }],
-                                        },
-                                    ]}
-                                >
-                                    <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
-                                </View>
-                            ))}
-
-                            {/* Display moving boxes */}
-                            {boxes.map((box) => {
-                                const panResponder = createPanResponder(box.id);
-
-                                // Check if box is selected to highlighted
-                                const isSelected = selectedBox === box.id;
-
-                                return (
+                            {/* Internal room container */} 
+                            <View
+                                style={{
+                                    position: "absolute",
+                                    left: offsetX,
+                                    top: offsetY,
+                                    width: roomDimensionsMM[0] * zoomLevel,
+                                    height: roomDimensionsMM[1] * zoomLevel,
+                                    backgroundColor: "rgba(255,255,255,0.5)", 
+                                    borderWidth: 3,                      
+                                    borderColor: "red",                 
+                                }}
+                            >
+                                {/* Display non-movable objects */}
+                                {placedBoxes.map((box) => (
                                     <View
-                                        key={box.id}
+                                        key={`placed-${box.id}`}
                                         style={[
                                             uniqueStyles.robot,
                                             {
-                                                left: box.x,
-                                                top: box.y,
-                                                backgroundColor: box.color,
-                                                borderWidth: isSelected ? 2 : 0,
-                                                borderColor: isSelected ? 'yellow' : 'transparent',
-                                                width: box.width,
-                                                height: box.length,
+                                                left: box.x * zoomLevel,
+                                                top: box.y * zoomLevel,
+                                                backgroundColor: "transparent",
+                                                borderWidth: 1,
+                                                width: box.width * zoomLevel,
+                                                height: box.length * zoomLevel,
                                                 transform: [{ rotate: `${box.rotation}deg` }],
                                             },
                                         ]}
-                                        {...panResponder.panHandlers}
                                     >
-                                        <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                                        <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
                                     </View>
-                                );
-                            })}
+                                ))}
+
+                                {/* Display movable objects */}
+                                {boxes.map((box) => {
+                                    const panResponder = createPanResponder(box.id);
+                                    const isSelected = selectedBox === box.id;
+
+                                    return (
+                                        <View
+                                            key={box.id}
+                                            style={[
+                                                uniqueStyles.robot,
+                                                {
+                                                    left: box.x * zoomLevel,
+                                                    top: box.y * zoomLevel,
+                                                    backgroundColor: box.color,
+                                                    borderWidth: isSelected ? 2 : 0,
+                                                    borderColor: isSelected ? "yellow" : "transparent",
+                                                    width: box.width * zoomLevel,
+                                                    height: box.length * zoomLevel,
+                                                    transform: [{ rotate: `${box.rotation}deg` }],
+                                                },
+                                            ]}
+                                            {...panResponder.panHandlers}
+                                        >
+                                            <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                                        </View>
+                                    );
+                                })}
+                            </View>
                         </ReactNativeZoomableView>
                     </View>
                     {/* Need scale measurement */}
@@ -525,8 +564,8 @@ export default function DragAndDrop() {
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
         grid: {
-            width: 350, // * scaleX once visuals are done
-            height: 350, // * scaleY once visuals are done
+            width: viewGridWidth, // * scaleX once visuals are done
+            height: viewGridHeigh, // * scaleY once visuals are done
             backgroundColor: '#D3D3D3',
             position: "relative",
             borderWidth: 2,
