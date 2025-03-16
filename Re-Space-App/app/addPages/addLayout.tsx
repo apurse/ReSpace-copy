@@ -15,7 +15,7 @@ import { isPosition } from "react-native-drax";
 
 
 // Get dimensions of the screen
-const { width, height } = Dimensions.get('window');
+//const { width, height } = Dimensions.get('window');
 
 
 // -------- Grid Visuals --------
@@ -23,27 +23,29 @@ const { width, height } = Dimensions.get('window');
 // const pixelsPerMM = 3.78;
 // const robotDimensions = [250, 250]; // mm
 
-const gridDimensionsPx = [0.8 * width, 0.8 * width];
 const roomDimensionsMM = [1600, 1600];
 
+const gridWidth = roomDimensionsMM[0];
+const gridHeight = roomDimensionsMM[1];
 
-var scaleX = gridDimensionsPx[0] / roomDimensionsMM[0];
-var scaleY = gridDimensionsPx[1] / roomDimensionsMM[1];
+
+// var scaleX = roomDimensionsMM[0] / roomDimensionsMM[0];
+// var scaleY = roomDimensionsMM[1] / roomDimensionsMM[1];
 
 
-// Calculate running time for distance
-function calculateTime(axis: string, distance: Float) {
+// // Calculate running time for distance
+// function calculateTime(axis: string, distance: Float) {
 
-    if (axis == "X")
-        distance = distance * scaleX
-    else
-        distance = distance * scaleY
+//     if (axis == "X")
+//         distance = distance * scaleX
+//     else
+//         distance = distance * scaleY
 
-    const robotSpeedMM = 190 / 2; // hardcoded mm
+//     const robotSpeedMM = 190 / 2; // hardcoded mm
 
-    const time = distance / robotSpeedMM;
-    return time;
-}
+//     const time = distance / robotSpeedMM;
+//     return time;
+// }
 
 // Boxes in the grid
 const allBoxes = [
@@ -87,16 +89,13 @@ export default function DragAndDrop() {
     const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
     const [isSet, setIsSet] = useState(false); // Check if the layout is set or not
     const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
-    const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
+    const [zoomLevel, setZoomLevel] = useState(0.5); // Check zoom level
 
     const { sendMessage } = useSocket();
 
     const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
     const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
     const [inputAngle, setInputAngle] = useState(''); // Value of angle of the rotation furniture
-
-    const [gridWidth, setGridWidth] = useState(0); // Actual grid 'x' width display on grid
-    const [gridHeight, setGridHeight] = useState(0); // Actual grid 'y' height display on grid
 
     // work out new positions and timings
     const updateBoxPosition = (id: number, dx: number, dy: number) => {
@@ -110,13 +109,17 @@ export default function DragAndDrop() {
                     const rotatedWidth = Math.abs(Math.cos(radians) * box.width) + Math.abs(Math.sin(radians) * box.length);
                     const rotatedHeight = Math.abs(Math.sin(radians) * box.width) + Math.abs(Math.cos(radians) * box.length);
 
-                    const centerX = box.x + box.width / 2 + dx;
-                    const centerY = box.y + box.length / 2 + dy;
+                    // Adjust movement by zoom level
+                    const adjustedDx = dx / zoomLevel;
+                    const adjustedDy = dy / zoomLevel;
+
+                    const centerX = box.x + box.width / 2 + adjustedDx;
+                    const centerY = box.y + box.length / 2 + adjustedDy;
 
                     const minX = rotatedWidth / 2;
                     const minY = rotatedHeight / 2;
-                    const maxX = gridDimensionsPx[0] - rotatedWidth / 2;
-                    const maxY = gridDimensionsPx[1] - rotatedHeight / 2;
+                    const maxX = gridWidth - rotatedWidth / 2;
+                    const maxY = gridHeight - rotatedHeight / 2;
 
                     const clampedX = Math.max(minX, Math.min(maxX, centerX));
                     const clampedY = Math.max(minY, Math.min(maxY, centerY));
@@ -234,8 +237,8 @@ export default function DragAndDrop() {
         // New box (furniture) in the grid
         const newBox = {
              id: newId, 
-             x: gridDimensionsPx[0]/2, 
-             y: gridDimensionsPx[1]/2,
+             x: roomDimensionsMM[0]/2, 
+             y: roomDimensionsMM[1]/2,
              width: furniture.width, 
              length: furniture.length, 
              color: furniture.selectedColour,
@@ -367,8 +370,8 @@ export default function DragAndDrop() {
                     >
                         <ReactNativeZoomableView
                             maxZoom={10}
-                            minZoom={1}
-                            initialZoom={1}
+                            minZoom={0}
+                            initialZoom={0.5}
                             disablePanOnInitialZoom={true}
 
                             // Update zoom level
@@ -522,33 +525,26 @@ export default function DragAndDrop() {
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
         grid: {
-            width: gridDimensionsPx[0] + 5, // * scaleX once visuals are done
-            height: gridDimensionsPx[1] + 5, // * scaleY once visuals are done
+            width: 350, // * scaleX once visuals are done
+            height: 350, // * scaleY once visuals are done
             backgroundColor: '#D3D3D3',
             position: "relative",
             borderWidth: 2,
             borderColor: "#aaa",
         },
         robot: {
-            width: 250 * scaleX,
-            height: 250 * scaleY,
             position: "absolute",
             justifyContent: "center",
             alignItems: "center",
             borderRadius: 4,
-            backgroundColor: '#964B00'
-        },
-        circle: {
-            width: 340 * scaleX,
-            borderRadius: 90,
-            backgroundColor: "green"
+            backgroundColor: '#964B00',
         },
         boxText: {
             color: "#fff",
             fontWeight: "bold",
         },
         buttonContainer: {
-            width: gridDimensionsPx[0],
+            width: 300,
             top: 10,
         },
         notificationText: {
