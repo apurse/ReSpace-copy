@@ -115,9 +115,7 @@ struct repeating_timer motorTimer;
 struct repeating_timer odomTimer;
  
 void setup() {
-  Serial.begin(9600);
-  // while (!Serial)
-  //   ;
+  Serial.begin(115200);
   motorA.begin();
   motorB.begin();
   motorC.begin();
@@ -125,7 +123,7 @@ void setup() {
   // Start hardware timer with 20ms interval
   add_repeating_timer_ms(-20, repeatingTimerCallback, NULL, &motorTimer);
 
-  add_repeating_timer_ms(-30, repeatingOdomTimerCallback, NULL, &odomTimer);
+  add_repeating_timer_ms(-50, repeatingOdomTimerCallback, NULL, &odomTimer);
 }
  
 void loop() {
@@ -142,9 +140,9 @@ void loop() {
     
   // Print updated position
   Serial.print(x, 3);
-  Serial.print(" ");
+  Serial.print(",");
   Serial.print(y, 3);
-  Serial.print(" ");
+  Serial.print(",");
   Serial.print(theta, 3);
  
   Serial.println();

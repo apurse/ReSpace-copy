@@ -1,22 +1,9 @@
-import serial.tools.list_ports
-import serial
 import pygame
 import math
+import time
+from serial_communication import SerialCommunication
 
-port = 'COM6'
-baudrate = 9600
-timeout = 0.1
-try: # try to form a connection between serial port 
-    connection = serial.Serial(port=port, baudrate=baudrate, timeout=timeout)
-    print(f'Connected to {port} at {baudrate} baud.')
-except serial.SerialException as e: #print if connection failed
-    print(f'Failed to connect to {port}: {e}')
-    connection = None
-            
-# function to read from the serial port
-def serial_read():
-    if connection and connection.in_waiting > 0:
-        return connection.readline().decode().strip()
+odom = SerialCommunication(port='COM6', baudrate='115200')
 
 # Initialize Pygame
 pygame.init()
@@ -54,27 +41,32 @@ def draw_arrow(surface, x, y, angle):
     pygame.draw.polygon(surface, ARROW_COLOR, [tip, left, right])
 
 # Main loop
+data_buffer = 0
 running = True
-printChecker = 0
 while running:
-    data = serial_read()
-    data_parts = data.split(" ")
+    data = odom.serial_read()
+    print(data)
+
+    if data_buffer < 10:
+        data_buffer =+ 1
+        data_parts = data.split(",")
+    else:
+        data_buffer = 0
+        odom.connection.reset_input_buffer()
+    
+
     screen.fill(BACKGROUND_COLOR)
     
     if len(data_parts) == 3:
         try:
-            x, y, angle = float(data_parts[0]) *100, float(data_parts[1]) *100, float(data_parts[2])*100
+            x, y, angle = float(data_parts[0]) * 100, float(data_parts[1]) * 100, float(data_parts[2]) * 100
             draw_arrow(screen, x, y, angle)
-            # if printChecker<100:
-            #     printChecker += 1
-            # else:
-            print(x,y,angle)
-            # printChecker=0
+            # print(x, y, angle)
         except ValueError:
             print("Error - invalid data")
             pass  # Ignore invalid data
     
-    pygame.display.flip()
+    pygame.display.update()  # Update only necessary parts
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
