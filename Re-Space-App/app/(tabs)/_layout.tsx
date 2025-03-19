@@ -60,6 +60,15 @@ export default function TabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="roomsManager"
+        options={{ 
+          title: 'WIP',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'business' : 'business-outline'} color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }

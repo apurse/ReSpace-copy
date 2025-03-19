@@ -1,0 +1,62 @@
+import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { createDefaultStyles } from '../../components/defaultStyles';
+import { useTheme } from "@/app/_layout";
+
+// Get dimensions of the screen
+const { width, height } = Dimensions.get('window');
+
+export default function RoomDetails() {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    const uniqueStyles = createUniqueStyles(isDarkMode);
+    const router = useRouter();
+    const { roomName } = useLocalSearchParams<{ roomName?: string }>();
+
+    return (
+        <View style={defaultStyles.body}>
+            
+            <View style={defaultStyles.pageTitleSection}>
+                {/* Room name | default name in case of empty input */}
+                <Text style={defaultStyles.pageTitle}>{roomName ? `${roomName}` : 'Room Details'}</Text>
+            </View>
+            <View style={uniqueStyles.buttonContainer}>
+                <Pressable style={uniqueStyles.button} onPress={() => router.push('/addPages/manageLayouts')}>
+                    <Text style={uniqueStyles.text}>Manage Layouts</Text>
+                </Pressable>
+
+                <Pressable style={uniqueStyles.button} onPress={() => router.push('/addPages/manageFurniture')}>
+                    <Text style={uniqueStyles.text}>Manage Furniture</Text>
+                </Pressable>
+
+                <Pressable style={[uniqueStyles.button, {backgroundColor: '#FF6969'}]} onPress={() => router.back()}>
+                    <Text style={uniqueStyles.text}>Delete This Room</Text>
+                </Pressable>
+            </View>
+
+        
+        </View>
+    );
+}
+
+const createUniqueStyles = (isDarkMode: boolean) =>
+    StyleSheet.create({
+      buttonContainer: {
+        gap: width * 0.1,
+      },
+      button: {
+        width: width * 0.75,
+        height: width * 0.1,
+        backgroundColor: isDarkMode ? '#fff' : '#000',
+        borderRadius: 20,
+        alignContent: 'center',
+      },
+      text: {
+        textAlign: 'center',
+        fontSize: 24,
+        color: isDarkMode ? '#000' : '#fff',
+        top: 3,
+        fontWeight: '300',
+      }
+    });

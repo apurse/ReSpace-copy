@@ -386,6 +386,11 @@ export default function DragAndDrop() {
                             minZoom={0.1}
                             initialZoom={initialZoom}
                             bindToBorders={false}
+                            pinchToZoomInSensitivity={6}
+                            pinchToZoomOutSensitivity={4}
+                            panEnabled={true}
+                            movementSensibility={1}
+
                             // Set zoom center to user's gesture position (not resetting to center)
                             onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
                                 setZoomLevel(zoomableViewEventObject.zoomLevel);
