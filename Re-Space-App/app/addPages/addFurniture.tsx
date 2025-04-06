@@ -9,6 +9,7 @@ import Furniture from '@/components/LayoutComponents/furniture';
 import { ColourPickerModal } from '@/components/LayoutComponents/colourPickerModal';
 import { useSocket } from "@/hooks/useSocket";
 import { red } from 'react-native-reanimated/lib/typescript/Colors';
+import * as MediaLibrary from 'expo-media-library';
 
 
 
@@ -64,9 +65,44 @@ export default function AddLayout() {
 
   // State of furniture modal (to add furniture)
   const [isModalVisible, setModalVisible] = useState(false);
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
 
-  const downloadQR = async () => {
-    // download image locally
+
+  /**
+   * Download the Furniture QR code to the device.
+   * @param image The base64 image string
+   */
+  const downloadQR = async (image: string) => {
+
+    // Get permissions
+    await requestPermission();
+
+    
+    // Convert base64 into a png with a file name
+    const base64Code = image.split("data:image/png;base64,")[1];
+    const newImage = FileSystem.documentDirectory + `${name}_${quantity}_QR_Code.png`;
+    await FileSystem.writeAsStringAsync(newImage, base64Code, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+
+    // Save to camera roll and alert user
+    MediaLibrary.saveToLibraryAsync(newImage)
+      .then(() => alert('Photo added to camera roll!'))
+      .catch(err => console.log('err:', err))
+
+
+    // Reset form
+    setName('');
+    setModel('');
+    setHeight(0);
+    setWidth(0);
+    setLength(0);
+    setQuantity(0);
+    setSelectedColour('#aabbcc');
+    setQRData('');
+    addQRCode.pop();
+
   }
   const saveFurniture = async () => {
 
@@ -137,20 +173,6 @@ export default function AddLayout() {
 
       // Show notifications for 3 sec
       setTimeout(() => setnotifications(null), 3000);
-
-      // Reset form
-      setName('');
-      setModel('');
-      setHeight(0);
-      setWidth(0);
-      setLength(0);
-      setQuantity(0);
-      setSelectedColour('#aabbcc');
-      setQRData('');
-      console.log(addQRCode.length)
-      addQRCode.pop();
-      console.log(addQRCode.length)
-
     }
     catch (error) {
       console.error('Failed to update/save data to json file:', error);
@@ -177,12 +199,12 @@ export default function AddLayout() {
             style={uniqueStyles.imageBody}
             source={{ uri: (`data:image/png;base64,${QRCode}`) }} />
         </View>
-        {/* Print button */}
+        {/* Download button */}
         <View style={uniqueStyles.buttonContainer}>
           {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
           <ActionButton
-            label="Print QR Code"
-            onPress={downloadQR}
+            label="Download QR Code"
+            onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
           />
         </View>
       </View>
