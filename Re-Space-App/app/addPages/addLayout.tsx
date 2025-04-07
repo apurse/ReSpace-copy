@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, PanResponder, StyleSheet, Dimensions, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform} from "react-native";
+import { View, Text, PanResponder, StyleSheet, Dimensions, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
 import ActionButton from "@/components/settingsComponents/actionButton";
@@ -12,6 +12,7 @@ import { CurrentRenderContext } from "@react-navigation/native";
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 import { setGestureState } from "react-native-reanimated";
 import { isPosition } from "react-native-drax";
+import { Link } from 'expo-router';
 
 
 // Get dimensions of the screen
@@ -37,33 +38,15 @@ const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh +
 const initialOffsetX = -(screenWidth - gridWidth * initialZoom) - 350 / 2;
 const initialOffsetY = (screenHeight - gridHeight * initialZoom) - 800 / 2;
 
-// var scaleX = roomDimensionsMM[0] / roomDimensionsMM[0];
-// var scaleY = roomDimensionsMM[1] / roomDimensionsMM[1];
-
-
-// // Calculate running time for distance
-// function calculateTime(axis: string, distance: Float) {
-
-//     if (axis == "X")
-//         distance = distance * scaleX
-//     else
-//         distance = distance * scaleY
-
-//     const robotSpeedMM = 190 / 2; // hardcoded mm
-
-//     const time = distance / robotSpeedMM;
-//     return time;
-// }
-
 // Boxes in the grid
 const allBoxes = [
-    { id: 1, x: 0, y: 0, width:70, length: 30, color: 'red', rotation: 0.0},
-    { id: 2, x: 150, y: 150, width:50, length: 150, color: 'green', rotation: 0.0 },
-    { id: 3, x: 100, y: 100, width:50, length: 30, color: 'blue', rotation: 0.0 },
+    { id: 1, x: 0, y: 0, width: 70, length: 30, color: 'red', rotation: 0.0 },
+    { id: 2, x: 150, y: 150, width: 50, length: 150, color: 'green', rotation: 0.0 },
+    { id: 3, x: 100, y: 100, width: 50, length: 30, color: 'blue', rotation: 0.0 },
 ];
 
 export default function DragAndDrop() {
-    
+
     // Define 'Box' to store in 'currentPos'  
     type Box = {
         id: number;
@@ -74,7 +57,7 @@ export default function DragAndDrop() {
         color: string;
         rotation: Float;
     };
-    
+
     // dark mode
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
@@ -105,7 +88,7 @@ export default function DragAndDrop() {
     const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
     const [inputAngle, setInputAngle] = useState(''); // Value of angle of the rotation furniture
 
-    const [offsetX, setOffsetX] = useState(0);  
+    const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
 
     // work out new positions and timings
@@ -115,7 +98,7 @@ export default function DragAndDrop() {
                 if (box.id === id) {
                     // Convert degrees to radians
                     const radians = (box.rotation * Math.PI) / 180;
-                    
+
                     // Calculate the axis-aligned bounding box dimensions
                     const rotatedWidth = Math.abs(Math.cos(radians) * box.width) + Math.abs(Math.sin(radians) * box.length);
                     const rotatedHeight = Math.abs(Math.sin(radians) * box.width) + Math.abs(Math.cos(radians) * box.length);
@@ -163,9 +146,9 @@ export default function DragAndDrop() {
                 })
             );
             counter++; // Increase counter
-            if (counter >= 95) { counter = 95} // Limit the speed
+            if (counter >= 95) { counter = 95 } // Limit the speed
         }, currentSpeed);
-    
+
         setRotationInterval(interval);
     };
 
@@ -173,7 +156,8 @@ export default function DragAndDrop() {
     const rotateBoxLeft = (id: number) => {
         let counter = 0; // Slowly increase for speed
 
-        const interval = setInterval(() => {;
+        const interval = setInterval(() => {
+            ;
             setBoxes((prevBoxes) =>
                 prevBoxes.map((box) => {
                     if (box.id === id) {
@@ -184,9 +168,9 @@ export default function DragAndDrop() {
                 })
             );
             counter++; // Increase counter
-            if (counter >= 95) { counter = 95} // Limit the speed
-        }, currentSpeed); 
-    
+            if (counter >= 95) { counter = 95 } // Limit the speed
+        }, currentSpeed);
+
         setRotationInterval(interval);
     }
 
@@ -238,7 +222,7 @@ export default function DragAndDrop() {
         setnotifications('Layout has been reset');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
     };
-   
+
     // Add new furniture function - This is temporary, this would be change to a more complex solution
     const addFurniture = (furniture: FurnitureItem) => {
 
@@ -247,13 +231,13 @@ export default function DragAndDrop() {
 
         // New box (furniture) in the grid
         const newBox = {
-             id: newId, 
-             x: roomDimensionsMM[0]/2, 
-             y: roomDimensionsMM[1]/2,
-             width: furniture.width, 
-             length: furniture.length, 
-             color: furniture.selectedColour,
-             rotation: 0.0,
+            id: newId,
+            x: roomDimensionsMM[0] / 2,
+            y: roomDimensionsMM[1] / 2,
+            width: furniture.width,
+            length: furniture.length,
+            color: furniture.selectedColour,
+            rotation: 0.0,
         };
 
         setBoxes((prevBoxes) => [...prevBoxes, newBox]);
@@ -264,7 +248,7 @@ export default function DragAndDrop() {
 
     // Delete selected furniture function
     const deleteFurniture = () => {
-        if (selectedBox === null){
+        if (selectedBox === null) {
             console.log('There is not furniture selected to be deleted');
             return;
         }
@@ -287,40 +271,40 @@ export default function DragAndDrop() {
         }
     }, [selectedBox, boxes])
 
-    const updateX = (e : string) => {
+    const updateX = (e: string) => {
         let newX = parseFloat(e);
         if (!isNaN(newX)) {
             newX = Math.min(Math.max(newX, 0), gridWidth);
 
-            setBoxes((prevBoxes) => 
-                prevBoxes.map((box) => 
-                    box.id === selectedBox ? {...box, x: newX} : box
+            setBoxes((prevBoxes) =>
+                prevBoxes.map((box) =>
+                    box.id === selectedBox ? { ...box, x: newX } : box
                 )
             );
         }
     };
 
-    const updateY = (e : string) => {
+    const updateY = (e: string) => {
         let newY = parseFloat(e);
         if (!isNaN(newY)) {
             newY = Math.min(Math.max(newY, 0), gridHeight);
 
-            setBoxes((prevBoxes) => 
-                prevBoxes.map((box) => 
-                    box.id === selectedBox ? {...box, y: newY} : box
+            setBoxes((prevBoxes) =>
+                prevBoxes.map((box) =>
+                    box.id === selectedBox ? { ...box, y: newY } : box
                 )
             );
         }
     };
 
-    const updateAngle = (e : string) => {
+    const updateAngle = (e: string) => {
         let newRotation = parseFloat(e);
         if (!isNaN(newRotation)) {
             newRotation = Math.min(Math.max(newRotation, 0), 360);
-            
-            setBoxes((prevBoxes) => 
-                prevBoxes.map((box) => 
-                    box.id === selectedBox ? {...box, rotation: newRotation} : box
+
+            setBoxes((prevBoxes) =>
+                prevBoxes.map((box) =>
+                    box.id === selectedBox ? { ...box, rotation: newRotation } : box
                 )
             );
         }
@@ -336,8 +320,8 @@ export default function DragAndDrop() {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}
         >
-            <ScrollView 
-                contentContainerStyle={{ flexGrow: 1 }} 
+            <ScrollView
+                contentContainerStyle={{ flexGrow: 1 }}
                 keyboardShouldPersistTaps="handled"
             >
                 <View style={defaultStyles.body}>
@@ -354,7 +338,7 @@ export default function DragAndDrop() {
                             onPressOut={stopRotation}
                         >
                             <View>
-                                <Icon name="undo" size={25} style={{transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000',}}/>
+                                <Icon name="undo" size={25} style={{ transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000', }} />
                             </View>
                         </TouchableOpacity>
 
@@ -365,7 +349,7 @@ export default function DragAndDrop() {
                             onPressOut={stopRotation}
                         >
                             <View>
-                                <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000',}}/>
+                                <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000', }} />
                             </View>
                         </TouchableOpacity>
                     </View>
@@ -411,7 +395,7 @@ export default function DragAndDrop() {
                                 setOffsetY(newOffsetY);
                             }}
                         >
-                            {/* Internal room container */} 
+                            {/* Internal room container */}
                             <View
                                 style={{
                                     position: "absolute",
@@ -419,9 +403,9 @@ export default function DragAndDrop() {
                                     top: offsetY,
                                     width: roomDimensionsMM[0] * zoomLevel,
                                     height: roomDimensionsMM[1] * zoomLevel,
-                                    backgroundColor: "rgba(255,255,255,0.5)", 
-                                    borderWidth: 3,                      
-                                    borderColor: "red",                 
+                                    backgroundColor: "rgba(255,255,255,0.5)",
+                                    borderWidth: 3,
+                                    borderColor: "red",
                                 }}
                             >
                                 {/* Display non-movable objects */}
@@ -526,14 +510,14 @@ export default function DragAndDrop() {
                                 <ActionButton
                                     label="Delete Furniture"
                                     onPress={deleteFurniture}
-                                    style={{ backgroundColor: '#fa440c'}}
+                                    style={{ backgroundColor: '#fa440c' }}
                                 />
                                 <ActionButton
                                     label="Add Furniture"
                                     onPress={() => setModalVisible(true)}
-                                    style={{ backgroundColor: '#964B00'}}
+                                    style={{ backgroundColor: '#964B00' }}
                                 />
-                                <FurnitureModal 
+                                <FurnitureModal
                                     isVisible={isModalVisible}
                                     onClose={() => setModalVisible(false)}
                                     onSelectFurniture={addFurniture}
@@ -541,21 +525,23 @@ export default function DragAndDrop() {
                             </>
                         ) : (
                             <>
+                                <Link href="../extraPages/systemRunning" asChild>
+                                    <ActionButton
+                                        label="Ready To Go!"
+                                        onPress={() => {
+                                            sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                                        }}
+                                    />
+                                </Link>
                                 <ActionButton
-                                label="Ready To Go!"
-                                onPress={() => {
-                                    sendMessage({ type: "desired_layout", locations: boxesFormatted })
-                                }}
+                                    label="Reset Layout"
+                                    onPress={resetLayout}
+                                    style={{ backgroundColor: '#fa440c' }}
                                 />
                                 <ActionButton
-                                label="Reset Layout"
-                                onPress={resetLayout}
-                                style={{ backgroundColor: '#fa440c'}}
-                                />
-                                <ActionButton
-                                label="Save Layout"
-                                onPress={() => console.log('working on it')}
-                                style={{ backgroundColor: '#76f58f'}}
+                                    label="Save Layout"
+                                    onPress={() => console.log('working on it')}
+                                    style={{ backgroundColor: '#76f58f' }}
                                 />
                             </>
                         )}
@@ -618,10 +604,10 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             height: 25,
             left: '30%',
             bottom: '15%',
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            backgroundColor: 'transparent', 
-            borderWidth: 1,  
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'transparent',
+            borderWidth: 1,
             borderColor: 'transparent',
         },
         rotationRight: {
@@ -629,10 +615,10 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             height: 25,
             left: '40%',
             top: '10%',
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            backgroundColor: 'transparent', 
-            borderWidth: 1,  
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'transparent',
+            borderWidth: 1,
             borderColor: 'transparent',
         },
         zoomStyle: {

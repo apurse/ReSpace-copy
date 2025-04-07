@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { FunctionComponentElement } from 'react';
 import {Text, TouchableOpacity, StyleSheet } from 'react-native';
 
-const ActionButton = ({ label, onPress, style, textS }: { label: string; onPress: () => void; style?: object; textS?: object } ) => {
+const ActionButton = ({ label, onPress, style, textS, icon }: { label: string; onPress: () => void; style?: object; textS?: object, icon?: FunctionComponentElement<{}>; } ) => {
     return (
         <TouchableOpacity style={[styles.button, style]} onPress={onPress}>
+            {icon}
             <Text style={[styles.buttonText, textS]}>{label}</Text>
         </TouchableOpacity>
     );

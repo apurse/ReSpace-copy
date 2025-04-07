@@ -14,6 +14,12 @@ export const WarningIcon = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     return <Icon name="exclamation-circle" size={30} color= '#fff' />;
+
+};
+export const StopCircle = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    return <Icon name="ban" size={30} color= '#fff' />;
 };
 
 // Status battery icons

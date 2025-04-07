@@ -49,7 +49,6 @@ const warnings = () => {
   if (issuesFound) {
     return { messageW: "Issues found!", colorW: "#ec1a01", warningI: Icons.WarningIcon };
   }
-
 }
 
 // batteryLevel function variables
