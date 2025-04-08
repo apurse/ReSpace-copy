@@ -19,6 +19,11 @@ export default function systemRunning() {
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { socket, isConnected, robotData, sendMessage } = useSocket();
 
+  if (!isConnected) {
+    console.warn("WebSocket not connected!");
+    return;
+  }
+
 
   // Make dynamic list for number of robots
   var addRobots: any = [];
@@ -44,7 +49,10 @@ export default function systemRunning() {
         label="Emergency Stop"
         icon={React.createElement(Icons.StopCircle)}
         style={uniqueStyles.stopContainer}
-        onPress={() => alert("stop called")}
+        onPress={() => {
+          sendMessage({ type: "emergency_stop", direction: "stop" });
+          alert("stop called");
+        }}
       />
 
       {/* Robots section */}

@@ -128,7 +128,15 @@ async def handle_connection(websocket):
 
 
 async def handle_app_message(data):
-    if data["type"] == "control":
+    # Emergency stop
+    if data["type"] == "emergency_stop":
+        # for loop to iterate over each robot
+        print("emergency stop called")
+        for robot in connected_robots.keys():
+            print(robot)
+            await send_to_robot(robot, data)
+              
+    elif data["type"] == "control":
         print("App control data: ", data)
         # Forward the task to the target robot
         target_robot_id = data["target"]
@@ -147,6 +155,7 @@ async def handle_app_message(data):
             fun = Furniture(furniture_id, furniture_size, furniture_locationX, furniture_locationY)
             current_furniture_positions.append(fun)
 
+
     elif data["type"] == "desired_layout":
         desired_furniture_positions.clear()
         for locationData in data["locations"]:
@@ -158,6 +167,7 @@ async def handle_app_message(data):
             furniture_locationY = locationData["y"]
             fun = Furniture(furniture_id, furniture_size, furniture_locationX, furniture_locationY)
             desired_furniture_positions.append(fun)
+
 
     elif data["type"] == "power":
         target_robot_id = data["target"]

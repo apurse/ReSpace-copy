@@ -76,7 +76,7 @@ def generateQRCode(data):
     combined = Image.fromarray(combined)
     
     
-    fontSize = 30
+    fontSize = 50
     name = (data["name"] + "_" + data["furnitureID"])
     
     
