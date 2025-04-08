@@ -8,8 +8,9 @@ import * as FileSystem from 'expo-file-system';
 import Furniture from '@/components/LayoutComponents/furniture';
 import { ColourPickerModal } from '@/components/LayoutComponents/colourPickerModal';
 import { useSocket } from "@/hooks/useSocket";
-import { red } from 'react-native-reanimated/lib/typescript/Colors';
 import * as MediaLibrary from 'expo-media-library';
+import uuid from 'react-native-uuid';
+
 
 
 
@@ -59,6 +60,7 @@ export default function AddLayout() {
   const [length, setLength] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(0);
   const [selectedColour, setSelectedColour] = useState<string>('#aabbcc');
+  const [furnitureID, setfurnitureID] = useState<string>('');
   const [QRData, setQRData] = useState<string>('');
   const { socket, isConnected, robotData, sendMessage, QRCode } = useSocket();
 
@@ -77,7 +79,7 @@ export default function AddLayout() {
     // Get permissions
     await requestPermission();
 
-    
+
     // Convert base64 into a png with a file name
     const base64Code = image.split("data:image/png;base64,")[1];
     const newImage = FileSystem.documentDirectory + `${name}_${quantity}_QR_Code.png`;
@@ -93,6 +95,7 @@ export default function AddLayout() {
 
 
     // Reset form
+    setfurnitureID('');
     setName('');
     setModel('');
     setHeight(0);
@@ -120,7 +123,11 @@ export default function AddLayout() {
       return;
     }
 
+    // Make furniture ID
+    let generatedID = uuid.v4().substring(0, 5);
+
     const newFurniture = {
+      furnitureID: generatedID,
       name,
       model,
       height: heightF,
@@ -132,10 +139,9 @@ export default function AddLayout() {
     };
 
     try {
-      // Check if json file exist
-      const checkJson = await FileSystem.getInfoAsync(localJson);
-
+      
       // If json file doesn't exist, create file
+      const checkJson = await FileSystem.getInfoAsync(localJson);
       if (!checkJson.exists) {
         await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: [] }));
         console.log('Json file created:', localJson);
@@ -154,19 +160,19 @@ export default function AddLayout() {
       const updateData = [...jsonData.Furniture, newFurniture];
 
 
-
       // Send furniture across to server
       if (isConnected) {
         sendMessage({ type: "new_furniture", data: newFurniture });
       } else {
         alert("No connection to the WebSocket.");
       }
+
       // Write new data to json
       await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: updateData }));
 
       // Show local json file in console
       const data = await FileSystem.readAsStringAsync(localJson);
-      console.log('Furniture json updated:', data);
+      // console.log('Furniture json updated:', data);
 
       // Show notifications of successful
       setnotifications('New furniture added sucessfully');
@@ -392,7 +398,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       width: 200,
       borderColor: isDarkMode ? '#fff' : '#ddd',
       borderWidth: 1,
-      height: 200 * 1.7,
+      height: 200 * 1.8,
       alignItems: 'center',
     },
     imageBody: {

@@ -40,21 +40,12 @@ export default function systemRunning() {
         <Text>Progress bar</Text>
       </View>
 
-      {/* <View style={uniqueStyles.stopContainer}>
-      </View> */}
-        <ActionButton style={uniqueStyles.stopContainer}
-          label="Stop Button"
-          icon={React.createElement(Icons.StopCircle)}
-          onPress={() => alert("stop called")}
-        />
-
-      {/* <View style={uniqueStyles.stopContainer}>
-        <Pressable>
-          {React.createElement(Icons.StopCircle)}
-          <Text>Add Layout</Text>
-          onPress={() => alert("stop called")}
-        </Pressable>
-      </View> */}
+      <ActionButton
+        label="Emergency Stop"
+        icon={React.createElement(Icons.StopCircle)}
+        style={uniqueStyles.stopContainer}
+        onPress={() => alert("stop called")}
+      />
 
       {/* Robots section */}
       <View style={uniqueStyles.robotBoxContainer}>
@@ -76,18 +67,19 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       // marginBottom: 24,
       // marginTop: 25,
       borderColor: isDarkMode ? '#fff' : '#000',
-      borderWidth: 0.5,
+      // borderWidth: 0.5,
       width: '100%',
-      height: 100,
+      height: 120,
       alignSelf: 'center',
+      fontSize: 200,
     },
     tempBox: {
       marginTop: -20,
       backgroundColor: "gray",
       borderColor: isDarkMode ? '#fff' : '#000',
-      borderWidth: 0.5,
-      width: 0.9 * width,
-      height: 0.9 * width,
+      // borderWidth: 0.5,
+      width: 0.8 * width,
+      height: 0.8 * width,
       alignSelf: 'center',
     },
     progressBar: {
@@ -100,7 +92,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       marginVertical: 10,
       borderColor: isDarkMode ? '#fff' : '#000',
       borderWidth: 0.5,
-      width: '100%',
+      width: 0.8 * width,
       height: 20,
       alignSelf: 'center',
     },

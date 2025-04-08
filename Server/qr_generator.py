@@ -77,7 +77,7 @@ def generateQRCode(data):
     
     
     fontSize = 30
-    name = (data["name"] + "_" + data["id"])
+    name = (data["name"] + "_" + data["furnitureID"])
     
     
     # size relative to image

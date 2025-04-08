@@ -169,7 +169,7 @@ async def handle_app_message(data):
     elif data["type"] == "new_furniture":
         print(data["data"])
         base64_string = generateQRCode(data["data"]) # Use qr code generation script
-        print(base64_string)
+        # print(base64_string)
         await send_to_app({"type": "new_furniture", "base64": base64_string})
 
     else:
