@@ -7,6 +7,7 @@ import ActionButton from '@/components/settingsComponents/actionButton';
 import * as FileSystem from 'expo-file-system';
 import { useSocket } from "@/hooks/useSocket";
 import { useAuth } from "@/hooks/useAuth";
+import * as SQLite from 'expo-sqlite';
 
 
 // Defining types for function
@@ -17,51 +18,89 @@ interface LoginModalProps {
 const { width, height } = Dimensions.get('window');
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) => {
-
-
-
-    // Useful for deleting account
-    // // Call function to clear the json data from device
-    // const clearJsonData = async () => {
-    //   try {
-    //     await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: [] }));
-
-    //     console.log('Data has been cleared');
-    //   } catch (error) {
-    //     console.error('Error deleting json data');
-    //   }
-    // };
-
-
-    // Could be used for creating user
-    // // Adding data to json
-    // const updateData = [...jsonData.Furniture, userConnected];
-
-    // // Write new data to json
-    // await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: updateData }));
-
-    // // Show local json file in console
-    // const data = await FileSystem.readAsStringAsync(localJson);
-    // // console.log('Furniture json updated:', data);
-
-    // Get dimensions of the screen
-
-
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
-
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+    const [db, setdb] = useState<SQLite.SQLiteDatabase | null>(null);
     const { socket, isConnected, sendMessage } = useSocket();
     const { loggedIn, user, setUser } = useAuth();
-
-
     const [notifications, setnotifications] = useState<string | null>(null);
 
 
-    const authorise = async () => {
+    // Setup the database by accessing the file and checking the table exists
+    const setupDB = async () => {
+        const getdb = await SQLite.openDatabaseAsync('usersDB.db');
+        await getdb.runAsync(`
+                CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);
+            `);
+        setdb(getdb)
+    }
+
+    setupDB();
+
+
+    // Check and verify that the user can login
+    const userLogin = async () => {
+
+        // Check db works
+        if (!db) {
+            alert("DB not working")
+            return;
+        }
+
+        // If not filled in correctly
+        if (!username || !password) {
+            setnotifications('Please fill the necessary fields (Marked with \'*\')');
+            setTimeout(() => setnotifications(null), 3000);
+            return;
+        };
+
+        const userConnected = {
+            username,
+            password,
+        };
+
+        try {
+
+            // Command for checking if username is in db
+            let sqlCheckUsername = `SELECT * FROM users WHERE username = ?`;
+
+            // Get the first instance of the inputted username and store using the parameters
+            const rowFound = await db.getFirstAsync<{ id: number, username: string, password: string }>(sqlCheckUsername, userConnected.username)
+
+            // If username is found, check password
+            if (rowFound) {
+                if (rowFound.password == userConnected.password) {
+                    setUser(userConnected);
+                    console.log(rowFound)
+                    return;
+                }
+                else {
+                    alert("Password is incorrect.")
+                    return;
+                }
+            }
+            else alert("Username unknown.");
+        }
+        catch (error) {
+            console.error('Failed to login', error);
+            setnotifications('Failed to login.')
+            setTimeout(() => setnotifications(null), 3000);
+        }
+    };
+
+
+    // Add new users to the database
+    const addNewUser = async () => {
+
+        // Check db works
+        if (!db) {
+            alert("DB not working")
+            return;
+        }
 
         // If not filled in correctly
         if (!username || !password) {
@@ -71,34 +110,36 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
             return;
         };
 
-        const userConnected = {
+        const newUser = {
             username,
             password,
         };
 
-        console.log(userConnected)
-
         try {
 
+            // Command for checking if username is in db
+            let sqlCheckUsername = `SELECT * FROM users WHERE username = ?`;
 
-            // if user is in db:
-            //   connect as that user
-            //   on main page have "good morning ${user}
-            //   add an account bit in settings
+            // Get the first instance of this and store using the params
+            const rowFound = await db.getFirstAsync<{ id: number, username: string, password: string }>(sqlCheckUsername, newUser.username)
 
-            // temp
-            if (userConnected.username == "test1"){
-                setUser(userConnected);
+            // Reject if username already exists found
+            if (rowFound) {
+                alert("Username already in use!")
+                return;
             }
+            else {
 
+                // Add the new username and password into the db
+                let sqlInsert = `INSERT INTO users(username, password) VALUES (?, ?)`;
+                await db.runAsync(
+                    sqlInsert,
+                    [newUser.username, newUser.password]
+                )
 
-            // // Tell server user has connected (optional)
-            // if (isConnected) {
-            //     sendMessage({ type: "account_login", data: userConnected });
-            // } else {
-            //     alert("No connection to the WebSocket.");
-            // }
-
+                alert("New user added, logging in now...")
+                setUser(newUser);
+            }
         }
         catch (error) {
             console.error('Failed to login', error);
@@ -150,7 +191,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
 
                     <ActionButton
                         label="Login"
-                        onPress={authorise}
+                        onPress={userLogin}
                         style={{ width: '80%' }}
                     />
 
@@ -158,7 +199,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                         <Text style={uniqueStyles.inputHeader}>Not made an account? Create one below!</Text>
                         <ActionButton
                             label="Create Account"
-                            onPress={() => alert("WIP")}
+                            onPress={addNewUser}
                             style={{ width: '90%' }}
                         />
                     </View>
@@ -166,8 +207,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
             </View>
         </Modal>
     );
-}
-
+};
 
 
 const createUniqueStyles = (isDarkMode: boolean) =>
