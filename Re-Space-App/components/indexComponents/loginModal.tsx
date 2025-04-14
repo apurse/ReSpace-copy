@@ -6,6 +6,8 @@ import { useTheme } from '@/app/_layout';
 import ActionButton from '@/components/settingsComponents/actionButton';
 import * as FileSystem from 'expo-file-system';
 import { useSocket } from "@/hooks/useSocket";
+import { useAuth } from "@/hooks/useAuth";
+
 
 // Defining types for function
 interface LoginModalProps {
@@ -53,6 +55,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const { socket, isConnected, sendMessage } = useSocket();
+    const { loggedIn, user, setUser } = useAuth();
+
 
     const [notifications, setnotifications] = useState<string | null>(null);
 
@@ -72,6 +76,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
             password,
         };
 
+        console.log(userConnected)
+
         try {
 
 
@@ -80,13 +86,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
             //   on main page have "good morning ${user}
             //   add an account bit in settings
 
-
-            // Tell server user has connected (optional)
-            if (isConnected) {
-                sendMessage({ type: "account_login", data: userConnected });
-            } else {
-                alert("No connection to the WebSocket.");
+            // temp
+            if (userConnected.username == "test1"){
+                setUser(userConnected);
             }
+
+
+            // // Tell server user has connected (optional)
+            // if (isConnected) {
+            //     sendMessage({ type: "account_login", data: userConnected });
+            // } else {
+            //     alert("No connection to the WebSocket.");
+            // }
 
         }
         catch (error) {
@@ -101,9 +112,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
             <View style={uniqueStyles.modalContent}>
                 <ScrollView contentContainerStyle={defaultStyles.body}>
 
-                <TouchableOpacity style={uniqueStyles.closeButton} onPress={onClose}>
-                    <Text style={uniqueStyles.closeText}>Close</Text>
-                </TouchableOpacity>
+                    <TouchableOpacity style={uniqueStyles.closeButton} onPress={onClose}>
+                        <Text style={uniqueStyles.closeText}>Close</Text>
+                    </TouchableOpacity>
                     {/* Content */}
                     <View style={defaultStyles.pageTitleSection}>
                         <Text style={defaultStyles.pageTitle}>Login</Text>
@@ -190,7 +201,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
 
 
         // ---------- LOGIN PAGE SETTINGS ----------
-        
+
         inputField: {
             width: '100%',
             padding: 20,

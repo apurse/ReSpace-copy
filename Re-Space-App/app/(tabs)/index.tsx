@@ -12,25 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
-
-// Battery level
 const currentBatteryPerc = 67;
-
-// Issues found
 const issuesFound = 0;
-
-// Change greeting text based on time
-const getGreeting = () => {
-  const currentHour = new Date().getHours();
-
-  if (currentHour < 12) {
-    return "Good morning!";
-  } else if (currentHour < 17) {
-    return "Good afternoon!";
-  } else {
-    return "Good evening!";
-  }
-};
 
 // Monitoring status card based on percentage/battery level
 const batteryLevel = () => {
@@ -61,23 +44,51 @@ const { message, color, warning, battery } = batteryLevel();
 const { messageW = "", colorW = "", warningI = null } = warnings() || {};
 
 export default function HomeScreen() {
+
   const [isModalVisible, setModalVisible] = useState(false);
   const [hasSeenModal, setHasSeenModal] = useState(false);
+  const [greeting, setGreeting] = useState<string | null>();
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { socket, isConnected, robotData, sendMessage } = useSocket();
-  const { loggedIn } = useAuth();
+  const { loggedIn, user } = useAuth();
+
+
+  // Change greeting text based on time
+  function getGreeting() {
+    const currentHour = new Date().getHours();
+
+
+    // Set custom messages based on hours
+    var statement = (currentHour < 12) ? "Good morning!"
+      : (currentHour < 17) ? "Good afternoon!"
+        : "Good evening!";
+
+
+    // If logged in, change statement to include username
+    if (user) statement = `${statement.substring(0, statement.length - 1)}, ${user.username}!`;
+
+    setGreeting(statement)
+  };
+
+
+  // Listen to user login changes
+  useEffect(() => {
+    getGreeting();
+    setModalVisible(false);
+  }, [user]);
 
 
   // Load login modal on startup if not logged in
   useEffect(() => {
-    if (!loggedIn && !hasSeenModal) {
+    if (!user && !hasSeenModal) {
       setHasSeenModal(true)
       setModalVisible(true)
     }
-  })
+  }, [user, hasSeenModal])
+
 
   // Make dynamic list for number of robots
   var addRobots: any = [];
@@ -85,9 +96,11 @@ export default function HomeScreen() {
     addRobots.push(<RobotBox key={robot.robot_id} robot={robot} />)
   })
 
+
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
-      {!loggedIn &&
+      {/* Login button */}
+      {!user &&
         <TouchableOpacity style={uniqueStyles.loginButton} onPress={() => setModalVisible(true)}>
           <View style={uniqueStyles.loginButtonContent}>
             <Text style={uniqueStyles.loginButtonText}>Login</Text>
@@ -96,7 +109,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       }
       {/* Greeting */}
-      <Text style={uniqueStyles.greeting}>{getGreeting()}</Text>
+      <Text style={uniqueStyles.greeting}>{greeting}</Text>
 
       {/* ReSpace monitoring status section */}
       <View style={[uniqueStyles.statusCard, { backgroundColor: colorW || color }]}>
@@ -123,11 +136,11 @@ export default function HomeScreen() {
   );
 }
 
-// styles unique to this page go here
+
 const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
 
-    // Greeting section
+    // Greeting and login section
 
     greeting: {
       fontSize: width * 0.06,

@@ -2,7 +2,7 @@ import { useContext, useCallback } from "react";
 import { AuthContext } from "@/app/context/authorisationProvider";
 
 export const useAuth = () => {
-  const { loggedIn } = useContext(AuthContext);
+  const { loggedIn, user, setUser } = useContext(AuthContext);
 
-  return { loggedIn };
+  return { loggedIn, user, setUser };
 };
