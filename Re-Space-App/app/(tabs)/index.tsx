@@ -2,10 +2,13 @@ import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import RobotBox from '@/components/indexComponents/robotInfo';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '../_layout';
-import {useSocket} from "@/hooks/useSocket";
+import { useSocket } from "@/hooks/useSocket";
 import { Robot } from "@/components/models/Robot";
+import { LoginModal } from '@/components/indexComponents/loginModal';
+import { useAuth } from "@/hooks/useAuth";
+
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -58,17 +61,28 @@ const { message, color, warning, battery } = batteryLevel();
 const { messageW = "", colorW = "", warningI = null } = warnings() || {};
 
 export default function HomeScreen() {
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [hasSeenModal, setHasSeenModal] = useState(false);
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const { socket, isConnected, robotData, sendMessage} = useSocket();
+  const { socket, isConnected, robotData, sendMessage } = useSocket();
+  const { loggedIn } = useAuth();
 
+
+  // Load login modal on startup if not logged in
+  useEffect(() => {
+    if (!loggedIn && !hasSeenModal) {
+      setHasSeenModal(true)
+      setModalVisible(true)
+    }
+  })
 
   // Make dynamic list for number of robots
   var addRobots: any = [];
   robotData.forEach((robot: Robot) => {
-    addRobots.push(<RobotBox key={robot.robot_id} robot={robot}/>)
+    addRobots.push(<RobotBox key={robot.robot_id} robot={robot} />)
   })
 
   return (
@@ -92,6 +106,11 @@ export default function HomeScreen() {
       <View style={uniqueStyles.robotBoxContainer}>
         {addRobots}
       </View>
+
+      <LoginModal
+        isVisible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+      />
     </ScrollView>
   );
 }

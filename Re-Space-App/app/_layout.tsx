@@ -9,7 +9,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SocketProvider } from "./context/webSocketProvider";
-
+import { AuthProvider } from "./context/authorisationProvider";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -22,7 +22,6 @@ const ThemeContext = createContext({
 
 // Hook to use theme context
 export const useTheme = () => useContext(ThemeContext);
-
 export default function RootLayout() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const toggleTheme = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
@@ -60,15 +59,17 @@ export default function RootLayout() {
   }
 
   return (
-    <SocketProvider>
-      <ThemeContext.Provider value={{ theme, toggleTheme }}>
-        <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-        </ThemeProvider>
-      </ThemeContext.Provider>
-    </SocketProvider>
+    <AuthProvider>
+      <SocketProvider>
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+          <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack >
+          </ThemeProvider>
+        </ThemeContext.Provider>
+      </SocketProvider>
+    </AuthProvider>
   );
 }

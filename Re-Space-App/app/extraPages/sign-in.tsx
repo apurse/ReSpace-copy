@@ -51,15 +51,13 @@ export default function SignIn() {
 
   const authorise = async () => {
 
+    // If not filled in correctly
     if (!username || !password) {
-      // Show notifications to fill the fields
       setnotifications('Please fill the necessary fields (Marked with \'*\')');
-
-      // Show notifications for 3 sec
       setTimeout(() => setnotifications(null), 3000);
 
       return;
-    }
+    };
 
     const userConnected = {
       username,
