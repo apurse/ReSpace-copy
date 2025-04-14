@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import RobotBox from '@/components/indexComponents/robotInfo';
@@ -87,6 +87,14 @@ export default function HomeScreen() {
 
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
+      {!loggedIn &&
+        <TouchableOpacity style={uniqueStyles.loginButton} onPress={() => setModalVisible(true)}>
+          <View style={uniqueStyles.loginButtonContent}>
+            <Text style={uniqueStyles.loginButtonText}>Login</Text>
+            <Icons.UserIcon />
+          </View>
+        </TouchableOpacity>
+      }
       {/* Greeting */}
       <Text style={uniqueStyles.greeting}>{getGreeting()}</Text>
 
@@ -127,6 +135,23 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       marginTop: 5,
       textAlign: 'center',
       color: isDarkMode ? '#fff' : '#000',
+    },
+    loginButton: {
+      position: 'absolute',
+      top: 10,
+      right: width - 70,
+      backgroundColor: 'gray',
+      padding: 10,
+      alignItems: 'center',
+      borderRadius: 5,
+    },
+    loginButtonContent: {
+      flexDirection: 'row',
+      justifyContent: 'center'
+    },
+    loginButtonText: {
+      color: "white",
+      fontSize: 16,
     },
 
     // Status card section

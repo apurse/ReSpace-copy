@@ -82,7 +82,7 @@ export default function DragAndDrop() {
     const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
     const [zoomLevel, setZoomLevel] = useState(initialZoom); // Check zoom level
 
-    const { sendMessage } = useSocket();
+    const { sendMessage, isConnected } = useSocket();
 
     const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
     const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
@@ -525,14 +525,22 @@ export default function DragAndDrop() {
                             </>
                         ) : (
                             <>
-                                <Link href="../extraPages/systemRunning" asChild>
-                                    <ActionButton
+                                {isConnected
+                                    ? <Link href="../extraPages/systemRunning" asChild>
+                                        <ActionButton
+                                            label="Ready To Go!"
+                                            onPress={() => {
+                                                sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                                            }}
+                                        />
+                                    </Link>
+                                    : <ActionButton
                                         label="Ready To Go!"
                                         onPress={() => {
-                                            sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                                            alert("WebSocket Not Connected!")
                                         }}
                                     />
-                                </Link>
+                                }
                                 <ActionButton
                                     label="Reset Layout"
                                     onPress={resetLayout}

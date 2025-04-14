@@ -81,3 +81,11 @@ export const SearchIcon = () => {
     const defaultStyles = createDefaultStyles(isDarkMode);
     return <Icon name="search" size={30} color={isDarkMode ? '#fff' : '#000'} style={defaultStyles.searchIcon} />;
 };
+
+export const UserIcon = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    return <Icon name="user" size={30} color={isDarkMode ? '#fff' : '#000'} style={defaultStyles.searchIcon} />;
+};
+
