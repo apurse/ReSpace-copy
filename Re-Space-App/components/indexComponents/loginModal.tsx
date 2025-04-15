@@ -7,7 +7,6 @@ import ActionButton from '@/components/settingsComponents/actionButton';
 import * as FileSystem from 'expo-file-system';
 import { useSocket } from "@/hooks/useSocket";
 import { useAuth } from "@/hooks/useAuth";
-import * as SQLite from 'expo-sqlite';
 
 
 // Defining types for function
@@ -24,58 +23,48 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
     const uniqueStyles = createUniqueStyles(isDarkMode);
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
-    const [db, setdb] = useState<SQLite.SQLiteDatabase | null>(null);
     const { socket, isConnected, sendMessage } = useSocket();
-    const { loggedIn, user, setUser } = useAuth();
+    const { loggedIn, user, setUser, db } = useAuth();
     const [notifications, setnotifications] = useState<string | null>(null);
 
 
-    // Setup the database by accessing the file and checking the table exists
-    const setupDB = async () => {
-        const getdb = await SQLite.openDatabaseAsync('usersDB.db');
-        await getdb.runAsync(`
-                CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);
-            `);
-        setdb(getdb)
-    }
 
-    setupDB();
-
-
-    // Check and verify that the user can login
-    const userLogin = async () => {
-
-        // Check db works
+    // Check db and fields work, and get first instance of username
+    const checks = async () => {
         if (!db) {
             alert("DB not working")
-            return;
+            return null;
         }
 
         // If not filled in correctly
         if (!username || !password) {
             setnotifications('Please fill the necessary fields (Marked with \'*\')');
             setTimeout(() => setnotifications(null), 3000);
-            return;
+            return null;
         };
 
-        const userConnected = {
-            username,
-            password,
-        };
+        // Command for checking if username is in db
+        let sqlCheckUsername = `SELECT * FROM users WHERE username = ?`;
+
+        // Get the first instance of the inputted username and store using the parameters
+        const firstResult = await db.getFirstAsync(sqlCheckUsername, username);
+        const rowFound = (firstResult as { id: number, username: string, password: string })
+
+        return rowFound;
+    }
+
+
+    // Check and verify that the user can login
+    const userLogin = async () => {
 
         try {
 
-            // Command for checking if username is in db
-            let sqlCheckUsername = `SELECT * FROM users WHERE username = ?`;
-
-            // Get the first instance of the inputted username and store using the parameters
-            const rowFound = await db.getFirstAsync<{ id: number, username: string, password: string }>(sqlCheckUsername, userConnected.username)
+            var rowFound = await checks();
 
             // If username is found, check password
-            if (rowFound) {
-                if (rowFound.password == userConnected.password) {
-                    setUser(userConnected);
-                    console.log(rowFound)
+            if (rowFound != null) {
+                if (rowFound.password == password) {
+                    setUser({ username, password });
                     return;
                 }
                 else {
@@ -96,35 +85,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
     // Add new users to the database
     const addNewUser = async () => {
 
-        // Check db works
-        if (!db) {
-            alert("DB not working")
-            return;
-        }
-
-        // If not filled in correctly
-        if (!username || !password) {
-            setnotifications('Please fill the necessary fields (Marked with \'*\')');
-            setTimeout(() => setnotifications(null), 3000);
-
-            return;
-        };
-
-        const newUser = {
-            username,
-            password,
-        };
 
         try {
 
-            // Command for checking if username is in db
-            let sqlCheckUsername = `SELECT * FROM users WHERE username = ?`;
+            // Check db and fields work, and get first instance of username
+            var rowFound = await checks();
 
-            // Get the first instance of this and store using the params
-            const rowFound = await db.getFirstAsync<{ id: number, username: string, password: string }>(sqlCheckUsername, newUser.username)
 
             // Reject if username already exists found
-            if (rowFound) {
+            if (rowFound != null) {
                 alert("Username already in use!")
                 return;
             }
@@ -134,11 +103,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                 let sqlInsert = `INSERT INTO users(username, password) VALUES (?, ?)`;
                 await db.runAsync(
                     sqlInsert,
-                    [newUser.username, newUser.password]
+                    [username, password]
                 )
 
                 alert("New user added, logging in now...")
-                setUser(newUser);
+                setUser({ username, password });
             }
         }
         catch (error) {

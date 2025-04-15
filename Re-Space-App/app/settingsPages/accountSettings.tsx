@@ -3,10 +3,9 @@ import { View, StyleSheet, Text, Dimensions } from "react-native";
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import ControllerButton from "@/components/settingsComponents/controllerButton";
-import DropDownPicker from "react-native-dropdown-picker"; // ✅ Import new dropdown
+import DropDownPicker from "react-native-dropdown-picker";
 import { useSocket } from "@/hooks/useSocket";
 import { Robot } from "@/components/models/Robot";
-import RobotBox from "@/components/indexComponents/robotInfo";
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,7 +31,7 @@ export default function Controller() {
 
         setRobotList(updatedRobotList);
 
-        // ✅ Auto-select the first robot if none is selected
+        // Auto select the first robot if none are selected
         if (updatedRobotList.length > 0 && !selectedRobot) {
             setSelectedRobot(updatedRobotList[0].value);
         }
@@ -43,42 +42,7 @@ export default function Controller() {
 
             {/* Page Title */}
             <View style={defaultStyles.pageTitleSection}>
-                <Text style={defaultStyles.pageTitle}>Controller</Text>
-            </View>
-
-            {/* Dropdown Box */}
-            <View style={uniqueStyles.dropdownContainer}>
-                <Text style={uniqueStyles.label}>Select Robot:</Text>
-                <DropDownPicker
-                    open={open}
-                    value={selectedRobot}
-                    items={robotList}
-                    setOpen={setOpen}
-                    setValue={setSelectedRobot}
-                    setItems={setRobotList}
-                    placeholder="Select a Robot"
-                    style={uniqueStyles.picker}
-                    dropDownContainerStyle={uniqueStyles.dropDownContainer}
-                />
-            </View>
-
-            {/* Controller Buttons */}
-            <View style={uniqueStyles.controller}>
-                <View>
-                    <View style={uniqueStyles.button}></View>
-                    <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot}></ControllerButton>
-                    <View style={uniqueStyles.button}></View>
-                </View>
-                <View>
-                    <ControllerButton iconName={"caretup"} message='forward' targetRobot={selectedRobot}></ControllerButton>
-                    <ControllerButton iconName={"closecircleo"} message='stop' targetRobot={selectedRobot}></ControllerButton>
-                    <ControllerButton iconName={"caretdown"} message='backward' targetRobot={selectedRobot}></ControllerButton>
-                </View>
-                <View>
-                    <ControllerButton iconName={"arrowup"} message='raise' targetRobot={selectedRobot}></ControllerButton>
-                    <ControllerButton iconName={"caretright"} message='right' targetRobot={selectedRobot}></ControllerButton>
-                    <ControllerButton iconName={"arrowdown"} message='lower' targetRobot={selectedRobot}></ControllerButton>
-                </View>
+                <Text style={defaultStyles.pageTitle}>Account Settings</Text>
             </View>
 
         </View>

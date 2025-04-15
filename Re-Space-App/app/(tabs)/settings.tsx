@@ -1,6 +1,6 @@
 // https://reactnative.dev/docs/network
 
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, Text, View, Pressable, Dimensions } from 'react-native';
 import ToggleSetting from '@/components/settingsComponents/toggle';
 import SliderSetting from '@/components/settingsComponents/slider';
@@ -9,9 +9,10 @@ import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from "expo-router";
-import {useSocket} from "@/hooks/useSocket";
+import { useSocket } from "@/hooks/useSocket";
 import { Robot } from "@/components/models/Robot";
-// import { testLatency } from "@/hooks/useSocket";
+import { useAuth } from "@/hooks/useAuth";
+
 
 const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
@@ -28,7 +29,8 @@ const SettingsPage = () => {
     // const [test, setTest] = useState(false);
     const [movementSpeed, setMovementSpeed] = useState(2);
     const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
-    const { socket, isConnected, robotData, sendMessage, latencyData} = useSocket();
+    const { socket, isConnected, robotData, sendMessage, latencyData } = useSocket();
+    const { loggedIn, user, setUser } = useAuth();
     // Convert dictionary into an array of robots for iteration
 
     useEffect(() => {
@@ -36,6 +38,11 @@ const SettingsPage = () => {
             alert(`Websocket latency: ${latencyData}ms`);
         }
     }, [latencyData]); // Triggers only when latencyData updates
+
+    // // Listen to user login changes
+    // useEffect(() => {
+
+    // }, [user]);
 
 
     useEffect(() => {
@@ -116,6 +123,12 @@ const SettingsPage = () => {
                 </Text>
             </View>
 
+            <Link href="/settingsPages/accountSettings" asChild>
+                <Pressable style={uniqueStyles.button}>
+                    <Text style={uniqueStyles.buttonText}>Account settings: {user.username}</Text>
+                </Pressable>
+            </Link>
+
             <View style={uniqueStyles.segmentContainer}>
                 <View style={uniqueStyles.segmentTitleContainer}>
                     <Text style={[uniqueStyles.segmentTitle, { color: isDarkMode ? '#fff' : '#000' }]}>
@@ -129,10 +142,6 @@ const SettingsPage = () => {
                     value={movementSpeed}
                     onValueChange={(value) => onChangeFunction(setMovementSpeed, "movementSpeed", value)}
                 />
-                {/*<ToggleSetting label="Test"*/}
-                {/*    onValueChange={(value) => onChangeFunction(setTest, "test", value)}*/}
-                {/*    value={test}*/}
-                {/*/>*/}
 
                 <ToggleSetting
                     label="Stop when humans present"
@@ -142,9 +151,11 @@ const SettingsPage = () => {
                 <ActionButton
                     label="Re-map room"
                     onPress={() => alert("Re-mapping room")}
+                    style={uniqueStyles.button}
+                    textS={uniqueStyles.buttonText}
                 />
 
-                <Link href="/controller/controller" asChild>
+                <Link href="/settingsPages/controller" asChild>
                     <Pressable style={uniqueStyles.button}>
                         <Text style={uniqueStyles.buttonText}>Controller</Text>
                     </Pressable>
@@ -152,10 +163,12 @@ const SettingsPage = () => {
 
                 <ActionButton
                     label="Test Connection"
+                    style={uniqueStyles.button}
+                    textS={uniqueStyles.buttonText}
                     onPress={async () => {
                         // Result comes back to the useEffect at the top of this page
                         if (isConnected) {
-                            sendMessage({type: "latency_test", start_time: Date.now()});
+                            sendMessage({ type: "latency_test", start_time: Date.now() });
                         } else {
                             alert("No connection to the WebSocket.");
                         }
@@ -213,6 +226,19 @@ const SettingsPage = () => {
                     onValueChange={() => onChangeFunction(toggleTheme, "isDarkMode", theme == 'light')}
                 />
             </View>
+            {user &&
+                <Link href="/" asChild>
+                    <ActionButton
+                        label="Sign out"
+                        onPress={() => {
+                            setUser(false)
+                            alert(`Signed out of ${user.username}!`)
+                        }}
+                        style={uniqueStyles.signOut}
+                        textS={uniqueStyles.signOut}
+                    />
+                </Link>
+            }
         </ScrollView>
     );
 };
@@ -232,16 +258,25 @@ const uniqueStyles = StyleSheet.create({
         fontWeight: 'bold',
     },
     button: {
-        backgroundColor: '#4CAF50',
-        padding: 15,
-        alignItems: 'center',
+        // backgroundColor: '#4CAF50',
+        paddingVertical: 15,
+        // alignItems: 'center',
+        borderColor: 'white',
         borderRadius: 5,
+        borderStyle: 'solid',
         marginTop: 20,
     },
     buttonText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: '500',
+    },
+    signOut: {
+        padding: 0,
+        backgroundColor: 'null',
+        // textDecorationColor: 'red',
+        // textDecorationLine: 'underline',
+        color: 'red'
     },
 });
 

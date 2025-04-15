@@ -99,6 +99,7 @@ export default function HomeScreen() {
 
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
+    
       {/* Login button */}
       {!user &&
         <TouchableOpacity style={uniqueStyles.loginButton} onPress={() => setModalVisible(true)}>
@@ -108,6 +109,7 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
       }
+
       {/* Greeting */}
       <Text style={uniqueStyles.greeting}>{greeting}</Text>
 
