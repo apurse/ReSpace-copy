@@ -1,5 +1,4 @@
 import React, { createContext, useState, useEffect, useRef, useCallback } from "react";
-import { AppState } from "react-native";
 import * as SQLite from 'expo-sqlite';
 
 
@@ -11,7 +10,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [user, setUser] = useState<object | null>();
     const [db, setdb] = useState<SQLite.SQLiteDatabase | null>(null);
 
-    
+
     // Setup the database by accessing the file and checking the table exists
     const setupDB = async () => {
         const getdb = await SQLite.openDatabaseAsync('usersDB.db');
