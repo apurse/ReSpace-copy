@@ -26,11 +26,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Change login state
     useEffect(() => {
         if (user) {
-            console.log("User logged in: ", user);
+            console.log("User logged in");
             setLoggedIn(true);
         }
         else {
-            console.log("User not logged in");
+            console.log("User logged out!");
             setLoggedIn(false);
         };
     }, [user]);

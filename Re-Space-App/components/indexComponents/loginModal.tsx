@@ -7,6 +7,8 @@ import ActionButton from '@/components/settingsComponents/actionButton';
 import * as FileSystem from 'expo-file-system';
 import { useSocket } from "@/hooks/useSocket";
 import { useAuth } from "@/hooks/useAuth";
+import * as Crypto from 'expo-crypto';
+
 
 
 // Defining types for function
@@ -28,6 +30,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
     const [notifications, setnotifications] = useState<string | null>(null);
 
 
+    // 
+    /**
+     * Grab instance of the entered password and hash it
+     * @param password The inputted password
+     * @returns hashedPassword | The hashed password
+     */
+    const hashPassword = async (password: string) => {
+        const passwordInstance = password;
+        const hashedPassword = await Crypto.digestStringAsync(
+            Crypto.CryptoDigestAlgorithm.SHA512,
+            passwordInstance
+        )
+        return hashedPassword;
+    }
 
     // Check db and fields work, and get first instance of username
     const checks = async () => {
@@ -43,6 +59,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
             return null;
         };
 
+        var hashedPassword = await hashPassword(password);
+
         // Command for checking if username is in db
         let sqlCheckUsername = `SELECT * FROM users WHERE username = ?`;
 
@@ -50,7 +68,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
         const firstResult = await db.getFirstAsync(sqlCheckUsername, username);
         const rowFound = (firstResult as { id: number, username: string, password: string })
 
-        return rowFound;
+        return { rowFound: rowFound, hashedPassword: hashedPassword };
     }
 
 
@@ -59,12 +77,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
 
         try {
 
-            var rowFound = await checks();
+            var checkResults = await checks();
 
-            // If username is found, check password
-            if (rowFound != null) {
-                if (rowFound.password == password) {
-                    setUser({ username, password });
+            // If the row containing the username is found
+            if (checkResults?.rowFound != null) {
+
+                // If the hashed password input equals the row password
+                if (checkResults.hashedPassword == checkResults.rowFound.password) {
+                    // console.log(`logged password: ${checkResults.rowFound.password}.... entered password: ${checkResults.hashedPassword}`)
+                    var tempPassword = checkResults.hashedPassword;
+                    setUser({ username, tempPassword });
                     return;
                 }
                 else {
@@ -85,15 +107,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
     // Add new users to the database
     const addNewUser = async () => {
 
-
         try {
 
             // Check db and fields work, and get first instance of username
-            var rowFound = await checks();
+            var checkResults = await checks();
 
 
-            // Reject if username already exists found
-            if (rowFound != null) {
+            // Reject if a row containing the username already exists
+            if (checkResults?.rowFound != null) {
                 alert("Username already in use!")
                 return;
             }
@@ -103,11 +124,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                 let sqlInsert = `INSERT INTO users(username, password) VALUES (?, ?)`;
                 await db.runAsync(
                     sqlInsert,
-                    [username, password]
+                    [username, checkResults?.hashedPassword]
                 )
 
+                // Log in automatically
                 alert("New user added, logging in now...")
-                setUser({ username, password });
+                var tempPassword = checkResults?.hashedPassword;
+                setUser({ username, tempPassword });
             }
         }
         catch (error) {
