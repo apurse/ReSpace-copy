@@ -6,7 +6,7 @@ const float d = 0.155;   // Distance from wheel center to robot center (m)
 const float dt = 0.1;  // Time step (s)
 
 // Initial position of robot
-float x = 0.0, y = 0.0, theta = 0.0;
+float x = 0.0, y = 0.0, theta = 0.0, vx = 0.0, vy = 0.0, omega = 0.0;
  
 // Motor class with encoder
 class Motor {
@@ -99,9 +99,9 @@ bool repeatingOdomTimerCallback(struct repeating_timer *t) {
   float w3 = motorC.getSpeed() * r;
     
   // Transformation matrix
-  float vx = (2.0 / 3.0) * (w1 - 0.5 * (w2 + w3));
-  float vy = (sqrt(3) / 3.0) * (w2 - w3);
-  float omega = (w1 + w2 + w3) / (3 * d);
+  vx = (2.0 / 3.0) * (w1 - 0.5 * (w2 + w3));
+  vy = (sqrt(3) / 3.0) * (w2 - w3);
+  omega = (w1 + w2 + w3) / (3 * d);
     
   // Transform velocity to global frame
   x += (vx * cos(theta) - vy * sin(theta)) * dt;
@@ -127,28 +127,24 @@ void setup() {
 }
  
 void loop() {
-//  motorA.setTargetSpeed(1.0);
-//  motorB.setTargetSpeed(0.0);
-//  motorC.setTargetSpeed(-1.0);
-
-//  Serial.print("MotorA setpoint: ");
-//  Serial.print(motorA.getSetpoint());
-//  Serial.print(" MotorA speed: ");
-//  Serial.print(motorA.getSpeed());
-//  Serial.print(" MotorA encoder: ");
-//  Serial.print(motorA.getEncoderCount());
-    
   // Print updated position
+//  Serial.print("x:");
   Serial.print(x, 3);
   Serial.print(",");
+//  Serial.print("y:");
   Serial.print(y, 3);
   Serial.print(",");
+//  Serial.print("theta:");
   Serial.print(theta, 3);
+  Serial.print(",");
+//  Serial.print("vx:");
+  Serial.print(vx, 3);
+  Serial.print(",");
+//  Serial.print("vy:");
+  Serial.print(vy, 3);
+  Serial.print(",");
+//  Serial.print("vtheta:");
+  Serial.print(omega, 3);
  
   Serial.println();
-  // Serial.print("Motor B: ");
-  // Serial.println(motorB.getSpeed());
-  // Serial.print("Motor C: ");
-  // Serial.println(motorC.getSpeed());
-  // motorA.setPower(127);
 }
