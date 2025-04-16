@@ -46,7 +46,7 @@ const { messageW = "", colorW = "", warningI = null } = warnings() || {};
 export default function HomeScreen() {
 
   const [isModalVisible, setModalVisible] = useState(false);
-  const [hasSeenModal, setHasSeenModal] = useState(false);
+  const [hasSeenModal, setHasSeenModal] = useState(true); // set to true while developing
   const [greeting, setGreeting] = useState<string | null>();
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';

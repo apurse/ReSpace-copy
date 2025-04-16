@@ -85,8 +85,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                 // If the hashed password input equals the row password
                 if (checkResults.hashedPassword == checkResults.rowFound.password) {
                     // console.log(`logged password: ${checkResults.rowFound.password}.... entered password: ${checkResults.hashedPassword}`)
-                    var tempPassword = checkResults.hashedPassword;
-                    setUser({ username, tempPassword });
+                    var password = checkResults.hashedPassword;
+                    setUser({ username, password });
                     return;
                 }
                 else {
@@ -129,8 +129,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
 
                 // Log in automatically
                 alert("New user added, logging in now...")
-                var tempPassword = checkResults?.hashedPassword;
-                setUser({ username, tempPassword });
+                var password = checkResults?.hashedPassword;
+                setUser({ username, password });
             }
         }
         catch (error) {
