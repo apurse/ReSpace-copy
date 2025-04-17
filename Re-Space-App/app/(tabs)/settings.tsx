@@ -125,7 +125,7 @@ const SettingsPage = () => {
 
             <Link href="/settingsPages/accountSettings" asChild>
                 <Pressable style={uniqueStyles.button}>
-                    <Text style={uniqueStyles.buttonText}>Account settings: {user.username}</Text>
+                    <Text style={uniqueStyles.buttonText}>Account settings: {user?.username}</Text>
                 </Pressable>
             </Link>
 

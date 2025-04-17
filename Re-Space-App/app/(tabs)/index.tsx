@@ -1,11 +1,10 @@
 import { View, Text, ScrollView, StyleSheet, Dimensions, TouchableOpacity } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
 import { createDefaultStyles } from '@/components/defaultStyles';
-import RobotBox from '@/components/indexComponents/robotInfo';
+import RobotList from '@/components/indexComponents/robotList';
 import React, { useEffect, useState } from 'react';
 import { useTheme } from '../_layout';
 import { useSocket } from "@/hooks/useSocket";
-import { Robot } from "@/components/models/Robot";
 import { LoginModal } from '@/components/indexComponents/loginModal';
 import { useAuth } from "@/hooks/useAuth";
 
@@ -90,16 +89,9 @@ export default function HomeScreen() {
   }, [user, hasSeenModal])
 
 
-  // Make dynamic list for number of robots
-  var addRobots: any = [];
-  robotData.forEach((robot: Robot) => {
-    addRobots.push(<RobotBox key={robot.robot_id} robot={robot} />)
-  })
-
-
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
-    
+
       {/* Login button */}
       {!user &&
         <TouchableOpacity style={uniqueStyles.loginButton} onPress={() => setModalVisible(true)}>
@@ -126,9 +118,7 @@ export default function HomeScreen() {
 
       {/* Robots section */}
       <Text style={defaultStyles.sectionTitle}>Connected Robots: {robotData.length}</Text>
-      <View style={uniqueStyles.robotBoxContainer}>
-        {addRobots}
-      </View>
+      <RobotList />
 
       <LoginModal
         isVisible={isModalVisible}
@@ -157,6 +147,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       right: width - 70,
       backgroundColor: 'gray',
       padding: 10,
+      // width: 'auto',
       alignItems: 'center',
       borderRadius: 5,
     },
@@ -200,19 +191,6 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       marginBottom: 5,
       marginTop: 5,
       fontSize: height * 0.07,
-    },
-
-    // Robot List Section
-
-    robotBoxContainer: {
-      backgroundColor: isDarkMode ? '#000' : '#b6b7b8', // change to slightly different to background
-      width: '90%',
-      borderRadius: 8,
-      marginTop: 20,
-      padding: 10,
-      gap: '10px',
-      height: height * 0.45, // needs to go to bottom
-      overflow: 'scroll',
-    },
+    }
 
   });

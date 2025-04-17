@@ -1,11 +1,10 @@
 import { View, Text, ScrollView, StyleSheet, Dimensions, Pressable } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
 import { createDefaultStyles } from '@/components/defaultStyles';
-import RobotBox from '@/components/indexComponents/robotInfo';
+import RobotList from '@/components/indexComponents/robotList';
 import React from 'react';
 import { useTheme } from '../_layout';
 import { useSocket } from "@/hooks/useSocket";
-import { Robot } from "@/components/models/Robot";
 import ActionButton from "@/components/settingsComponents/actionButton";
 
 
@@ -23,13 +22,6 @@ export default function systemRunning() {
     console.warn("WebSocket not connected!");
     return;
   }
-
-
-  // Make dynamic list for number of robots
-  var addRobots: any = [];
-  robotData.forEach((robot: Robot) => {
-    addRobots.push(<RobotBox key={robot.robot_id} robot={robot} />)
-  })
 
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
@@ -56,9 +48,7 @@ export default function systemRunning() {
       />
 
       {/* Robots section */}
-      <View style={uniqueStyles.robotBoxContainer}>
-        {addRobots}
-      </View>
+      <RobotList />
     </ScrollView>
   );
 }
@@ -103,19 +93,5 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       width: 0.8 * width,
       height: 20,
       alignSelf: 'center',
-    },
-
-    // Robot List Section
-
-    robotBoxContainer: {
-      backgroundColor: isDarkMode ? '#000' : '#b6b7b8', // change to slightly different to background
-      width: '100%',
-      borderRadius: 8,
-      marginTop: 20,
-      padding: 10,
-      gap: '10px',
-      height: height * 0.25, // needs to go to bottom
-      overflow: 'scroll',
-    },
-
+    }
   });
