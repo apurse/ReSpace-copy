@@ -13,17 +13,19 @@ import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-vi
 import { setGestureState } from "react-native-reanimated";
 import { isPosition } from "react-native-drax";
 import { Link } from 'expo-router';
+import * as FileSystem from 'expo-file-system';
+import { useAuth } from "@/hooks/useAuth";
 
 
 // Get dimensions of the screen
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
+// Local json file with layout data
+const layoutJson = FileSystem.documentDirectory + 'layouts.json';
+
+
 // -------- Grid Visuals --------
-
-// const pixelsPerMM = 3.78;
-// const robotDimensions = [250, 250]; // mm
-
 const roomDimensionsMM = [1200, 1200];
 const gridWidth = roomDimensionsMM[0];
 const gridHeight = roomDimensionsMM[1];
@@ -63,10 +65,10 @@ export default function DragAndDrop() {
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
-
-    //const socket = useSocket(); <-- Not being use
-
+    const { loggedIn, user, setUser } = useAuth();
     const [notifications, setnotifications] = useState<string | null>(null); // Notifications
+
+    const [layoutName, setlayoutName] = useState<string | null>(null); // Notifications
 
     const [boxes, setBoxes] = useState(allBoxes); // set boxes array
     const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation })); // Formatted boxes data
@@ -90,6 +92,128 @@ export default function DragAndDrop() {
 
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
+
+
+    // Call function to clear the json data from device
+    const clearJsonData = async () => {
+        try {
+            await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify({
+                // Json layout with user username
+                [user.username]: {
+                    layouts: []
+                }
+            }));
+            console.log('Data has been cleared');
+        } catch (error) {
+            console.error('Error deleting json data');
+        }
+    };
+
+    const saveLayout = async (newLayout: boolean, placedBoxes: { id: number; x: Float; y: Float; width: number; length: number; color: string; rotation: Float; }[]) => {
+
+        // console.log("placedBoxes:   ", placedBoxes)
+        console.log("newLayout:", newLayout)
+        const room = {
+            name: "test"
+        }
+
+        setlayoutName("new_name");
+
+
+        // set the json entry for each layout
+        // If ternary used to set current layout and then new layout
+        const layout = {
+            name: layoutName,
+            room: room.name,
+            layoutVersion: (newLayout ?
+                {
+                    currentLayout: {
+                        boxes: placedBoxes.map(box => ({
+                            id: box.id,
+                            x: box.x,
+                            y: box.y,
+                            width: box.width,
+                            length: box.length,
+                            color: box.color,
+                            rotation: box.rotation,
+                        }))
+                    }
+                }
+                :
+                {
+                    newLayout: {
+                        boxes: placedBoxes.map(box => ({
+                            id: box.id,
+                            x: box.x,
+                            y: box.y,
+                            width: box.width,
+                            length: box.length,
+                            color: box.color,
+                            rotation: box.rotation,
+                        }))
+                    }
+                }
+            )
+        }
+
+
+
+        try {
+            if (!user) {
+                alert("User not logged in");
+                return;
+            }
+
+            // If json file doesn't exist, create file
+            const checkJson = await FileSystem.getInfoAsync(layoutJson);
+            if (!checkJson.exists) {
+                await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify({
+
+                    // Json layout with user username
+                    [user.username]: {
+                        layouts: []
+                    }
+                }));
+                console.log('Json file created:', layoutJson);
+            }
+
+            // Read data from json before writing new data
+            const readData = await FileSystem.readAsStringAsync(layoutJson);
+            let jsonData = {
+                [user.username]: {
+                    layouts: []
+                }
+            };
+
+            // Check there is data
+            if (readData) {
+                jsonData = JSON.parse(readData);
+            }
+
+            // Set the updateData location and format
+            const updateData = {
+                ...jsonData,
+                [user.username]: {
+                    layouts: [layout]
+                }
+            }
+
+            // Write new data to json
+            await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(updateData));
+
+            // Show local json file in console
+            const data = await FileSystem.readAsStringAsync(layoutJson);
+            console.log('Furniture json updated:', data);
+
+            setnotifications('New layout saved sucessfully');
+            setTimeout(() => setnotifications(null), 3000);
+        }
+        catch (error) {
+            console.error('Failed to update/save data to json file:', error);
+            setnotifications('Failed to save layout.')
+            setTimeout(() => setnotifications(null), 3000);
+        }
+    }
 
     // work out new positions and timings
     const updateBoxPosition = (id: number, dx: number, dy: number) => {
@@ -203,13 +327,21 @@ export default function DragAndDrop() {
         });
 
     // Set boxes to current layout
-    const setLayout = () => {
-        setIsSet(true); // Disable button function
-        setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
-        sendMessage({ type: "current_layout", locations: boxesFormatted })
+    const setLayout = (newLayout: boolean) => {
 
-        setnotifications('Current layout has been set');
-        setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
+        // If old layout
+        if (!newLayout) {
+            setIsSet(true); // Disable button function
+            setnotifications('Current layout has been set');
+            setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
+        }
+
+        const tempBoxes = [...placedBoxes, ...boxes]
+        setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
+        // sendMessage({ type: "current_layout", locations: boxesFormatted })
+
+        // Save the designed layout to the json file
+        saveLayout(newLayout, tempBoxes);
     };
 
 
@@ -505,7 +637,7 @@ export default function DragAndDrop() {
                             <>
                                 <ActionButton
                                     label="Set Current Location"
-                                    onPress={setLayout}
+                                    onPress={() => { setLayout(false) }}
                                 />
                                 <ActionButton
                                     label="Delete Furniture"
@@ -522,6 +654,11 @@ export default function DragAndDrop() {
                                     onClose={() => setModalVisible(false)}
                                     onSelectFurniture={addFurniture}
                                 />
+                                <ActionButton
+                                    label="Delete All Layouts"
+                                    onPress={clearJsonData}
+                                    style={{ backgroundColor: '#fa440c' }}
+                                />
                             </>
                         ) : (
                             <>
@@ -530,14 +667,19 @@ export default function DragAndDrop() {
                                         <ActionButton
                                             label="Ready To Go!"
                                             onPress={() => {
+                                                setLayout(true);
                                                 sendMessage({ type: "desired_layout", locations: boxesFormatted })
                                             }}
                                         />
                                     </Link>
                                     : <ActionButton
                                         label="Ready To Go!"
+                                        // onPress={() => {
+                                        //     alert("WebSocket Not Connected!")
+                                        // }}
                                         onPress={() => {
-                                            alert("WebSocket Not Connected!")
+                                            setLayout(true);
+                                            sendMessage({ type: "desired_layout", locations: boxesFormatted })
                                         }}
                                     />
                                 }
