@@ -68,7 +68,7 @@ export default function DragAndDrop() {
     const { loggedIn, user, setUser } = useAuth();
     const [notifications, setnotifications] = useState<string | null>(null); // Notifications
 
-    const [layoutName, setlayoutName] = useState<string | null>(null); // Notifications
+    const [layoutName, setlayoutName] = useState<string | undefined>(); // Notifications
 
     const [boxes, setBoxes] = useState(allBoxes); // set boxes array
     const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation })); // Formatted boxes data
@@ -117,7 +117,7 @@ export default function DragAndDrop() {
             name: "test"
         }
 
-        setlayoutName("new_name");
+        // setlayoutName("new_name");
 
         // set the json entry for each layout
         // If ternary used to set current layout and then new layout
@@ -156,6 +156,13 @@ export default function DragAndDrop() {
                 return;
             }
 
+            // If not filled in correctly
+            if (!layoutName) {
+                setnotifications('Please add a title to this layout');
+                setTimeout(() => setnotifications(null), 3000);
+                return;
+            };
+
             // If json file doesn't exist, create file
             const checkJson = await FileSystem.getInfoAsync(layoutJson);
             if (!checkJson.exists) {
@@ -182,11 +189,13 @@ export default function DragAndDrop() {
                 jsonData = JSON.parse(readData);
             }
 
+            const otherLayouts = jsonData[user.username].layouts;
+
             // Set the updateData location and format
             const updateData = {
                 ...jsonData,
                 [user.username]: {
-                    layouts: [layout]
+                    layouts: [...otherLayouts, layout]
                 }
             }
 
@@ -458,32 +467,38 @@ export default function DragAndDrop() {
                 <View style={defaultStyles.body}>
 
                     {/* Title */}
-                    <View style={defaultStyles.pageTitleSection}>
-                        <Text style={defaultStyles.pageTitle}>Add Layout</Text>
-                        <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
-                        {/* Rotation buttons */}
-                        {/* Rotation to right */}
-                        <TouchableOpacity
-                            style={uniqueStyles.rotationRight}
-                            onPressIn={() => selectedBox && rotateBoxRight(selectedBox)}
-                            onPressOut={stopRotation}
-                        >
-                            <View>
-                                <Icon name="undo" size={25} style={{ transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000', }} />
-                            </View>
-                        </TouchableOpacity>
+                        <TextInput
+                            value={layoutName}
+                            onChangeText={setlayoutName}
+                            style={uniqueStyles.title}
+                            placeholder='*New Layout ...'
+                            placeholderTextColor={isDarkMode ? '#fff' : '#000'}
+                        />
 
-                        {/* Rotation to left */}
-                        <TouchableOpacity
-                            style={uniqueStyles.rotationLeft}
-                            onPressIn={() => selectedBox && rotateBoxLeft(selectedBox)}
-                            onPressOut={stopRotation}
-                        >
-                            <View>
-                                <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000', }} />
-                            </View>
-                        </TouchableOpacity>
-                    </View>
+                    {/* <Text style={defaultStyles.pageTitle}>Add Layout</Text> */}
+                    <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
+                    {/* Rotation buttons */}
+                    {/* Rotation to right */}
+                    <TouchableOpacity
+                        style={uniqueStyles.rotationRight}
+                        onPressIn={() => selectedBox && rotateBoxRight(selectedBox)}
+                        onPressOut={stopRotation}
+                    >
+                        <View>
+                            <Icon name="undo" size={25} style={{ transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000', }} />
+                        </View>
+                    </TouchableOpacity>
+
+                    {/* Rotation to left */}
+                    <TouchableOpacity
+                        style={uniqueStyles.rotationLeft}
+                        onPressIn={() => selectedBox && rotateBoxLeft(selectedBox)}
+                        onPressOut={stopRotation}
+                    >
+                        <View>
+                            <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000', }} />
+                        </View>
+                    </TouchableOpacity>
 
                     {/* Grid */}
                     <View
@@ -703,6 +718,12 @@ export default function DragAndDrop() {
 
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
+        title: {
+            fontSize: 30,
+            color: isDarkMode ? '#fff' : '#000',
+            textAlign: 'center',
+            top: -30,
+        },
         grid: {
             width: viewGridWidth, // * scaleX once visuals are done
             height: viewGridHeigh, // * scaleY once visuals are done
@@ -710,6 +731,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             position: "relative",
             borderWidth: 2,
             borderColor: "#aaa",
+            top: -50,
         },
         robot: {
             position: "absolute",
@@ -724,7 +746,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         },
         buttonContainer: {
             width: 300,
-            top: 10,
+            top: -20,
         },
         notificationText: {
             position: 'absolute',
@@ -751,8 +773,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         rotationLeft: {
             width: 25,
             height: 25,
-            left: '30%',
-            bottom: '15%',
+            left: '35%',
+            top: -60,
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: 'transparent',
@@ -762,8 +784,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         rotationRight: {
             width: 25,
             height: 25,
-            left: '40%',
-            top: '10%',
+            left: '44%',
+            top: -35,
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: 'transparent',
@@ -772,10 +794,10 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         },
         zoomStyle: {
             position: 'absolute',
-            fontSize: 10,
+            fontSize: 12,
             color: isDarkMode ? '#fff' : '#000',
-            top: 85,
-            left: 25,
+            top: 80,
+            left: 35,
         },
         textInput: {
             color: isDarkMode ? '#fff' : '#000',
@@ -787,7 +809,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             flexDirection: 'row',
             alignItems: 'center',
             position: 'absolute',
-            top: -15,
+            top: -20,
             left: '15%',
         }
 

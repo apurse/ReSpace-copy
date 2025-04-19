@@ -1,30 +1,71 @@
-
-// modules go here
 import { View, ScrollView, StyleSheet, Text, Dimensions } from 'react-native';
-
-
-// components go here
-// components contain most of the functionality, each page just places it
+import * as FileSystem from 'expo-file-system';
 import SmallLayout from '@/components/smallLayout';
 import FilterButton from '@/components/libraryComponents/FilterButton';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from '../_layout';
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useState } from 'react';
 
 const { width, height } = Dimensions.get('window');
 
-// the page itself
+
 export default function Library() {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
+  const { loggedIn, user, setUser } = useAuth();
+  const [layouts, setLayouts] = useState<any | null>(null); // Notifications
 
+
+  const getLayouts = async () => {
+
+    // if (!user) {
+    //   alert("Not logged in!")
+    //   return;
+    // }
+
+    const layoutJson = FileSystem.documentDirectory + 'layouts.json';
+    const checkJson = await FileSystem.getInfoAsync(layoutJson);
+    if (!checkJson.exists) return;
+
+    // Read data from json before writing new data
+    const readData = await FileSystem.readAsStringAsync(layoutJson);
+    const jsonData = JSON.parse(readData);
+
+
+    // Push all layouts to an array and output as smallLayouts
+    var addLayouts: any = [];
+    jsonData[user.username].layouts.forEach((layout: { name: unknown; }) => {
+      console.log(layout.name)
+      addLayouts.push(<SmallLayout LayoutTitle={layout.name} />)
+    })
+
+    setLayouts(addLayouts);
+  }
+
+  // Refresh on user change
+  useEffect(() => {
+    getLayouts()
+  }, [user]);
+
+  // Refresh on user change
+  // useEffect(() => {
+  //   const handleAppStateChange = (nextAppState: string) => {
+  //     if (nextAppState === "active") getLayouts()
+  //   };
+
+  //   const subscription = AppState.addEventListener("change", handleAppStateChange);
+  //   return () => subscription.remove();
+  // }, [user]);
 
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
-      {/* Content */}
       < View style={defaultStyles.pageTitleSection} >
         <Text style={defaultStyles.pageTitle}>Library</Text>
       </View >
+
+      {/* Filters */}
       <Text style={defaultStyles.sectionTitle}>Filters</Text>
       <View style={uniqueStyles.filterContainer}>
         <FilterButton
@@ -41,22 +82,13 @@ export default function Library() {
         />
       </View>
 
-
+      {/* Show layouts if logged in */}
       <Text style={defaultStyles.sectionTitle}>All Layouts</Text>
-      <View style={defaultStyles.cardSectionContainer}>
-        <SmallLayout LayoutTitle="Rows of 2"></SmallLayout>
-        <SmallLayout LayoutTitle="Rows of 6"></SmallLayout>
-        <SmallLayout LayoutTitle="Rows of 8"></SmallLayout>
-        <SmallLayout LayoutTitle="Rows of 10"></SmallLayout>
-        <SmallLayout LayoutTitle="Groups of 2"></SmallLayout>
-        <SmallLayout LayoutTitle="Groups of 4"></SmallLayout>
-        <SmallLayout LayoutTitle="Groups of 6"></SmallLayout>
-        <SmallLayout LayoutTitle="Groups of 8"></SmallLayout>
-        <SmallLayout LayoutTitle="Open Space"></SmallLayout>
-        <SmallLayout LayoutTitle="Open Space 2"></SmallLayout>
-        <SmallLayout LayoutTitle="Circle"></SmallLayout>
-        <SmallLayout LayoutTitle="U-shape"></SmallLayout>
-      </View>
+      {user &&
+        <View style={defaultStyles.cardSectionContainer}>
+          {layouts}
+        </View>
+      }
 
     </ScrollView>
   );
