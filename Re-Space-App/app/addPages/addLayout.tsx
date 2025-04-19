@@ -409,9 +409,9 @@ export default function DragAndDrop() {
                                 }}
                             >
                                 {/* Display non-movable objects */}
-                                {placedBoxes.map((box) => (
+                                {placedBoxes.map((box, index) => (
                                     <View
-                                        key={`placed-${box.id}`}
+                                        key={`placed-${box.id}-${index}`}
                                         style={[
                                             uniqueStyles.robot,
                                             {
@@ -430,13 +430,13 @@ export default function DragAndDrop() {
                                 ))}
 
                                 {/* Display movable objects */}
-                                {boxes.map((box) => {
+                                {boxes.map((box, index) => {
                                     const panResponder = createPanResponder(box.id);
                                     const isSelected = selectedBox === box.id;
 
                                     return (
                                         <View
-                                            key={box.id}
+                                            key={`${box.id}-${index}`}
                                             style={[
                                                 uniqueStyles.robot,
                                                 {
