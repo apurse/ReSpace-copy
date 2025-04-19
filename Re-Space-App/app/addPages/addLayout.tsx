@@ -109,51 +109,43 @@ export default function DragAndDrop() {
         }
     };
 
-    const saveLayout = async (newLayout: boolean, placedBoxes: { id: number; x: Float; y: Float; width: number; length: number; color: string; rotation: Float; }[]) => {
+    const saveLayout = async (oldLayoutBoxes: Box[], newLayoutBoxes: Box[]) => {
 
         // console.log("placedBoxes:   ", placedBoxes)
-        console.log("newLayout:", newLayout)
+        // console.log("newLayout:", newLayout)
         const room = {
             name: "test"
         }
 
         setlayoutName("new_name");
 
-
         // set the json entry for each layout
         // If ternary used to set current layout and then new layout
         const layout = {
             name: layoutName,
             room: room.name,
-            layoutVersion: (newLayout ?
-                {
-                    currentLayout: {
-                        boxes: placedBoxes.map(box => ({
-                            id: box.id,
-                            x: box.x,
-                            y: box.y,
-                            width: box.width,
-                            length: box.length,
-                            color: box.color,
-                            rotation: box.rotation,
-                        }))
-                    }
-                }
-                :
-                {
-                    newLayout: {
-                        boxes: placedBoxes.map(box => ({
-                            id: box.id,
-                            x: box.x,
-                            y: box.y,
-                            width: box.width,
-                            length: box.length,
-                            color: box.color,
-                            rotation: box.rotation,
-                        }))
-                    }
-                }
-            )
+            currentLayout: {
+                boxes: oldLayoutBoxes.map(box => ({
+                    id: box.id,
+                    x: box.x,
+                    y: box.y,
+                    width: box.width,
+                    length: box.length,
+                    color: box.color,
+                    rotation: box.rotation,
+                }))
+            },
+            newLayout: {
+                boxes: newLayoutBoxes.map(box => ({
+                    id: box.id,
+                    x: box.x,
+                    y: box.y,
+                    width: box.width,
+                    length: box.length,
+                    color: box.color,
+                    rotation: box.rotation,
+                }))
+            }
         }
 
 
@@ -326,22 +318,29 @@ export default function DragAndDrop() {
             },
         });
 
+
     // Set boxes to current layout
+    let setOldLayout = false;
     const setLayout = (newLayout: boolean) => {
 
-        // If old layout
-        if (!newLayout) {
-            setIsSet(true); // Disable button function
-            setnotifications('Current layout has been set');
-            setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
-        }
-
-        const tempBoxes = [...placedBoxes, ...boxes]
+        // If new layout
+        setIsSet(true); // Disable button function
+        setnotifications('Current layout has been set');
+        setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
         // sendMessage({ type: "current_layout", locations: boxesFormatted })
 
+        let oldLayoutBoxes: Box[] = [];
+        if (!setOldLayout) {
+            oldLayoutBoxes = [...placedBoxes, ...boxes];
+            setOldLayout = true;
+        }
+
         // Save the designed layout to the json file
-        saveLayout(newLayout, tempBoxes);
+        if (newLayout) {
+            const newLayoutBoxes = [...placedBoxes, ...boxes]
+            saveLayout(oldLayoutBoxes, newLayoutBoxes);
+        }
     };
 
 
