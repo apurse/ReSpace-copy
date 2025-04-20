@@ -98,9 +98,9 @@ bool repeatingTimerCallback(struct repeating_timer *t) {
 bool repeatingOdomTimerCallback(struct repeating_timer *t) {
   // Update odometry
   // Get wheel speeds
-  float w1 = motorA.getSpeed() * r;
-  float w2 = motorB.getSpeed() * r;
-  float w3 = motorC.getSpeed() * r;
+  float w1 = motorB.getSpeed() * r;
+  float w2 = motorC.getSpeed() * r;
+  float w3 = motorA.getSpeed() * r;
     
   // Transformation matrix
   vx = (2.0 / 3.0) * (w1 - 0.5 * (w2 + w3));
@@ -124,6 +124,11 @@ void calculateRPM(float VX, float VY, float WZ) {
   rpm1 = w1 * 60.0 / (2.0 * PI);
   rpm2 = w2 * 60.0 / (2.0 * PI);
   rpm3 = w3 * 60.0 / (2.0 * PI);
+
+  Serial.print(rpm3);
+  Serial.print(rpm1);
+  Serial.print(rpm2);
+  Serial.println(' ');
 }
  
 struct repeating_timer motorTimer;
