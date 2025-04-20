@@ -1,36 +1,26 @@
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, Pressable } from "react-native";
 import * as Icons from './indexComponents/Icons';
 import { useTheme } from '../app/_layout';
+import { Link } from "expo-router";
 
-
-// function with parameters
-// parameter bug: https://stackoverflow.com/questions/40745992/binding-element-index-implicitly-has-an-any-type
 export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any }) {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
-    // add image parameter when ready
 
-
-    // functionality goes here
-
-
-    // the component structure
-    return (
-        <View style={uniqueStyles.layoutCard}>
-          <View style={uniqueStyles.layoutHeader}>
-            <Icons.StarIcon />
-            <Icons.StarIconOutline />
-            <Text style={uniqueStyles.layoutTitle}>{LayoutTitle}</Text>
-          </View>
-          {/* <Image source={{ uri: 'https://via.placeholder.com/100' }} style={styles.layoutImage} /> */}
+  return (
+    <Link href={{pathname: "/addPages/addLayout", params: LayoutTitle}} asChild>
+      <Pressable style={uniqueStyles.layoutCard}>
+        <View style={uniqueStyles.layoutHeader}>
+          <Icons.StarIcon />
+          <Icons.StarIconOutline />
+          <Text style={uniqueStyles.layoutTitle}>{LayoutTitle}</Text>
         </View>
-    );
+      </Pressable>
+    </Link>
+  );
 };
-
-
-// css styling
 
 const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({

@@ -15,6 +15,7 @@ import { isPosition } from "react-native-drax";
 import { Link } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigation, useRouter, useLocalSearchParams } from "expo-router";
 
 
 // Get dimensions of the screen
@@ -90,8 +91,59 @@ export default function DragAndDrop() {
     const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
     const [inputAngle, setInputAngle] = useState(''); // Value of angle of the rotation furniture
 
+    const [hasBeenCalled, setHasBeenCalled] = useState<Boolean>(false);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
+
+
+    // Get the selected layout from the library
+    const selectedLayout = useLocalSearchParams();
+
+
+    // Convert from object of elements to string
+    var currentTitle = "";
+    for (const [key, value] of Object.entries(selectedLayout)) {
+        currentTitle += value;
+    }
+    // console.log(currentTitle);
+
+
+    // Refresh layout on selected layout change
+    useEffect(() => {
+        if (!hasBeenCalled) {
+            loadLayout(currentTitle)
+            setHasBeenCalled(true)
+        }
+    }, [selectedLayout]);
+
+    const loadLayout = async (selectedLayout: string) => {
+
+        // Set the title
+        setlayoutName(selectedLayout)
+
+
+        // Read the data from JSON
+        const readData = await FileSystem.readAsStringAsync(layoutJson);
+        const jsonData = JSON.parse(readData);
+
+
+        // Get the layout index within the JSON
+        let layoutIndex = jsonData[user.username].layouts
+            .findIndex((layout: any) => layout.name === selectedLayout);
+
+        console.log(layoutIndex)
+
+
+        // Get each box in the current layout
+        jsonData[user.username].layouts[layoutIndex].currentLayout.boxes
+            .forEach((box: Box) => {
+                console.log("box", box.id)
+            })
+
+
+        // Set the position of each box currently
+        
+    };
 
 
     // Call function to clear the json data from device
@@ -467,13 +519,13 @@ export default function DragAndDrop() {
                 <View style={defaultStyles.body}>
 
                     {/* Title */}
-                        <TextInput
-                            value={layoutName}
-                            onChangeText={setlayoutName}
-                            style={uniqueStyles.title}
-                            placeholder='*New Layout ...'
-                            placeholderTextColor={isDarkMode ? '#fff' : '#000'}
-                        />
+                    <TextInput
+                        value={layoutName}
+                        onChangeText={setlayoutName}
+                        style={uniqueStyles.title}
+                        placeholder='*New Layout ...'
+                        placeholderTextColor={isDarkMode ? '#fff' : '#000'}
+                    />
 
                     {/* <Text style={defaultStyles.pageTitle}>Add Layout</Text> */}
                     <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
