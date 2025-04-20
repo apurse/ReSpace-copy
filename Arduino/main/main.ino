@@ -4,11 +4,14 @@
 const float r = 0.029;  // Wheel radius (m)
 const float d = 0.155;   // Distance from wheel center to robot center (m)
 const float dt = 0.1;  // Time step (s)
-int transmission;
+String transmission;
 
 // Initial position of robot
 float x = 0.0, y = 0.0, theta = 0.0, vx = 0.0, vy = 0.0, omega = 0.0;
- 
+
+// Initial rpm of motors
+float rpm1 = 0.0, rpm2 = 0.0, rpm3 = 0.0;
+
 // Motor class with encoder
 class Motor {
 private:
@@ -111,6 +114,17 @@ bool repeatingOdomTimerCallback(struct repeating_timer *t) {
 
   return true;  // Keep repeating
 }
+
+void calculateRPM(float VX, float VY, float WZ) {
+  
+  float w1 = (VY + d * WZ) / r;
+  float w2 = ((-sqrt(3)/2.0) * VX - 0.5 * VY + d * WZ) / r;
+  float w3 = ((sqrt(3)/2.0) * VX - 0.5 * VY + d * WZ) / r;
+
+  rpm1 = w1 * 60.0 / (2.0 * PI);
+  rpm2 = w2 * 60.0 / (2.0 * PI);
+  rpm3 = w3 * 60.0 / (2.0 * PI);
+}
  
 struct repeating_timer motorTimer;
 struct repeating_timer odomTimer;
@@ -144,39 +158,31 @@ void loop() {
   delay(50);
 
   if (Serial.available() > 0) {
-    transmission = Serial.parseInt();
-    if (transmission == 1) {
-      motorA.setTargetSpeed(1.0);
-      motorB.setTargetSpeed(0.0);
-      motorC.setTargetSpeed(-1.0);
-      delay(1000);
-      motorA.setTargetSpeed(0.0);
-      motorB.setTargetSpeed(0.0);
-      motorC.setTargetSpeed(0.0);
-    } else if (transmission == 2) {
-      motorA.setTargetSpeed(-1.0);
-      motorB.setTargetSpeed(0.0);
-      motorC.setTargetSpeed(1.0);
-      delay(1000);
-      motorA.setTargetSpeed(0.0);
-      motorB.setTargetSpeed(0.0);
-      motorC.setTargetSpeed(0.0);
-    } else if (transmission == 3) {
-      motorA.setTargetSpeed(1.0);
-      motorB.setTargetSpeed(1.0);
-      motorC.setTargetSpeed(1.0);
-      delay(1000);
-      motorA.setTargetSpeed(0.0);
-      motorB.setTargetSpeed(0.0);
-      motorC.setTargetSpeed(0.0);
-    } else if (transmission == 4) {
-      motorA.setTargetSpeed(-1.0);
-      motorB.setTargetSpeed(-1.0);
-      motorC.setTargetSpeed(-1.0);
-      delay(1000);
-      motorA.setTargetSpeed(0.0);
-      motorB.setTargetSpeed(0.0);
-      motorC.setTargetSpeed(0.0);
-    }
+    // Read until doesn't wait a specific amount of time so doesn't cause delay
+    transmission = Serial.readStringUntil('\n');
+    // Format data
+    // Remove brackets
+    transmission.remove(0, 1);
+    transmission.remove(transmission.length() - 1);
+  
+    // Split by commas
+    int comma1 = transmission.indexOf(',');
+    int comma2 = transmission.indexOf(',', comma1 + 1);
+  
+    float val1 = transmission.substring(0, comma1).toFloat();
+    float val2 = transmission.substring(comma1 + 1, comma2).toFloat();
+    float val3 = transmission.substring(comma2 + 1).toFloat();
+  
+    Serial.println(val1);
+    Serial.println(val2);
+    Serial.println(val3);
+
+    // calculate rpm values for wheels
+    calculateRPM(val1,val2,val3);
+    //set wheel rpms
+    motorA.setTargetSpeed(rpm3/100);
+    motorB.setTargetSpeed(rpm1/100);
+    motorC.setTargetSpeed(rpm2/100);
+    
   }
 }
