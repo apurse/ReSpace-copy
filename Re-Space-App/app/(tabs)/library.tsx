@@ -7,6 +7,7 @@ import { useTheme } from '../_layout';
 import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from 'react';
 
+
 const { width, height } = Dimensions.get('window');
 
 
@@ -36,9 +37,9 @@ export default function Library() {
 
     // Push all layouts to an array and output as smallLayouts
     var addLayouts: any = [];
-    jsonData[user.username].layouts.forEach((layout: { name: unknown; }) => {
+    jsonData[user.username]?.layouts?.forEach((layout: { name: string }) => {
       console.log(layout.name)
-      addLayouts.push(<SmallLayout LayoutTitle={layout.name} />)
+      addLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
     })
 
     setLayouts(addLayouts);

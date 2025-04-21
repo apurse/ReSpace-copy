@@ -1,6 +1,17 @@
 # RE-SPACE_GAM360
 
-How to start app:
+## How to start app:
 
-in terminal: 
+### Normal start:
+
+Open the terminal and enter: 
+```
 cd Re-Space-App; npm install; npx expo start -c
+```
+
+### Direct connection:
+If normal start doesn't work.
+Open the terminal and enter: 
+```
+cd Re-Space-App; npm install; npx expo start --tunnel -c
+```

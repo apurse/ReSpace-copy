@@ -61,37 +61,37 @@ export default function DragAndDrop() {
         rotation: Float;
     };
 
-    // dark mode
+    // Hooks
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
-    const { loggedIn, user, setUser } = useAuth();
-    const [notifications, setnotifications] = useState<string | null>(null); // Notifications
-
-    const [layoutName, setlayoutName] = useState<string | undefined>(); // Notifications
-
-    const [boxes, setBoxes] = useState(allBoxes); // set boxes array
-    const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation })); // Formatted boxes data
-    const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]); // Placed boxes of current layout
-
-    const squareRef = useRef(null);
-
-    const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null); // Track rotation interval
-    const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
-
-    const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
-    const [isSet, setIsSet] = useState(false); // Check if the layout is set or not
-    const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
-    const [zoomLevel, setZoomLevel] = useState(initialZoom); // Check zoom level
-
     const { sendMessage, isConnected } = useSocket();
+    const { loggedIn, user, setUser } = useAuth();
 
+    // Back-end settings
+    const [hasBeenCalled, setHasBeenCalled] = useState<Boolean>(false);
+    const [notifications, setnotifications] = useState<string | null>(null); // Notifications
+    const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
+    const [isCurrentLayoutSet, setIsCurrentLayoutSet] = useState(false); // Check if the current layout is set or not
+
+    // Box positions
     const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
     const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
     const [inputAngle, setInputAngle] = useState(''); // Value of angle of the rotation furniture
+    const [boxes, setBoxes] = useState(allBoxes); // set boxes array
+    const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation })); // Formatted boxes data
+    const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]); // Placed boxes of current layout
+    const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
 
-    const [hasBeenCalled, setHasBeenCalled] = useState<Boolean>(false);
+    // User settings
+    const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null); // Track rotation interval
+    const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
+    const [layoutName, setlayoutName] = useState<string | undefined>();
+    const [zoomLevel, setZoomLevel] = useState(initialZoom); // Check zoom level
+
+
+    const squareRef = useRef(null);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
 
@@ -100,22 +100,27 @@ export default function DragAndDrop() {
     const selectedLayout = useLocalSearchParams();
 
 
-    // Convert from object of elements to string
-    var currentTitle = "";
-    for (const [key, value] of Object.entries(selectedLayout)) {
-        currentTitle += value;
-    }
-    // console.log(currentTitle);
-
-
     // Refresh layout on selected layout change
     useEffect(() => {
         if (!hasBeenCalled) {
+
+
+            // Convert from object of elements to string
+            var currentTitle = "";
+            for (const [key, value] of Object.entries(selectedLayout)) {
+                currentTitle += value;
+            }
+            console.log(currentTitle);
+
             loadLayout(currentTitle)
             setHasBeenCalled(true)
         }
     }, [selectedLayout]);
 
+    /**
+     * Load the layout from the selected layout in the library.
+     * @param selectedLayout String - The selected layout title in the library
+     */
     const loadLayout = async (selectedLayout: string) => {
 
         // Set the title
@@ -128,21 +133,19 @@ export default function DragAndDrop() {
 
 
         // Get the layout index within the JSON
-        let layoutIndex = jsonData[user.username].layouts
+        let layoutIndex = jsonData[user.username]?.layouts
             .findIndex((layout: any) => layout.name === selectedLayout);
 
         console.log(layoutIndex)
 
 
         // Get each box in the current layout
-        jsonData[user.username].layouts[layoutIndex].currentLayout.boxes
+        jsonData[user.username]?.layouts[layoutIndex].currentLayout.boxes
             .forEach((box: Box) => {
                 console.log("box", box.id)
+                // Set the position of each box currently
+                updateBoxPosition(box.id, box.x, box.y);
             })
-
-
-        // Set the position of each box currently
-        
     };
 
 
@@ -161,18 +164,19 @@ export default function DragAndDrop() {
         }
     };
 
+    /**
+     * Save the layout to a local JSON on the device.
+     * @param oldLayoutBoxes The current layout of the furniture.
+     * @param newLayoutBoxes The desired layout of the furniture.
+     */
     const saveLayout = async (oldLayoutBoxes: Box[], newLayoutBoxes: Box[]) => {
 
-        // console.log("placedBoxes:   ", placedBoxes)
-        // console.log("newLayout:", newLayout)
+        // temp until rooms have been saved
         const room = {
             name: "test"
         }
 
-        // setlayoutName("new_name");
-
-        // set the json entry for each layout
-        // If ternary used to set current layout and then new layout
+        // Set the json entry for each layout
         const layout = {
             name: layoutName,
             room: room.name,
@@ -201,19 +205,11 @@ export default function DragAndDrop() {
         }
 
 
-
         try {
             if (!user) {
                 alert("User not logged in");
                 return;
             }
-
-            // If not filled in correctly
-            if (!layoutName) {
-                setnotifications('Please add a title to this layout');
-                setTimeout(() => setnotifications(null), 3000);
-                return;
-            };
 
             // If json file doesn't exist, create file
             const checkJson = await FileSystem.getInfoAsync(layoutJson);
@@ -239,30 +235,50 @@ export default function DragAndDrop() {
             // Check there is data
             if (readData) {
                 jsonData = JSON.parse(readData);
+                console.log("read the data")
             }
 
-            const otherLayouts = jsonData[user.username].layouts;
+            const otherLayouts = jsonData[user.username]?.layouts;
+
+            var nameUsed = false;
+
+            // Check that the provided name is unique
+            jsonData[user.username]?.layouts?.forEach((layout: { name: string }) => {
+                console.log("name: ", layout.name)
+                nameUsed = (layoutName == layout.name) ? true : false;
+            })
+
+            // If not filled in correctly
+            if (!layoutName || nameUsed) {
+                setnotifications('Please add a unique title to this layout');
+                setTimeout(() => setnotifications(null), 3000);
+                return;
+            }
 
             // Set the updateData location and format
             const updateData = {
                 ...jsonData,
                 [user.username]: {
-                    layouts: [...otherLayouts, layout]
+                    layouts: (otherLayouts
+                        ? [...otherLayouts, layout]
+                        : [layout]
+                    )
                 }
             }
+
 
             // Write new data to json
             await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(updateData));
 
             // Show local json file in console
             const data = await FileSystem.readAsStringAsync(layoutJson);
-            console.log('Furniture json updated:', data);
+            // console.log('Layout json updated:', data);
 
             setnotifications('New layout saved sucessfully');
             setTimeout(() => setnotifications(null), 3000);
         }
         catch (error) {
-            console.error('Failed to update/save data to json file:', error);
+            console.log('Failed to update/save data to json file:', error);
             setnotifications('Failed to save layout.')
             setTimeout(() => setnotifications(null), 3000);
         }
@@ -385,7 +401,7 @@ export default function DragAndDrop() {
     const setLayout = (newLayout: boolean) => {
 
         // If new layout
-        setIsSet(true); // Disable button function
+        setIsCurrentLayoutSet(true); // Disable button function
         setnotifications('Current layout has been set');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
@@ -407,7 +423,7 @@ export default function DragAndDrop() {
 
     // Reset layout before setting current position 
     const resetLayout = () => {
-        setIsSet(false); // Activate setlayout function again
+        setIsCurrentLayoutSet(false); // Activate setlayout function again
         setPlacedBoxes([]);
         setBoxes(allBoxes)
 
@@ -699,7 +715,7 @@ export default function DragAndDrop() {
 
                         {/* Buttons */}
                         {/* Show different buttons depending in current location is set or not */}
-                        {!isSet ? (
+                        {!isCurrentLayoutSet ? (
                             <>
                                 <ActionButton
                                     label="Set Current Location"
