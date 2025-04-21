@@ -74,6 +74,7 @@ export default function DragAndDrop() {
     const [notifications, setnotifications] = useState<string | null>(null); // Notifications
     const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
     const [isCurrentLayoutSet, setIsCurrentLayoutSet] = useState(false); // Check if the current layout is set or not
+    const [isSaved, setIsSaved] = useState(false); // Check if the layout has been saved
 
     // Box positions
     const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
@@ -117,6 +118,12 @@ export default function DragAndDrop() {
         }
     }, [selectedLayout]);
 
+    // // Refresh layout on selected layout change
+    // useEffect(() => {
+
+    // }, [isSaved]);
+
+
     /**
      * Load the layout from the selected layout in the library.
      * @param selectedLayout String - The selected layout title in the library
@@ -150,18 +157,29 @@ export default function DragAndDrop() {
 
 
     // Call function to clear the json data from device
-    const clearJsonData = async () => {
+    const deleteLayout = async () => {
         try {
-            await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify({
-                // Json layout with user username
-                [user.username]: {
-                    layouts: []
-                }
-            }));
+
+            // Read the data from JSON
+            const readData = await FileSystem.readAsStringAsync(layoutJson);
+            const jsonData = JSON.parse(readData);
+
+            // Get the layout index within the JSON
+            let layoutIndex = jsonData[user.username]?.layouts
+                .findIndex((layout: any) => layout.name === layoutName);
+
+            // Remove the layout
+            jsonData[user.username].layouts.splice(layoutIndex, 1);
+
+            // Write the new data 
+            await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(jsonData));
             console.log('Data has been cleared');
+
         } catch (error) {
             console.error('Error deleting json data');
         }
+
+        setlayoutName('');
     };
 
     /**
@@ -235,7 +253,6 @@ export default function DragAndDrop() {
             // Check there is data
             if (readData) {
                 jsonData = JSON.parse(readData);
-                console.log("read the data")
             }
 
             const otherLayouts = jsonData[user.username]?.layouts;
@@ -276,6 +293,8 @@ export default function DragAndDrop() {
 
             setnotifications('New layout saved sucessfully');
             setTimeout(() => setnotifications(null), 3000);
+
+            setIsSaved(true)
         }
         catch (error) {
             console.log('Failed to update/save data to json file:', error);
@@ -736,11 +755,13 @@ export default function DragAndDrop() {
                                     onClose={() => setModalVisible(false)}
                                     onSelectFurniture={addFurniture}
                                 />
-                                <ActionButton
-                                    label="Delete All Layouts"
-                                    onPress={clearJsonData}
-                                    style={{ backgroundColor: '#fa440c' }}
-                                />
+                                <Link href="../(tabs)/library" asChild>
+                                    <ActionButton
+                                        label="Delete this layout"
+                                        onPress={deleteLayout}
+                                        style={{ backgroundColor: '#fa440c' }}
+                                    />
+                                </Link>
                             </>
                         ) : (
                             <>
@@ -759,6 +780,7 @@ export default function DragAndDrop() {
                                         // onPress={() => {
                                         //     alert("WebSocket Not Connected!")
                                         // }}
+                                        // TESTING PURPOSES
                                         onPress={() => {
                                             setLayout(true);
                                             sendMessage({ type: "desired_layout", locations: boxesFormatted })
@@ -770,11 +792,19 @@ export default function DragAndDrop() {
                                     onPress={resetLayout}
                                     style={{ backgroundColor: '#fa440c' }}
                                 />
-                                <ActionButton
-                                    label="Save Layout"
-                                    onPress={() => console.log('working on it')}
-                                    style={{ backgroundColor: '#76f58f' }}
-                                />
+                                {!isSaved ?
+                                    <ActionButton
+                                        label="Save Layout"
+                                        onPress={() => setLayout(true)}
+                                        style={{ backgroundColor: '#76f58f' }}
+                                    />
+                                    :
+                                    <ActionButton
+                                        label="Layout saved!"
+                                        onPress={() => console.log("filler")}
+                                        style={{ backgroundColor: 'grey' }}
+                                    />
+                                }
                             </>
                         )}
                     </View>
