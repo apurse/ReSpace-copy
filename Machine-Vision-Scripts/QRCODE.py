@@ -13,7 +13,7 @@ except serial.SerialException as e:
     ser = None
 
 # Initialize camera
-cap = cv2.VideoCapture(5)
+cap = cv2.VideoCapture(4)
 
 if not cap.isOpened():
     raise IOError("Cannot open webcam")
