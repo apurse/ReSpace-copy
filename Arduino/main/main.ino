@@ -108,8 +108,8 @@ bool repeatingOdomTimerCallback(struct repeating_timer *t) {
   omega = (w1 + w2 + w3) / (3 * d);
     
   // Transform velocity to global frame
-  x += (vx * cos(theta) - vy * sin(theta)) * dt;
-  y += (vx * sin(theta) + vy * cos(theta)) * dt;
+  x += (vx * sin(theta) + vy * cos(theta)) * dt;
+  y += (vx * cos(theta) - vy * sin(theta)) * dt;
   theta += omega * dt;
 
   return true;  // Keep repeating
@@ -125,9 +125,9 @@ void calculateRPM(float VX, float VY, float WZ) {
   rpm2 = w2 * 60.0 / (2.0 * PI);
   rpm3 = w3 * 60.0 / (2.0 * PI);
 
-  Serial.print(rpm3);
-  Serial.print(rpm1);
-  Serial.print(rpm2);
+  Serial.print(-rpm3);
+  Serial.print(-rpm1);
+  Serial.print(-rpm2);
   Serial.println(' ');
 }
  
@@ -165,29 +165,39 @@ void loop() {
   if (Serial.available() > 0) {
     // Read until doesn't wait a specific amount of time so doesn't cause delay
     transmission = Serial.readStringUntil('\n');
-    // Format data
-    // Remove brackets
-    transmission.remove(0, 1);
-    transmission.remove(transmission.length() - 1);
-  
-    // Split by commas
-    int comma1 = transmission.indexOf(',');
-    int comma2 = transmission.indexOf(',', comma1 + 1);
-  
-    float val1 = transmission.substring(0, comma1).toFloat();
-    float val2 = transmission.substring(comma1 + 1, comma2).toFloat();
-    float val3 = transmission.substring(comma2 + 1).toFloat();
-  
-    Serial.println(val1);
-    Serial.println(val2);
-    Serial.println(val3);
-
-    // calculate rpm values for wheels
-    calculateRPM(val1,val2,val3);
-    //set wheel rpms
-    motorA.setTargetSpeed(rpm3/100);
-    motorB.setTargetSpeed(rpm1/100);
-    motorC.setTargetSpeed(rpm2/100);
+    if (transmission == "R") {
+      // Reset odom when ROS spins up
+      x = 0.0;
+      y = 0.0;
+      theta = 0.0;
+      // Reset motor speed
+      motorA.setTargetSpeed(0);
+      motorB.setTargetSpeed(0);
+      motorC.setTargetSpeed(0);
+    } else {
+      // Format data
+      // Remove brackets
+      transmission.remove(0, 1);
+      transmission.remove(transmission.length() - 1);
     
+      // Split by commas
+      int comma1 = transmission.indexOf(',');
+      int comma2 = transmission.indexOf(',', comma1 + 1);
+    
+      float val1 = transmission.substring(0, comma1).toFloat();
+      float val2 = transmission.substring(comma1 + 1, comma2).toFloat();
+      float val3 = transmission.substring(comma2 + 1).toFloat();
+    
+      Serial.println(val1);
+      Serial.println(val2);
+      Serial.println(val3);
+  
+      // calculate rpm values for wheels
+      calculateRPM(val1,val2,val3);
+      //set wheel rpms
+      motorA.setTargetSpeed(-rpm3/100);
+      motorB.setTargetSpeed(-rpm1/100);
+      motorC.setTargetSpeed(-rpm2/100);
+    } 
   }
 }
