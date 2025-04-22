@@ -1,4 +1,4 @@
-import { View, ScrollView, StyleSheet, Text, Dimensions } from 'react-native';
+import { View, RefreshControl, ScrollView, StyleSheet, Text, Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import SmallLayout from '@/components/smallLayout';
 import FilterButton from '@/components/libraryComponents/FilterButton';
@@ -17,14 +17,9 @@ export default function Library() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const { loggedIn, user, setUser } = useAuth();
   const [layouts, setLayouts] = useState<any | null>(null); // Notifications
-
+  const [refreshing, setRefreshing] = useState(false);
 
   const getLayouts = async () => {
-
-    // if (!user) {
-    //   alert("Not logged in!")
-    //   return;
-    // }
 
     const layoutJson = FileSystem.documentDirectory + 'layouts.json';
     const checkJson = await FileSystem.getInfoAsync(layoutJson);
@@ -50,18 +45,12 @@ export default function Library() {
     getLayouts()
   }, [user]);
 
-  // Refresh on user change
-  // useEffect(() => {
-  //   const handleAppStateChange = (nextAppState: string) => {
-  //     if (nextAppState === "active") getLayouts()
-  //   };
-
-  //   const subscription = AppState.addEventListener("change", handleAppStateChange);
-  //   return () => subscription.remove();
-  // }, [user]);
-
   return (
-    <ScrollView contentContainerStyle={defaultStyles.body}>
+    <ScrollView
+      contentContainerStyle={defaultStyles.body}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={getLayouts} />
+      }>
       < View style={defaultStyles.pageTitleSection} >
         <Text style={defaultStyles.pageTitle}>Library</Text>
       </View >
