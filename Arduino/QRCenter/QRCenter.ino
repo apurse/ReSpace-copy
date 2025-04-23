@@ -1,8 +1,12 @@
 #include <AccelStepper.h>
 
-#define STEP    11
-#define DIR     9
-#define POS     A0
+#define stepPin 11
+#define dirPin 9
+#define switchPin1 7
+#define switchPin2 8 
+#define motorInterfaceType 1
+
+AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
 
 #define AIN1    0
 #define AIN2    1
@@ -13,14 +17,13 @@
 
 #define BEEP    18
 
-AccelStepper stepper(AccelStepper::DRIVER, STEP, DIR);
-
 int motorSpeed = 100;
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
 
-  pinMode(POS, INPUT);
+  pinMode(switchPin1, INPUT_PULLUP); 
+  pinMode(switchPin2, INPUT_PULLUP);
 
   pinMode(AIN1, OUTPUT);
   pinMode(AIN2, OUTPUT);
@@ -40,22 +43,36 @@ void setup() {
 }
 
 void loop() {
+    // Wait for serial input
   if (Serial.available() > 0) {
-    String msg = Serial.readStringUntil('\n');
-    StopMotors();  // Stop motors before any new action
+    char command = Serial.read();  // Read the serial command
 
-    // Process the incoming message (segment number)
-    if (msg == "1") {
-      Segment1();
-    } else if (msg == "2") {
-      Segment2();
-    } else if (msg == "3") {
-      Segment3();
-    } else if (msg == "4") {
-      StopMotors();  // Stop all motors for segment 4
+    if (command == '1') {  // Move forward until switch 1 is pressed
+      homeForward();
+    } 
+    else if (command == '2') {  // Move backward until switch 2 is pressed
+      homeBackward();
     }
   }
 }
+//   if (Serial.available() > 0) {
+//     String msg = Serial.readStringUntil('\n');
+//     StopMotors();  // Stop motors before any new action
+
+//     // Process the incoming message (segment number)
+//     if (msg == "1") {
+//       Segment1();
+//     } else if (msg == "2") {
+//       Segment2();
+//     } else if (msg == "3") {
+//       Segment3();
+//     } else if (msg == "4") {
+//       // StopMotors();  // Stop all motors for segment 4
+//       homeForward();
+
+//     }
+//   }
+// }
 
 void Segment1() {
   // Segment 1: Use Motor B and C
@@ -102,6 +119,31 @@ void StopMotors() {
 
   analogWrite(CIN1, 0);
   analogWrite(CIN2, 0);
+}
+
+void homeForward() {
+  // Command a large forward move
+  stepper.moveTo(100000);       
+
+  while (digitalRead(switchPin1) == HIGH) {
+    stepper.run();               
+  }
+  Serial.println("stopping stepper");
+  stepper.stop();
+  stepper.setCurrentPosition(0);                
+  Serial.println("Homing forward complete.");
+}
+
+void homeBackward() {
+  // Command a large backward move
+  stepper.moveTo(-100000);       
+  // Run until switch 2 is pressed
+  while (digitalRead(switchPin2) == HIGH) {
+    stepper.run();               
+  }
+  stepper.stop();
+  stepper.setCurrentPosition(0);                
+  Serial.println("Homing backward complete.");
 }
 
 
