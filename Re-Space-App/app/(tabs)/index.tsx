@@ -96,8 +96,8 @@ export default function HomeScreen() {
       {!user &&
         <TouchableOpacity style={uniqueStyles.loginButton} onPress={() => setModalVisible(true)}>
           <View style={uniqueStyles.loginButtonContent}>
-            <Text style={uniqueStyles.loginButtonText}>Login</Text>
             <Icons.UserIcon />
+            <Text style={uniqueStyles.loginButtonText}>Login</Text>
           </View>
         </TouchableOpacity>
       }
@@ -144,20 +144,21 @@ const createUniqueStyles = (isDarkMode: boolean) =>
     loginButton: {
       position: 'absolute',
       top: 10,
-      right: width - 70,
-      backgroundColor: 'gray',
+      left: 10,
+      backgroundColor: isDarkMode ? '#e6e6e6' : '#4a4a4a',
       padding: 10,
-      // width: 'auto',
       alignItems: 'center',
       borderRadius: 5,
     },
     loginButtonContent: {
       flexDirection: 'row',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      gap: 10,
     },
     loginButtonText: {
-      color: "white",
-      fontSize: 16,
+      textAlignVertical: 'center',
+      color: isDarkMode ? '#000' : '#fff',
+      fontSize: 18,
     },
 
     // Status card section

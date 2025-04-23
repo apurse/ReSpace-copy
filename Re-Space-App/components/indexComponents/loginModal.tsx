@@ -160,7 +160,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                             onChangeText={setUsername}
                             style={uniqueStyles.textInput}
                             placeholder='*Enter Username or Email...*'
-                        />
+                            placeholderTextColor={isDarkMode ? '#000' : '#fff'}
+                            />
                     </View>
 
                     <View style={uniqueStyles.inputField}>
@@ -170,6 +171,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                             onChangeText={setPassword}
                             style={uniqueStyles.textInput}
                             placeholder='*Enter password...*'
+                            placeholderTextColor={isDarkMode ? '#000' : '#fff'}
                         />
                     </View>
 
@@ -252,7 +254,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             justifyContent: 'space-between',
             alignItems: 'center',
             height: 40,
-            backgroundColor: isDarkMode ? 'white' : 'black',
+            backgroundColor: isDarkMode ? 'white' : '#242424',
             color: isDarkMode ? '#000' : '#fff',
             fontSize: 14,
             fontWeight: 'bold',

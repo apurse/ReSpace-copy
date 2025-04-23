@@ -18,11 +18,12 @@ const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
+    const uniqueStyles = createUniqueStyles(isDarkMode);
     let hasLoaded = false;
 
 
     // Add state for each independent toggle
-    const [stopWhenHumansPresent, setStopWhenHumansPresent] = useState(false);
+    const [stopWhenHumansPresent, setStopWhenHumansPresent] = useState(true);
     const [completedTasks, setCompletedTasks] = useState(false);
     const [collisions, setCollisions] = useState(false);
     const [batteryLevels, setBatteryLevels] = useState(false);
@@ -38,11 +39,6 @@ const SettingsPage = () => {
             alert(`Websocket latency: ${latencyData}ms`);
         }
     }, [latencyData]); // Triggers only when latencyData updates
-
-    // // Listen to user login changes
-    // useEffect(() => {
-
-    // }, [user]);
 
 
     useEffect(() => {
@@ -123,11 +119,17 @@ const SettingsPage = () => {
                 </Text>
             </View>
 
-            <Link href="/settingsPages/accountSettings" asChild>
-                <Pressable style={uniqueStyles.button}>
-                    <Text style={uniqueStyles.buttonText}>Account settings: {user?.username}</Text>
-                </Pressable>
-            </Link>
+            {user ?
+                <Link href="/settingsPages/accountSettings" asChild>
+                    <Pressable style={uniqueStyles.button}>
+                        <Text style={uniqueStyles.buttonText}>Account settings: {user.username}</Text>
+                    </Pressable>
+                </Link>
+                :
+                <View style={uniqueStyles.button}>
+                    <Text style={uniqueStyles.buttonText}>Login to access account settings.</Text>
+                </View>
+            }
 
             <View style={uniqueStyles.segmentContainer}>
                 <View style={uniqueStyles.segmentTitleContainer}>
@@ -209,9 +211,9 @@ const SettingsPage = () => {
                     onValueChange={(value) => onChangeFunction(setBatteryNotificationThreshold, "batteryNotification", value)}
                 />
 
-                <Text style={defaultStyles.sectionTitle}>
+                {/* <Text style={defaultStyles.sectionTitle}>
                     Analytics and Reporting
-                </Text>
+                </Text> */}
                 <ActionButton
                     label="Task History Logs"
                     onPress={() => alert("Todo...")}
@@ -243,41 +245,42 @@ const SettingsPage = () => {
     );
 };
 
-const uniqueStyles = StyleSheet.create({
-    segmentContainer: {
-        width: '100%',
-        height: 'auto',
-    },
-    segmentTitleContainer: {
-        width: '100%',
-        height: 'auto',
-    },
-    segmentTitle: {
-        textAlign: 'center',
-        fontSize: 30,
-        fontWeight: 'bold',
-    },
-    button: {
-        // backgroundColor: '#4CAF50',
-        paddingVertical: 15,
-        // alignItems: 'center',
-        borderColor: 'white',
-        borderRadius: 5,
-        borderStyle: 'solid',
-        marginTop: 20,
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '500',
-    },
-    signOut: {
-        padding: 0,
-        backgroundColor: 'null',
-        // textDecorationColor: 'red',
-        // textDecorationLine: 'underline',
-        color: 'red'
-    },
-});
+const createUniqueStyles = (isDarkMode: boolean) =>
+    StyleSheet.create({
+        segmentContainer: {
+            width: '100%',
+            height: 'auto',
+        },
+        segmentTitleContainer: {
+            width: '100%',
+            height: 'auto',
+        },
+        segmentTitle: {
+            textAlign: 'center',
+            fontSize: 30,
+            fontWeight: 'bold',
+        },
+        button: {
+            // backgroundColor: '',
+            paddingVertical: 15,
+            // alignItems: 'center',
+            borderColor: 'white',
+            borderRadius: 5,
+            borderStyle: 'solid',
+            marginTop: 20,
+        },
+        buttonText: {
+            color: isDarkMode ? '#fff' : '#000',
+            fontSize: 18,
+            fontWeight: '500',
+        },
+        signOut: {
+            padding: 0,
+            backgroundColor: 'null',
+            // textDecorationColor: 'red',
+            // textDecorationLine: 'underline',
+            color: 'red'
+        },
+    });
 
 export default SettingsPage;

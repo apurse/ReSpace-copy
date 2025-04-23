@@ -233,6 +233,7 @@ export default function AddLayout() {
             onChangeText={setName}
             style={uniqueStyles.textInput}
             placeholder='*Enter name...*'
+            placeholderTextColor={isDarkMode ? '#000' : '#fff'}
           />
         </View>
         <View style={uniqueStyles.inputField}>
@@ -242,6 +243,7 @@ export default function AddLayout() {
             onChangeText={setModel}
             style={uniqueStyles.textInput}
             placeholder='Enter model type...'
+            placeholderTextColor={isDarkMode ? '#000' : '#fff'}
           />
         </View>
       </View>
@@ -257,6 +259,7 @@ export default function AddLayout() {
             onChangeText={(text) => setHeight(Number(text))}
             style={uniqueStyles.textInput}
             placeholder='*Enter height value...*'
+            placeholderTextColor={isDarkMode ? '#000' : '#fff'}
             keyboardType="numeric"
           />
         </View>
@@ -269,6 +272,7 @@ export default function AddLayout() {
             onChangeText={(text) => setWidth(Number(text))}
             style={uniqueStyles.textInput}
             placeholder='*Enter width value...*'
+            placeholderTextColor={isDarkMode ? '#000' : '#fff'}
             keyboardType="numeric"
           />
         </View>
@@ -284,6 +288,7 @@ export default function AddLayout() {
             onChangeText={(text) => setLength(Number(text))}
             style={uniqueStyles.textInput}
             placeholder='*Enter length value...*'
+            placeholderTextColor={isDarkMode ? '#000' : '#fff'}
             keyboardType="numeric"
           />
         </View>
@@ -296,6 +301,7 @@ export default function AddLayout() {
             onChangeText={(text) => setQuantity(Number(text))}
             style={uniqueStyles.textInput}
             placeholder='*Enter quantity value...*'
+            placeholderTextColor={isDarkMode ? '#000' : '#fff'}
             keyboardType="numeric"
           />
         </View>
@@ -362,7 +368,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       justifyContent: 'space-between',
       alignItems: 'center',
       height: 40,
-      backgroundColor: isDarkMode ? 'white' : 'black',
+      backgroundColor: isDarkMode ? 'white' : '#242424',
       color: isDarkMode ? '#000' : '#fff',
       fontSize: 14,
       fontWeight: 'bold',

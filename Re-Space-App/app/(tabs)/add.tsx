@@ -49,7 +49,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
     button: {
       width: width * 0.5,
       height: width * 0.5,
-      backgroundColor: isDarkMode ? '#fff' : '#000',
+      backgroundColor: isDarkMode ? '#fff' : '#212121',
       borderRadius: 20,
     },
     text: {

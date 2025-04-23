@@ -699,7 +699,7 @@ export default function DragAndDrop() {
                         {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
 
                         {/* Show coordinates */}
-                        {selectedBox !== null && (
+                        {selectedBox !== null &&
 
                             <View style={uniqueStyles.coordinatesContainer}>
                                 <Text style={uniqueStyles.coordinates}>X =</Text>
@@ -730,7 +730,7 @@ export default function DragAndDrop() {
                                     placeholder={String(rotationAngle)}
                                 />
                             </View>
-                        )}
+                        }
 
                         {/* Buttons */}
                         {/* Show different buttons depending in current location is set or not */}
@@ -755,6 +755,7 @@ export default function DragAndDrop() {
                                     onClose={() => setModalVisible(false)}
                                     onSelectFurniture={addFurniture}
                                 />
+                                {/* ISSUE HERE */}
                                 <Link href="../(tabs)/library" asChild>
                                     <ActionButton
                                         label="Delete this layout"
