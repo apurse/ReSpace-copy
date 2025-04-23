@@ -8,6 +8,7 @@ import * as FileSystem from 'expo-file-system';
 import { useSocket } from "@/hooks/useSocket";
 import { useAuth } from "@/hooks/useAuth";
 import * as Crypto from 'expo-crypto';
+import * as Icons from '../../components/indexComponents/Icons';
 
 
 
@@ -25,10 +26,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
     const uniqueStyles = createUniqueStyles(isDarkMode);
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+    const [showPassword, setShowPassword] = useState(false);
     const { socket, isConnected, sendMessage } = useSocket();
     const { loggedIn, user, setUser, db } = useAuth();
     const [notifications, setnotifications] = useState<string | null>(null);
 
+    const toggleShowPassword = () => {
+        setShowPassword(!showPassword);
+    };
 
     // 
     /**
@@ -87,6 +92,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                     // console.log(`logged password: ${checkResults.rowFound.password}.... entered password: ${checkResults.hashedPassword}`)
                     var password = checkResults.hashedPassword;
                     setUser({ username, password });
+
+                    // Reset login
+                    setUsername('')
+                    setPassword('')
                     return;
                 }
                 else {
@@ -131,6 +140,10 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                 alert("New user added, logging in now...")
                 var password = checkResults?.hashedPassword;
                 setUser({ username, password });
+
+                // Reset login
+                setUsername('')
+                setPassword('')
             }
         }
         catch (error) {
@@ -161,17 +174,23 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                             style={uniqueStyles.textInput}
                             placeholder='*Enter Username or Email...*'
                             placeholderTextColor={isDarkMode ? '#000' : '#fff'}
-                            />
+                        />
                     </View>
 
                     <View style={uniqueStyles.inputField}>
                         <Text style={uniqueStyles.inputHeader}>Password</Text>
                         <TextInput
+                            secureTextEntry={!showPassword}
                             value={password}
                             onChangeText={setPassword}
                             style={uniqueStyles.textInput}
                             placeholder='*Enter password...*'
                             placeholderTextColor={isDarkMode ? '#000' : '#fff'}
+                        />
+                        <ActionButton
+                            icon={React.createElement(showPassword ? Icons.EyeIcon : Icons.EyeSlashIcon)}
+                            style={uniqueStyles.eyeContainer}
+                            onPress={toggleShowPassword}
                         />
                     </View>
 
@@ -289,5 +308,16 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             fontWeight: 'bold',
             textAlign: 'center',
             zIndex: 1000,
+        },
+        eyeContainer: {
+            marginLeft: 10,
+            backgroundColor: '',
+            padding: 0,
+            alignItems: 'center',
+            borderRadius: 5,
+            marginTop: 20,
+            verticalAlign: 'middle',
+            top: -53,
+            left: 130,
         }
     });

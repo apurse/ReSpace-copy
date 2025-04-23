@@ -89,3 +89,17 @@ export const UserIcon = () => {
     return <Icon name="user" size={30} color={isDarkMode ? '#000' : '#fff'}/>;
 };
 
+export const EyeIcon = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    return <Icon name="eye" size={24} color={isDarkMode ? '#000' : '#fff'}/>;
+};
+
+export const EyeSlashIcon = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    return <Icon name="eye-slash" size={24} color={isDarkMode ? '#000' : '#fff'}/>;
+};
+
