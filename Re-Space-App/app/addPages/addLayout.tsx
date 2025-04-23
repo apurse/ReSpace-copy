@@ -428,13 +428,13 @@ export default function DragAndDrop() {
 
         let oldLayoutBoxes: Box[] = [];
         if (!setOldLayout) {
-            oldLayoutBoxes = [...placedBoxes, ...boxes];
+            oldLayoutBoxes = [...placedBoxes];
             setOldLayout = true;
         }
 
         // Save the designed layout to the json file
         if (newLayout) {
-            const newLayoutBoxes = [...placedBoxes, ...boxes]
+            const newLayoutBoxes = [...boxes]
             saveLayout(oldLayoutBoxes, newLayoutBoxes);
         }
     };
