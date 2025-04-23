@@ -20,7 +20,7 @@ AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
 int motorSpeed = 100;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   pinMode(switchPin1, INPUT_PULLUP); 
   pinMode(switchPin2, INPUT_PULLUP);
@@ -47,32 +47,36 @@ void loop() {
   if (Serial.available() > 0) {
     char command = Serial.read();  // Read the serial command
 
-    if (command == '1') {  // Move forward until switch 1 is pressed
+    if (command == '4') {  // Move forward until switch 1 is pressed
       homeForward();
+      delay(3000);
+      homeBackward();
+
     } 
     else if (command == '2') {  // Move backward until switch 2 is pressed
       homeBackward();
     }
+  
   }
 }
-//   if (Serial.available() > 0) {
-//     String msg = Serial.readStringUntil('\n');
-//     StopMotors();  // Stop motors before any new action
+  // if (Serial.available() > 0) {
+  //   String msg = Serial.readStringUntil('\n');
+  //   StopMotors();  // Stop motors before any new action
 
-//     // Process the incoming message (segment number)
-//     if (msg == "1") {
-//       Segment1();
-//     } else if (msg == "2") {
-//       Segment2();
-//     } else if (msg == "3") {
-//       Segment3();
-//     } else if (msg == "4") {
-//       // StopMotors();  // Stop all motors for segment 4
-//       homeForward();
+  //   // Process the incoming message (segment number)
+  //   if (msg == "1") {
+  //     Segment1();
+  //   } else if (msg == "2") {
+  //     Segment2();
+  //   } else if (msg == "3") {
+  //     Segment3();
+  //   } else if (msg == "4") {
+  //     // StopMotors();  // Stop all motors for segment 4
+  //     homeForward();
 
-//     }
-//   }
-// }
+  //   }
+  // }
+//}
 
 void Segment1() {
   // Segment 1: Use Motor B and C
