@@ -147,7 +147,7 @@ export default function DragAndDrop() {
 
 
         // Get each box in the current layout
-        jsonData[user.username]?.layouts[layoutIndex].currentLayout.boxes
+        jsonData[user.username]?.layouts[layoutIndex].newLayout.boxes
             .forEach((box: Box) => {
                 console.log("box", box.id)
                 // Set the position of each box currently
