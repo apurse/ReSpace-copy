@@ -2,7 +2,7 @@ import { useContext, useCallback } from "react";
 import { WebSocketContext } from "@/app/context/webSocketProvider";
 
 export const useSocket = () => {
-  const { socket, isConnected, robotData, latencyData, QRCode } = useContext(WebSocketContext);
+  const { socket, isConnected, robotData, latencyData, QRCode, roomMap } = useContext(WebSocketContext);
 
   // SendMessage function
   const sendMessage = useCallback((msgData: Record<string, unknown>) => {
@@ -14,7 +14,7 @@ export const useSocket = () => {
     }
   }, [socket, isConnected]);
 
-  return { socket, isConnected, robotData, sendMessage, latencyData, QRCode };
+  return { socket, isConnected, robotData, sendMessage, latencyData, QRCode, roomMap };
 };
 
 // Code moved to app/context/webSocketProvider

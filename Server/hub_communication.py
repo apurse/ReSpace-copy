@@ -7,6 +7,7 @@ from websockets import serve
 import socket
 
 from qr_generator import generateQRCode
+from map_generator import convertToPNG
 from robot import Robot
 from furniture import Furniture
 
@@ -181,6 +182,12 @@ async def handle_app_message(data):
         base64_string = generateQRCode(data["data"]) # Use qr code generation script
         # print(base64_string)
         await send_to_app({"type": "new_furniture", "base64": base64_string})
+        
+    elif data["type"] == "room_map":
+        print(data["data"])
+        base64_string = convertToPNG('outside_lab.pgm') # Change to map provided by robots
+        # print(base64_string)
+        await send_to_app({"type": "room_map", "base64": base64_string})
 
     else:
         print("Received unknown command!")

@@ -14,6 +14,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [robotData, setRobotData] = useState<Robot[]>([]);
     const [latencyData, setLatencyData] = useState<number>();
     const [QRCode, setQRCode] = useState<string>();
+    const [roomMap, setRoomMap] = useState<string>();
     const reconnectInterval = useRef<NodeJS.Timeout | null>(null);
 
     // Function to connect WebSocket
@@ -49,7 +50,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                 console.log("Starting reconnection attempts...");
                 reconnectInterval.current = setInterval(() => {
                     connectWebSocket();
-                }, 5000); // Retry every 5 seconds
+                }, 50000000); // Retry every 5 seconds
             }
         };
 
@@ -112,6 +113,12 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                     setQRCode(base64String);
                     // console.log(base64String);
 
+                } else if (data.type === "room_map") {
+
+                    const base64String = data.base64;
+                    setRoomMap(base64String);
+                    // console.log(base64String);
+
                 } else {
                     console.log("Ignored message (not status):", data.type);
                 }
@@ -155,7 +162,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }, [isConnected, connectWebSocket]);
 
     return (
-        <WebSocketContext.Provider value={{ socket, isConnected, robotData, latencyData, QRCode }}>
+        <WebSocketContext.Provider value={{ socket, isConnected, robotData, latencyData, QRCode, roomMap }}>
             {children}
         </WebSocketContext.Provider>
     );

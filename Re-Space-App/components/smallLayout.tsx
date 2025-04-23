@@ -1,22 +1,35 @@
-import { StyleSheet, View, Text, Pressable } from "react-native";
+import { StyleSheet, View, Text, Pressable, Image } from "react-native";
 import * as Icons from './indexComponents/Icons';
 import { useTheme } from '../app/_layout';
 import { Link } from "expo-router";
+import { useSocket } from "@/hooks/useSocket";
+
 
 export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any }) {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const uniqueStyles = createUniqueStyles(isDarkMode);
+  const { isConnected, sendMessage, roomMap } = useSocket();
+
+  if (isConnected) {
+    sendMessage({ type: "room_map", data: "test" });
+    console.log("refreshing")
+  } else {
+    alert("No connection to the WebSocket.");
+  }
 
 
   return (
-    <Link href={{pathname: "/addPages/addLayout", params: LayoutTitle}} asChild>
+    <Link href={{ pathname: "/addPages/addLayout", params: LayoutTitle }} asChild>
       <Pressable style={uniqueStyles.layoutCard}>
         <View style={uniqueStyles.layoutHeader}>
           <Icons.StarIcon />
           <Icons.StarIconOutline />
           <Text style={uniqueStyles.layoutTitle}>{LayoutTitle}</Text>
         </View>
+        <Image
+          style={uniqueStyles.imageBody}
+          source={{ uri: (`data:image/png;base64,${roomMap}`) }} />
       </Pressable>
     </Link>
   );
@@ -44,9 +57,10 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       marginLeft: 4,
       color: isDarkMode ? '#fff' : '#000',
     },
-    layoutImage: {
-      width: 80,
-      height: 80,
-      borderRadius: 4,
+    imageBody: {
+      // width: 180,
+      // height: 300,
+      width: '100%',
+      height: '100%',
     }
   })

@@ -23,7 +23,7 @@ def convertToPNG(pgmFile):
     
     # Encode the saved image into base64
     with open(pngFile, "rb") as image_file:
-        encodedString = base64.b64encode(image_file.read())
+        encodedString = base64.b64encode(image_file.read()).decode("utf-8")
 
     print(encodedString)
     remove_img(pngFile)
