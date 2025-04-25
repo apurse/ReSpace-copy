@@ -18,9 +18,10 @@ export default function Controller() {
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
 
-    const { loggedIn, user, setUser, db } = useAuth();
+    const { loggedIn, user, setUser, db, hashPassword } = useAuth();
     const [username, setUsername] = useState<string>('');
-    const [password, setPassword] = useState<string>('');
+    const [currentPassword, setCurrentPassword] = useState<string>('');
+    const [newPassword, setNewPassword] = useState<string>('');
 
 
     useEffect(() => {
@@ -111,23 +112,22 @@ export default function Controller() {
                             alert("Failed to change username!")
                             console.log(error);
                         }
-                    }
-                    }
+                    }}
                 />
 
                 <View style={uniqueStyles.inputField}>
                     <Text style={uniqueStyles.inputHeader}>Current Password</Text>
                     <TextInput
-                        onChangeText={setPassword}
+                        onChangeText={setCurrentPassword}
                         style={uniqueStyles.textInput}
-                    // placeholder='*Enter password...*'
+                        placeholder='*Enter current password...*'
                     />
                     <Text style={uniqueStyles.inputHeader}>New Password</Text>
                     <TextInput
                         value={user}
-                        onChangeText={setPassword}
+                        onChangeText={setNewPassword}
                         style={uniqueStyles.textInput}
-                    // placeholder='*Enter password...*'
+                        placeholder='*Enter new password...*'
                     />
                 </View>
 
@@ -136,28 +136,34 @@ export default function Controller() {
                 <ActionButton
                     label="Change password"
                     // textS={uniqueStyles.buttonText}
-                    onPress={() => alert("WIP")
+                    onPress={async () => {
+                        if (!db) {
+                            alert("DB not working")
+                            return null;
+                        }
+                        try {
+                            
+                            // Hash the passwords
+                            var hashedCurrent = await hashPassword(currentPassword);
+                            var hashedNew = await hashPassword(newPassword);
 
-                        // async () => {
-                        // if (!db) {
-                        //     alert("DB not working")
-                        //     return null;
-                        // }
-                        // try {
+                            
+                            // Change the password based on the username and current password
+                            let sqlChangePassword = `UPDATE users SET password = ? WHERE username = ? AND password = ?`;
+                            await db.runAsync(
+                                sqlChangePassword,
+                                [hashedNew, user.username, hashedCurrent]
+                            )
+                            if (user.password !== hashedCurrent){
+                                setUser(false);
+                                alert("User successfully deleted!")
+                            }
 
-                        //     // Add the new username and password into the db
-                        //     let sqlDelete = `UPDATE users SET username = ? WHERE username = ?`;
-                        //     await db.runAsync(
-                        //         sqlDelete,
-                        //         [user.username]
-                        //     )
-                        //     setUser(false);
-                        //     alert("User successfully deleted!")
-
-                        // } catch (error) {
-                        //     alert("Failed to delete user!")
-                        //     console.log(error);
-                        // }}
+                        } catch (error) {
+                            alert("Failed to delete user!")
+                            console.log(error);
+                        }
+                    }
                     }
                 />
                 <ActionButton
@@ -184,10 +190,12 @@ export default function Controller() {
                             console.log(error);
                         }
                     }}
+                    style={{ backgroundColor: 'red' }}
                 />
                 <ActionButton
                     label="Delete all layouts for this account"
                     // textS={uniqueStyles.buttonText}
+                    style={{ backgroundColor: 'red' }}
                     onPress={() => clearJsonData(false)}
                 />
 
@@ -196,6 +204,8 @@ export default function Controller() {
                     label="Delete all layouts for ALL accounts"
                     // textS={uniqueStyles.buttonText}
                     onPress={() => clearJsonData(true)}
+                    style={{ backgroundColor: 'yellow' }}
+                    textS={{ color: 'red', fontWeight: 'bold' }}
                 />
                 <ActionButton
                     label="Delete ALL accounts on this device"
@@ -217,6 +227,8 @@ export default function Controller() {
                             console.log(error);
                         }
                     }}
+                    style={{ backgroundColor: 'yellow' }}
+                    textS={{ color: 'red', fontWeight: 'bold' }}
                 />
             </View>
         </ScrollView>

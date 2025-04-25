@@ -31,7 +31,7 @@ export const createDefaultStyles = (isDarkMode: boolean) => StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginVertical: 10,
+    marginTop: 40, // 20 is even
     color: isDarkMode ? '#fff' : '#000', 
   },
 
