@@ -3,15 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '@/app/_layout';
 import ActionButton from '@/components/settingsComponents/actionButton';
-import furnitureData from '@/Jsons/FurnitureData.json';
 import * as FileSystem from 'expo-file-system';
 import Furniture from '@/components/LayoutComponents/furniture';
 import { ColourPickerModal } from '@/components/LayoutComponents/colourPickerModal';
 import { useSocket } from "@/hooks/useSocket";
 import * as MediaLibrary from 'expo-media-library';
 import uuid from 'react-native-uuid';
-
-
 
 
 // Local json file with furniture data
@@ -29,30 +26,22 @@ const clearJsonData = async () => {
   }
 };
 
+
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
-
-// -------- Grid Visuals --------
-
-const roomSize = [600, 900];
 const gridSize = [0.8 * width, 0.55 * height];
-
-const tableWidth = 50;
-
-var scaleX = roomSize[0] / gridSize[0];
-var scaleY = roomSize[1] / gridSize[1];
-
 
 
 export default function AddLayout() {
+
+  // Hooks and theme
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
+  const { isConnected, sendMessage, QRCode } = useSocket();
 
-  // Notifications
-  const [notifications, setnotifications] = useState<string | null>(null);
-
+  // Form information
   const [name, setName] = useState<string>('');
   const [model, setModel] = useState<string>('');
   const [heightF, setHeight] = useState<number>(0);
@@ -60,13 +49,13 @@ export default function AddLayout() {
   const [length, setLength] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(0);
   const [selectedColour, setSelectedColour] = useState<string>('#aabbcc');
-  const [furnitureID, setfurnitureID] = useState<string>('');
   const [QRData, setQRData] = useState<string>('');
-  const { socket, isConnected, robotData, sendMessage, QRCode } = useSocket();
-
-
-  // State of furniture modal (to add furniture)
+  
+  // Background settings
+  const [isSaved, setIsSaved] = useState(false);
+  const [isDownloaded, setIsDownloaded] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [notifications, setnotifications] = useState<string | null>(null);
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
 
 
@@ -76,52 +65,63 @@ export default function AddLayout() {
    */
   const downloadQR = async (image: string) => {
 
-    // Get permissions
-    await requestPermission();
+    try {
 
 
-    // Convert base64 into a png with a file name
-    const base64Code = image.split("data:image/png;base64,")[1];
-    const newImage = FileSystem.documentDirectory + `${name}_${quantity}_QR_Code.png`;
-    await FileSystem.writeAsStringAsync(newImage, base64Code, {
-      encoding: FileSystem.EncodingType.Base64,
-    });
+      // Get permissions
+      await requestPermission();
 
 
-    // Save to camera roll and alert user
-    MediaLibrary.saveToLibraryAsync(newImage)
-      .then(() => alert('Photo added to camera roll!'))
-      .catch(err => console.log('err:', err))
+      // Convert base64 into a png with a file name
+      const base64Code = image.split("data:image/png;base64,")[1];
+      const newImage = FileSystem.documentDirectory + `${name}_${quantity}_QR_Code.png`;
+      await FileSystem.writeAsStringAsync(newImage, base64Code, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
 
 
-    // Reset form
-    setfurnitureID('');
-    setName('');
-    setModel('');
-    setHeight(0);
-    setWidth(0);
-    setLength(0);
-    setQuantity(0);
-    setSelectedColour('#aabbcc');
-    setQRData('');
-    addQRCode.pop();
+      // Save to camera roll and alert user
+      MediaLibrary.saveToLibraryAsync(newImage)
+        .then(() => alert('Photo added to camera roll!'))
+        .catch(err => console.log('err:', err))
 
+
+      // Reset form
+      setName('');
+      setModel('');
+      setHeight(0);
+      setWidth(0);
+      setLength(0);
+      setQuantity(0);
+      setSelectedColour('#aabbcc');
+      setQRData('');
+      // addQRCode = [];
+
+      setIsDownloaded(true);
+
+    } catch (error) {
+      alert("Error downloading QR image! Please check the provided permissions.")
+    }
   }
+
+
+  /**
+   * Save the new furniture to the furniture JSON.
+   * @returns 
+   */
   const saveFurniture = async () => {
 
     if (!name || !heightF || !widthF || !length || !quantity) {
-      // Show notifications to fill the fields
+
+      // Show notification to fill in the fields for 3 seconds
       setnotifications('Please fill the necessary fields (Marked with \'*\')');
-
-      // Show notifications for 3 sec
       setTimeout(() => setnotifications(null), 3000);
-
-      // Uncomment and click 'save furniture' with nothing on the fields (need reset expo)
-      //
-      //  clearJsonData();
 
       return;
     }
+
+    // Ensure the button changes
+    setIsSaved(true)
 
     // Make furniture ID
     let generatedID = uuid.v4().substring(0, 5);
@@ -139,7 +139,7 @@ export default function AddLayout() {
     };
 
     try {
-      
+
       // If json file doesn't exist, create file
       const checkJson = await FileSystem.getInfoAsync(localJson);
       if (!checkJson.exists) {
@@ -174,19 +174,16 @@ export default function AddLayout() {
       const data = await FileSystem.readAsStringAsync(localJson);
       // console.log('Furniture json updated:', data);
 
-      // Show notifications of successful
+      // Show success notification for 3 seconds
       setnotifications('New furniture added sucessfully');
-
-      // Show notifications for 3 sec
       setTimeout(() => setnotifications(null), 3000);
     }
+
     catch (error) {
       console.error('Failed to update/save data to json file:', error);
 
-      // Show notifications of failure
+      // Show notifications of failure for 3 seconds
       setnotifications('Failed to add new furniture.')
-
-      // Show notifications for 3 sec
       setTimeout(() => setnotifications(null), 3000);
     }
   };
@@ -205,17 +202,30 @@ export default function AddLayout() {
             style={uniqueStyles.imageBody}
             source={{ uri: (`data:image/png;base64,${QRCode}`) }} />
         </View>
+
         {/* Download button */}
-        <View style={uniqueStyles.buttonContainer}>
-          {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
-          <ActionButton
-            label="Download QR Code"
-            onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
-          />
-        </View>
+        {!isDownloaded ?
+          <View style={uniqueStyles.buttonContainer}>
+            {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+            <ActionButton
+              label="Download QR Code"
+              onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
+            />
+          </View>
+          :
+          <View style={uniqueStyles.buttonContainer}>
+            {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+            <ActionButton
+              label="QR Downloaded!"
+              onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
+              style={{ backgroundColor: 'grey' }}
+            />
+          </View>
+        }
       </View>
     )
   }
+
 
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
@@ -327,13 +337,25 @@ export default function AddLayout() {
         />
       </View>
 
-      <View style={uniqueStyles.buttonContainer}>
-        {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
-        <ActionButton
-          label="Save Furniture"
-          onPress={saveFurniture}
-        />
-      </View>
+
+      {!isSaved ?
+        <View style={uniqueStyles.buttonContainer}>
+          {/* {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>} */}
+          <ActionButton
+            label="Save Furniture"
+            onPress={saveFurniture}
+          />
+        </View>
+        :
+        <View style={uniqueStyles.buttonContainer}>
+          {/* {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>} */}
+          <ActionButton
+            label="Furniture Saved!"
+            onPress={() => console.log("filler")}
+            style={{ backgroundColor: 'grey' }}
+          />
+        </View>
+      }
 
       {addQRCode}
 

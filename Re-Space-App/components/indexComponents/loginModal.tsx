@@ -28,27 +28,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
     const [password, setPassword] = useState<string>('');
     const [showPassword, setShowPassword] = useState(false);
     const { socket, isConnected, sendMessage } = useSocket();
-    const { loggedIn, user, setUser, db } = useAuth();
+    const { loggedIn, user, setUser, db, hashPassword } = useAuth();
     const [notifications, setnotifications] = useState<string | null>(null);
 
     const toggleShowPassword = () => {
         setShowPassword(!showPassword);
     };
-
-    // 
-    /**
-     * Grab instance of the entered password and hash it
-     * @param password The inputted password
-     * @returns hashedPassword | The hashed password
-     */
-    const hashPassword = async (password: string) => {
-        const passwordInstance = password;
-        const hashedPassword = await Crypto.digestStringAsync(
-            Crypto.CryptoDigestAlgorithm.SHA512,
-            passwordInstance
-        )
-        return hashedPassword;
-    }
 
     // Check db and fields work, and get first instance of username
     const checks = async () => {

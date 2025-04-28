@@ -8,14 +8,11 @@ import { useSocket } from "@/hooks/useSocket";
 import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { CurrentRenderContext } from "@react-navigation/native";
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
-import { setGestureState } from "react-native-reanimated";
-import { isPosition } from "react-native-drax";
 import { Link } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigation, useRouter, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 
 
 // Get dimensions of the screen
@@ -564,6 +561,7 @@ export default function DragAndDrop() {
 
                     {/* <Text style={defaultStyles.pageTitle}>Add Layout</Text> */}
                     <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
+
                     {/* Rotation buttons */}
                     {/* Rotation to right */}
                     <TouchableOpacity
@@ -767,11 +765,11 @@ export default function DragAndDrop() {
                         ) : (
                             <>
                                 {isConnected
-                                    ? <Link href="../extraPages/systemRunning" asChild>
+                                    ? <Link href={{ pathname: "../extraPages/systemRunning", params: {layoutName} }} asChild>
                                         <ActionButton
                                             label="Ready To Go!"
                                             onPress={() => {
-                                                setLayout(true);
+                                                // setLayout(true);
                                                 sendMessage({ type: "desired_layout", locations: boxesFormatted })
                                             }}
                                         />
