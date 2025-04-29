@@ -37,17 +37,11 @@ const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh +
 const initialOffsetX = -(screenWidth - gridWidth * initialZoom) - 350 / 2;
 const initialOffsetY = (screenHeight - gridHeight * initialZoom) - 800 / 2;
 
-// Boxes in the grid
-const allBoxes = [
-  { id: 1, x: 0, y: 0, width: 70, length: 30, color: 'red', rotation: 0.0 },
-  { id: 2, x: 150, y: 150, width: 50, length: 150, color: 'green', rotation: 0.0 },
-  { id: 3, x: 100, y: 100, width: 50, length: 30, color: 'blue', rotation: 0.0 },
-];
-
 export default function systemRunning() {
 
   // Define 'Box' to store in 'currentPos'  
   type Box = {
+    furnitureID: string;
     id: number;
     x: Float;
     y: Float;
@@ -71,10 +65,10 @@ export default function systemRunning() {
   const [hasBeenCalled, setHasBeenCalled] = useState<Boolean>(false);
 
   // Box positions
-  const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
-  const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
-  const [inputAngle, setInputAngle] = useState(''); // Value of angle of the rotation furniture
-  const [boxes, setBoxes] = useState(allBoxes); // set boxes array
+  const [inputX, setInputX] = useState<Float>(0); // Value of input box of 'x' coordinate
+  const [inputY, setInputY] = useState<Float>(0); // Value of input box of 'y' coordinate
+  const [inputAngle, setInputAngle] = useState<Float>(0); // Value of angle of the rotation furniture
+  const [boxes, setBoxes] = useState<Box[]>([]); // set boxes array
   const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]); // Placed boxes of current layout
   const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
 
@@ -152,19 +146,19 @@ export default function systemRunning() {
       onPanResponderGrant: () => {
         setSelectedBox(id); // Selected box to highlighted
         var thisBox = boxes.find((box) => box.id === id)
-        setInputX(String(thisBox?.x))
-        setInputY(String(thisBox?.y))
-        setInputAngle(String(thisBox?.rotation))
-        console.log(
-          `Box ${id} updated position: `,
-          thisBox,
-          console.log(selectedBox)
-        );
+        setInputX(Number(thisBox?.x))
+        setInputY(Number(thisBox?.y))
+        setInputAngle(Number(thisBox?.rotation))
+        console.log(`Box ${id} updated position: `, thisBox);
       }
     });
 
   return (
-    <ScrollView contentContainerStyle={defaultStyles.body}>
+    <ScrollView
+      contentContainerStyle={defaultStyles.body}
+    // stickyHeaderIndices={[0]}
+    // showsVerticalScrollIndicator={false}
+    >
 
       {/* Title */}
       <TextInput
@@ -250,7 +244,7 @@ export default function systemRunning() {
                   },
                 ]}
               >
-                <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
+                <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.furnitureID}</Text>
               </View>
             ))}
 
@@ -277,7 +271,7 @@ export default function systemRunning() {
                   ]}
                   {...panResponder.panHandlers}
                 >
-                  <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                  <Text style={uniqueStyles.boxText}>{box.furnitureID}</Text>
                 </View>
               );
             })}
@@ -287,9 +281,9 @@ export default function systemRunning() {
 
       {/* Show coordinates */}
       <View style={uniqueStyles.coordinatesContainer}>
-        <Text style={uniqueStyles.coordinates}>X = {inputX}</Text>
-        <Text style={uniqueStyles.coordinates}>Y = {inputY}</Text>
-        <Text style={uniqueStyles.coordinates}>Angle = {inputAngle}</Text>
+        <Text style={uniqueStyles.coordinates}>X = {Math.round(inputX * 100) / 100}</Text>
+        <Text style={uniqueStyles.coordinates}>Y = {Math.round(inputY * 100) / 100}</Text>
+        <Text style={uniqueStyles.coordinates}>Angle = {Math.round(inputAngle * 100) / 100}</Text>
       </View>
 
 
@@ -297,6 +291,8 @@ export default function systemRunning() {
         <Text>Progress bar</Text>
       </View>
 
+
+      {/* Could have as permanent on the screen */}
       <ActionButton
         label="Emergency Stop"
         icon={React.createElement(Icons.StopCircle)}
@@ -397,5 +393,6 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       position: 'absolute',
       top: 400,
       left: '15%',
+      gap: 20, // make consistent
     }
   });
