@@ -101,7 +101,9 @@ export default function DragAndDrop() {
 
     // Refresh layout on selected layout change
     useEffect(() => {
-        if (!hasBeenCalled) {
+
+        // Check selectedLayout isn't empty and has not been called
+        if (Object.keys(selectedLayout).length > 0 && !hasBeenCalled) {
 
 
             // Convert from object of elements to string
@@ -111,15 +113,11 @@ export default function DragAndDrop() {
             }
             console.log(currentTitle);
 
+
             loadLayout(currentTitle)
             setHasBeenCalled(true)
         }
     }, [selectedLayout]);
-
-    // // Refresh layout on selected layout change
-    // useEffect(() => {
-
-    // }, [isSaved]);
 
 
     /**
@@ -127,6 +125,8 @@ export default function DragAndDrop() {
      * @param selectedLayout String - The selected layout title in the library
      */
     const loadLayout = async (selectedLayout: string) => {
+
+        console.log("loadlayout called")
 
         // Set the title
         setlayoutName(selectedLayout)
@@ -148,14 +148,16 @@ export default function DragAndDrop() {
             .forEach((box: Box) => {
                 newBoxes.push(box);
             })
-            
+
 
         // Set all the boxes
         setBoxes(newBoxes)
     };
 
 
-    // Call function to clear the json data from device
+    /**
+     * Call function to clear the layout json entry from this device
+     */
     const deleteLayout = async () => {
         try {
 

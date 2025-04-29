@@ -50,13 +50,23 @@ export default function AddLayout() {
   const [quantity, setQuantity] = useState<number>(0);
   const [selectedColour, setSelectedColour] = useState<string>('#aabbcc');
   const [QRData, setQRData] = useState<string>('');
-  
+
   // Background settings
   const [isSaved, setIsSaved] = useState(false);
   const [isDownloaded, setIsDownloaded] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [updatedQR, setUpdatedQR] = useState(true);
   const [notifications, setnotifications] = useState<string | null>(null);
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+
+
+  // Grab the new QR code once it's changed, only once
+  useEffect(() => {
+    if (QRCode && !updatedQR) {
+      setUpdatedQR(true)
+      setQRData(QRCode)
+    }
+  }, [QRCode, updatedQR])
 
 
   /**
@@ -95,7 +105,6 @@ export default function AddLayout() {
       setQuantity(0);
       setSelectedColour('#aabbcc');
       setQRData('');
-      // addQRCode = [];
 
       setIsDownloaded(true);
 
@@ -120,8 +129,9 @@ export default function AddLayout() {
       return;
     }
 
-    // Ensure the button changes
+    // Ensure the button changes and allow for updating the qrcode
     setIsSaved(true)
+    setUpdatedQR(false)
 
     // Make furniture ID
     let generatedID = uuid.v4().substring(0, 5);
@@ -187,44 +197,6 @@ export default function AddLayout() {
       setTimeout(() => setnotifications(null), 3000);
     }
   };
-
-  var addQRCode: any = [];
-
-  // When the QRcode has been recieved
-  if (QRCode != null && addQRCode.length == 0) {
-    // setQRData(QRCode);
-
-    addQRCode.push(
-      <View style={{ alignItems: 'center' }}>
-        {/* QR generation */}
-        <View style={uniqueStyles.pngContainer}>
-          <Image
-            style={uniqueStyles.imageBody}
-            source={{ uri: (`data:image/png;base64,${QRCode}`) }} />
-        </View>
-
-        {/* Download button */}
-        {!isDownloaded ?
-          <View style={uniqueStyles.buttonContainer}>
-            {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
-            <ActionButton
-              label="Download QR Code"
-              onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
-            />
-          </View>
-          :
-          <View style={uniqueStyles.buttonContainer}>
-            {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
-            <ActionButton
-              label="QR Downloaded!"
-              onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
-              style={{ backgroundColor: 'grey' }}
-            />
-          </View>
-        }
-      </View>
-    )
-  }
 
 
   return (
@@ -357,7 +329,37 @@ export default function AddLayout() {
         </View>
       }
 
-      {addQRCode}
+      {QRData != '' &&
+
+        <View style={{ alignItems: 'center' }}>
+          {/* QR generation */}
+          <View style={uniqueStyles.pngContainer}>
+            <Image
+              style={uniqueStyles.imageBody}
+              source={{ uri: (`data:image/png;base64,${QRCode}`) }} />
+          </View>
+
+          {/* Download button */}
+          {!isDownloaded ?
+            <View style={uniqueStyles.buttonContainer}>
+              {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+              <ActionButton
+                label="Download QR Code"
+                onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
+              />
+            </View>
+            :
+            <View style={uniqueStyles.buttonContainer}>
+              {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+              <ActionButton
+                label="QR Downloaded!"
+                onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
+                style={{ backgroundColor: 'grey' }}
+              />
+            </View>
+          }
+        </View>
+      }
 
     </ScrollView>
   );
