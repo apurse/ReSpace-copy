@@ -141,16 +141,17 @@ export default function DragAndDrop() {
         let layoutIndex = jsonData[user.username]?.layouts
             .findIndex((layout: any) => layout.name === selectedLayout);
 
-        console.log(layoutIndex)
 
-
-        // Get each box in the current layout
+        // Get each box in the current layout and add to array
+        var newBoxes: Box[] = [];
         jsonData[user.username]?.layouts[layoutIndex].newLayout.boxes
             .forEach((box: Box) => {
-                console.log("box", box.id)
-                // Set the position of each box currently
-                updateBoxPosition(box.id, box.x, box.y);
+                newBoxes.push(box);
             })
+            
+
+        // Set all the boxes
+        setBoxes(newBoxes)
     };
 
 
@@ -198,6 +199,7 @@ export default function DragAndDrop() {
             room: room.name,
             currentLayout: {
                 boxes: oldLayoutBoxes.map(box => ({
+                    furnitureID: box.furnitureID,
                     id: box.id,
                     x: box.x,
                     y: box.y,
@@ -209,6 +211,7 @@ export default function DragAndDrop() {
             },
             newLayout: {
                 boxes: newLayoutBoxes.map(box => ({
+                    furnitureID: box.furnitureID,
                     id: box.id,
                     x: box.x,
                     y: box.y,
@@ -287,7 +290,7 @@ export default function DragAndDrop() {
 
             // Show local json file in console
             const data = await FileSystem.readAsStringAsync(layoutJson);
-            // console.log('Layout json updated:', data);
+            console.log('Layout json updated:', data);
 
             setnotifications('New layout saved sucessfully');
             setTimeout(() => setnotifications(null), 3000);
@@ -767,7 +770,7 @@ export default function DragAndDrop() {
                         ) : (
                             <>
                                 {isConnected
-                                    ? <Link href={{ pathname: "../extraPages/systemRunning", params: {layoutName} }} asChild>
+                                    ? <Link href={{ pathname: "../extraPages/systemRunning", params: { layoutName } }} asChild>
                                         <ActionButton
                                             label="Ready To Go!"
                                             onPress={() => {

@@ -114,26 +114,23 @@ export default function systemRunning() {
     let layoutIndex = jsonData[user.username]?.layouts
       .findIndex((layout: any) => layout.name === selectedLayout);
 
-    console.log(layoutIndex)
 
-
-    // Get each box in the current layout
+    // Get each box in the current layout and add to array
+    var newBoxes: Box[] = [];
     jsonData[user.username]?.layouts[layoutIndex].newLayout.boxes
       .forEach((box: Box) => {
-        console.log("box", box.id)
-        // Set the position of each box currently
-
-        // Close but causes weird fluctuations
-        // updateBoxPosition(box.id, box.x, box.y);
-        // updateBoxPosition(box.id, box.x, box.y);
+        newBoxes.push(box);
       })
+
+
+    // Set all the boxes
+    setBoxes(newBoxes)
   };
 
 
   // Refresh layout on selected layout change
   useEffect(() => {
     if (!hasBeenCalled) {
-
 
       // Convert from object of elements to string
       var currentTitle = "";
@@ -145,7 +142,9 @@ export default function systemRunning() {
       loadLayout(currentTitle)
       setHasBeenCalled(true)
     }
+
   }, [selectedLayout]);
+
 
   const createPanResponder = (id: number) =>
     PanResponder.create({
