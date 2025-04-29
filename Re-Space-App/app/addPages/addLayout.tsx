@@ -40,15 +40,16 @@ const initialOffsetY = (screenHeight - gridHeight * initialZoom) - 800 / 2;
 
 // Boxes in the grid
 const allBoxes = [
-    { id: 1, x: 0, y: 0, width: 70, length: 30, color: 'red', rotation: 0.0 },
-    { id: 2, x: 150, y: 150, width: 50, length: 150, color: 'green', rotation: 0.0 },
-    { id: 3, x: 100, y: 100, width: 50, length: 30, color: 'blue', rotation: 0.0 },
+    { furnitureID: '111', id: 1, x: 0, y: 0, width: 70, length: 30, color: 'red', rotation: 0.0 },
+    { furnitureID: '222', id: 2, x: 150, y: 150, width: 50, length: 150, color: 'green', rotation: 0.0 },
+    { furnitureID: '333', id: 3, x: 100, y: 100, width: 50, length: 30, color: 'blue', rotation: 0.0 },
 ];
 
 export default function DragAndDrop() {
 
     // Define 'Box' to store in 'currentPos'  
     type Box = {
+        furnitureID: string;
         id: number;
         x: Float;
         y: Float;
@@ -455,7 +456,8 @@ export default function DragAndDrop() {
 
         // New box (furniture) in the grid
         const newBox = {
-            id: newId,
+            furnitureID: furniture.furnitureID,
+            id: newId, // change to "index"
             x: roomDimensionsMM[0] / 2,
             y: roomDimensionsMM[1] / 2,
             width: furniture.width,
@@ -466,7 +468,7 @@ export default function DragAndDrop() {
 
         setBoxes((prevBoxes) => [...prevBoxes, newBox]);
 
-        setnotifications('Furniture \'' + newId + '\' has been added');
+        setnotifications('Furniture \'' + furniture.furnitureID + '\' has been added');
         setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
     };
 
@@ -656,7 +658,7 @@ export default function DragAndDrop() {
                                             },
                                         ]}
                                     >
-                                        <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.id}</Text>
+                                        <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.furnitureID}</Text>
                                     </View>
                                 ))}
 
@@ -683,7 +685,7 @@ export default function DragAndDrop() {
                                             ]}
                                             {...panResponder.panHandlers}
                                         >
-                                            <Text style={uniqueStyles.boxText}>{box.id}</Text>
+                                            <Text style={uniqueStyles.boxText}>{box.furnitureID}</Text>
                                         </View>
                                     );
                                 })}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
 import Modal from "react-native-modal";
 import * as FileSystem from "expo-file-system";
 import { useTheme } from "@/app/_layout";
@@ -10,6 +10,7 @@ const localJson = FileSystem.documentDirectory + "FurnitureData.json";
 
 // Defining types for furniture items
 export interface FurnitureItem {
+    furnitureID: string;
     name: string;
     model: string;
     height: number;
@@ -54,7 +55,7 @@ const FurnitureModal: React.FC<FurnitureModalProps> = ({ isVisible, onClose, onS
 
     return (
         <Modal isVisible={isVisible} style={uniqueStyles.modal} onBackdropPress={onClose}>
-            <View style={uniqueStyles.modalContent}>
+            <ScrollView style={uniqueStyles.modalContent}>
                 <Text style={uniqueStyles.title}>Select Furniture</Text>
                 <FlatList
                     data={furnitureData}
@@ -78,7 +79,7 @@ const FurnitureModal: React.FC<FurnitureModalProps> = ({ isVisible, onClose, onS
                 <TouchableOpacity style={uniqueStyles.closeButton} onPress={onClose}>
                     <Text style={uniqueStyles.closeText}>Close</Text>
                 </TouchableOpacity>
-            </View>
+            </ScrollView>
         </Modal>
     );
 };
