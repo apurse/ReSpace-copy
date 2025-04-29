@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from "@/app/_layout";
 import { useRouter } from 'expo-router';
+import { createRoomIfNotExists } from '@/components/libraryComponents/roomCreator';
 
 // expo navigation: https://docs.expo.dev/router/navigating-pages/
 // Get dimensions of the screen
@@ -26,8 +27,24 @@ export default function newRoom() {
             onChangeText={setRoomName}
             style={uniqueStyles.textInput} 
             />
-            <Pressable style={[uniqueStyles.button, {backgroundColor: '#4CAF50'}]} onPress={() => router.push({ pathname: '/addPages/roomDetails', params: { roomName } })} >
-                <Text style={uniqueStyles.text}>Create</Text>
+            <Pressable
+              style={[uniqueStyles.button, { backgroundColor: '#4CAF50' }]}
+              onPress={async () => {
+                if (!roomName.trim()) {
+                  alert("Please enter a room name.");
+                  return;
+                }
+
+                const result = await createRoomIfNotExists(roomName);
+
+                if (result.success) {
+                  router.push({ pathname: '/addPages/roomDetails', params: { roomName } });
+                } else {
+                  alert(result.message);
+                }
+              }}
+            >
+              <Text style={uniqueStyles.text}>Create</Text>
             </Pressable>
             <Pressable style={[uniqueStyles.button, {backgroundColor: '#fa440c'}]} onPress={() => router.back()}>
                 <Text style={uniqueStyles.text}>Cancel</Text>
