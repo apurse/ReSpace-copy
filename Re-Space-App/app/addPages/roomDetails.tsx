@@ -2,6 +2,8 @@ import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from "@/app/_layout";
+import * as FileSystem from 'expo-file-system';
+import { settingRoomName } from '@/components/libraryComponents/roomCreator';
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -22,15 +24,47 @@ export default function RoomDetails() {
                 <Text style={defaultStyles.pageTitle}>{roomName ? `${roomName}` : 'Room Details'}</Text>
             </View>
             <View style={uniqueStyles.buttonContainer}>
-                <Pressable style={uniqueStyles.button} onPress={() => router.push('/addPages/manageLayouts')}>
+                <Pressable 
+                    style={uniqueStyles.button} 
+                    onPress={() => router.push({ pathname: '/addPages/manageLayouts', params: { roomName } })}
+                >
                     <Text style={uniqueStyles.text}>Manage Layouts</Text>
                 </Pressable>
 
-                <Pressable style={uniqueStyles.button} onPress={() => router.push('/addPages/manageFurniture')}>
+                <Pressable 
+                    style={uniqueStyles.button} 
+                    onPress={() => router.push({ pathname: '/addPages/manageFurniture', params: { roomName } })}
+                >
                     <Text style={uniqueStyles.text}>Manage Furniture</Text>
                 </Pressable>
 
-                <Pressable style={[uniqueStyles.button, {backgroundColor: '#FF6969'}]} onPress={() => router.back()}>
+                <Pressable 
+                    style={[uniqueStyles.button, {backgroundColor: '#FF6969'}]} 
+                    onPress={async () => {
+                        if (!roomName) {
+                          alert("No room name specified.");
+                          return;
+                        }
+                        
+                        const fileName = settingRoomName(roomName);
+                        const fileUri = `${FileSystem.documentDirectory}rooms/${fileName}.json`;
+                    
+                        try {
+                          const fileInfo = await FileSystem.getInfoAsync(fileUri);
+                    
+                          if (fileInfo.exists) {
+                            await FileSystem.deleteAsync(fileUri);
+                            alert(`Room "${roomName}" deleted successfully.`);
+                            router.push('/(tabs)/roomsManager');
+                          } else {
+                            alert("Room file not found.");
+                          }
+                        } catch (error) {
+                          console.error("Failed to delete room:", error);
+                          alert("An error occurred while deleting the room.");
+                        }
+                      }}
+                >
                     <Text style={uniqueStyles.text}>Delete This Room</Text>
                 </Pressable>
             </View>

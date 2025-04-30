@@ -23,7 +23,12 @@ export const doesRoomExist = async (roomName: string): Promise<boolean> => {
 //  Create room file
 export const createRoomIfNotExists = async (
   roomName: string
-): Promise<{ success: boolean; message: string }> => {
+): Promise<{
+  success: boolean;
+  message: string;
+  alreadyExists?: boolean;
+  roomData?: any;
+}> => {
   const fileName = settingRoomName(roomName);
   const fileJson = `${roomsPath}${fileName}.json`;
 
@@ -35,8 +40,15 @@ export const createRoomIfNotExists = async (
 
     const fileExists = await doesRoomExist(roomName);
     if (fileExists) {
-      console.log(`Room already exists: ${fileJson}`);  //  Print file location
-      return { success: false, message: 'Room already exists' };
+      console.log(`Room already exists: ${fileJson}`); // Show file path to check if it exists
+
+      const existingData = await FileSystem.readAsStringAsync(fileJson);
+      return {
+        success: true,
+        message: 'Room already exists',
+        alreadyExists: true,
+        roomData: JSON.parse(existingData),
+      };
     }
 
     const roomData = {
@@ -45,8 +57,13 @@ export const createRoomIfNotExists = async (
     };
 
     await FileSystem.writeAsStringAsync(fileJson, JSON.stringify(roomData));
-    console.log(`Room created at: ${fileJson}`);  //  Print file location
-    return { success: true, message: 'Room created successfully' };
+    console.log(`Room created at: ${fileJson}`);  // Show file path to check if it was created
+    return {
+      success: true,
+      message: 'Room created successfully',
+      alreadyExists: false,
+      roomData
+    };
   } catch (error) {
     console.error('Error creating room:', error);
     return { success: false, message: 'An error occurred while creating the room' };
