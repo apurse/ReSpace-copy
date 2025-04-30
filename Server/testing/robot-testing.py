@@ -8,10 +8,12 @@ host = socket.gethostname()
 # Todo: Massive refactoring required, just for testing
 async def send_message(uri: str):
     msg = {
-  "type": "status",
-  "target": "app",
-  "position": {"x": 10, "y": 20},
-  "battery": 90
+  "type": "status_update",
+  "current_activity": "ibcwev",
+  "locationX": 1000,
+  "locationY": 800,
+  "carrying": "e6e29",
+  "angle": 180,
 }
     async with websockets.connect(uri) as websocket:
         print("Connected to WebSocket server. Type your messages below:")

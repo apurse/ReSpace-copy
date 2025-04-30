@@ -11,6 +11,8 @@ import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-vi
 import { useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
 import * as FileSystem from 'expo-file-system';
+import { Robot } from "@/components/models/Robot";
+
 
 
 
@@ -81,10 +83,40 @@ export default function systemRunning() {
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
 
+
   if (!isConnected) {
     console.warn("WebSocket not connected!");
     return;
   }
+
+  useEffect(() => {
+
+    console.log("use effect called")
+    console.log(robotData)
+    // Get the old boxes 
+    robotData.forEach((robot: Robot) => {
+
+      console.log("robot.carrying: ", robot.carrying)
+      // console.log(boxes)
+      
+
+      // Get the furniture index within the JSON
+      let boxIndex = boxes.findIndex((box: Box) => box.furnitureID === robot.carrying);
+
+      console.log("boxIndex: ", boxIndex)
+
+      if (boxIndex != -1) {
+
+        // Set the values
+        boxes[boxIndex].x = robot?.locationX;
+        boxes[boxIndex].y = robot?.locationY;
+        boxes[boxIndex].rotation = robot?.angle;
+      }
+    })
+
+    setBoxes(boxes)
+  }, [robotData])
+
 
   // Get the selected layout from the library
   const selectedLayout = useLocalSearchParams();
@@ -97,7 +129,6 @@ export default function systemRunning() {
 
     // Set the title
     setlayoutName(selectedLayout)
-
 
     // Read the data from JSON
     const readData = await FileSystem.readAsStringAsync(layoutJson);

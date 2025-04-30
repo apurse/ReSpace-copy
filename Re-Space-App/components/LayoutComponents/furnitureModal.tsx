@@ -4,6 +4,7 @@ import Modal from "react-native-modal";
 import * as FileSystem from "expo-file-system";
 import { useTheme } from "@/app/_layout";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Local json file with furniture data
 const localJson = FileSystem.documentDirectory + "FurnitureData.json";
@@ -55,7 +56,7 @@ const FurnitureModal: React.FC<FurnitureModalProps> = ({ isVisible, onClose, onS
 
     return (
         <Modal isVisible={isVisible} style={uniqueStyles.modal} onBackdropPress={onClose}>
-            <ScrollView style={uniqueStyles.modalContent}>
+            <View style={uniqueStyles.modalContent}>
                 <Text style={uniqueStyles.title}>Select Furniture</Text>
                 <FlatList
                     data={furnitureData}
@@ -70,7 +71,7 @@ const FurnitureModal: React.FC<FurnitureModalProps> = ({ isVisible, onClose, onS
                             <View style={uniqueStyles.itemContainer}>
                                 <Text style={uniqueStyles.itemText}>{item.name} ({item.model})</Text>
                                 <Text style={uniqueStyles.itemDetails}>
-                                    Size: {item.width}w x {item.length}l x {item.height}h, Color: {item.selectedColour}
+                                    Size: {item.width}w x {item.length}l x {item.height}h, Colour: {item.selectedColour}
                                 </Text>
                             </View>
                         </TouchableOpacity>
@@ -79,7 +80,7 @@ const FurnitureModal: React.FC<FurnitureModalProps> = ({ isVisible, onClose, onS
                 <TouchableOpacity style={uniqueStyles.closeButton} onPress={onClose}>
                     <Text style={uniqueStyles.closeText}>Close</Text>
                 </TouchableOpacity>
-            </ScrollView>
+            </View>
         </Modal>
     );
 };
@@ -105,6 +106,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             textAlign: 'center',
         },
         itemContainer: {
+            // gap: 100,
             padding: 10,
             borderBottomWidth: 1,
             borderBottomColor: "#ccc",

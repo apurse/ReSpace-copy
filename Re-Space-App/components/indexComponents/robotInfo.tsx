@@ -20,6 +20,7 @@ export default function robotInfo({ robot }: { robot: Robot }) {
             <Text style={uniqueStyles.text}>Current activity: {robot.current_activity}</Text>
             <Text style={uniqueStyles.text}>Location X: {robot.locationX.toFixed(2)}</Text>
             <Text style={uniqueStyles.text}>Location Y: {robot.locationY.toFixed(2)}</Text>
+            <Text style={uniqueStyles.text}>Rotation: {robot.angle.toFixed(2)}</Text>
         </View>
     );
 };
@@ -35,7 +36,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             borderColor: isDarkMode ? '#fff' : '#000',
             borderWidth: 1,
             borderRadius: 8,
-            height: 115,
+            height: 150,
             padding: 8,
             alignItems: 'center',
         },

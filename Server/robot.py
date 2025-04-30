@@ -14,7 +14,8 @@ class Robot:
         self.locationX = -1
         self.locationY = -1
         self.current_activity = "idle"
-        self.carrying = None
+        self.carrying = ""
+        self.angle = 10
 
     async def send_status_to_app(self):
         """Sends the robot's current status to the app."""
@@ -24,7 +25,9 @@ class Robot:
             "robot_id": self.id,
             "battery": self.battery,
             "location": {"x": self.locationX, "y": self.locationY},
-            "current_activity": self.current_activity,
+            # "current_activity": self.current_activity,
+            "carrying": self.carrying,
+            "angle": self.angle
         }
         await hub.send_to_app(status_message)
         print(f"Status update sent: {status_message}")
@@ -88,4 +91,5 @@ class Robot:
             "location": {"x": self.locationX, "y": self.locationY},
             "current_activity": self.current_activity,
             "carrying": self.carrying,
+            "angle": self.angle,
         }

@@ -85,13 +85,14 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                     }
                     console.log("Initial Data incoming: ", data.robots);
                     // Convert JSON data into Robot objects
-                    const newRobotData = data.robots.map((robot: { robot_id: string; battery: number; location: { x: number; y: number; }; current_activity: string; carrying: string | null; }) =>
+                    const newRobotData = data.robots.map((robot: { robot_id: string; battery: number; location: { x: number; y: number; }; current_activity: string; carrying: string | null; angle: number;}) =>
                         new Robot(
                             robot.robot_id,
                             robot.battery,
                             robot.location,
                             robot.current_activity,
-                            robot.carrying
+                            robot.carrying,// furniture ID
+                            robot.angle
                         )
                     );
                     setRobotData(newRobotData); // Array of robot objects

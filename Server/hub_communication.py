@@ -192,7 +192,7 @@ async def handle_app_message(data):
     else:
         print("Received unknown command!")
         print("Unknown data: ", data)
-
+        
 
 async def handle_robot_message(robot, data):
     if data["type"] == "status_update":
@@ -201,7 +201,10 @@ async def handle_robot_message(robot, data):
         robot.battery = 69
         robot.locationX = data["locationX"]
         robot.locationY = data["locationY"]
-        robot.current_activity = data["current_activity"]
+        # robot.current_activity = data["current_activity"]
+        robot.carrying = data["carrying"]
+        print("carrying", data["carrying"])
+        robot.angle = data["angle"]
         # connected_robots[robot.id] = robot
         print("Updating robot status: ", robot.to_dict())
         await update_apps_robot_list()
