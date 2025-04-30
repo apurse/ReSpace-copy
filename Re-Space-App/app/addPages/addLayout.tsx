@@ -73,6 +73,7 @@ export default function DragAndDrop() {
     const [isModalVisible, setModalVisible] = useState(false); // State of furniture modal (to add furniture)
     const [isCurrentLayoutSet, setIsCurrentLayoutSet] = useState(false); // Check if the current layout is set or not
     const [isSaved, setIsSaved] = useState(false); // Check if the layout has been saved
+    const [loadedLayoutIndex, setLoadedLayoutIndex] = useState<number>(-1); // Check if the layout has been saved
 
     // Box positions
     const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
@@ -93,6 +94,8 @@ export default function DragAndDrop() {
     const squareRef = useRef(null);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
+
+    var duplicateNumber = 0
 
 
     // Get the selected layout from the library
@@ -150,8 +153,9 @@ export default function DragAndDrop() {
             })
 
 
-        // Set all the boxes
+        // Set all the boxes and the layout number
         setBoxes(newBoxes)
+        setLoadedLayoutIndex(layoutIndex)
     };
 
 
@@ -195,40 +199,17 @@ export default function DragAndDrop() {
             name: "test"
         }
 
-        // Set the json entry for each layout
-        const layout = {
-            name: layoutName,
-            room: room.name,
-            currentLayout: {
-                boxes: oldLayoutBoxes.map(box => ({
-                    furnitureID: box.furnitureID,
-                    id: box.id,
-                    x: box.x,
-                    y: box.y,
-                    width: box.width,
-                    length: box.length,
-                    color: box.color,
-                    rotation: box.rotation,
-                }))
-            },
-            newLayout: {
-                boxes: newLayoutBoxes.map(box => ({
-                    furnitureID: box.furnitureID,
-                    id: box.id,
-                    x: box.x,
-                    y: box.y,
-                    width: box.width,
-                    length: box.length,
-                    color: box.color,
-                    rotation: box.rotation,
-                }))
-            }
-        }
-
 
         try {
             if (!user) {
                 alert("User not logged in");
+                return;
+            }
+
+            // Check the layout has a name
+            if (!layoutName) {
+                setnotifications('Please add a unique title to this layout');
+                setTimeout(() => setnotifications(null), 3000);
                 return;
             }
 
@@ -258,31 +239,89 @@ export default function DragAndDrop() {
                 jsonData = JSON.parse(readData);
             }
 
-            const otherLayouts = jsonData[user.username]?.layouts;
+            
+            // Get all layouts
+            const allLayouts: any[] =  jsonData[user.username]?.layouts;
+
 
             var nameUsed = false;
+            var newName = '';
 
-            // Check that the provided name is unique
-            jsonData[user.username]?.layouts?.forEach((layout: { name: string }) => {
-                console.log("name: ", layout.name)
-                nameUsed = (layoutName == layout.name) ? true : false;
-            })
+            // If this is a new layout
+            if (loadedLayoutIndex == -1) {
 
-            // If not filled in correctly
-            if (!layoutName || nameUsed) {
-                setnotifications('Please add a unique title to this layout');
-                setTimeout(() => setnotifications(null), 3000);
-                return;
+                
+                // Check that the provided name is unique
+                jsonData[user.username]?.layouts?.forEach((layout: { name: string }) => {
+                    nameUsed = (layout.name == layoutName) ? true : false;
+                })
+
+
+                // If its not unique, make a newName with (x) on afterwards 
+                if (nameUsed) {
+                    duplicateNumber++;
+                    newName = (`${layoutName}_(${duplicateNumber})`)
+                }
             }
 
-            // Set the updateData location and format
-            const updateData = {
-                ...jsonData,
-                [user.username]: {
-                    layouts: (otherLayouts
-                        ? [...otherLayouts, layout]
-                        : [layout]
-                    )
+
+            // Set the json entry for each layout
+            const layout = {
+                name: ((nameUsed) ? newName : layoutName),
+                room: room.name,
+                currentLayout: {
+                    boxes: oldLayoutBoxes.map(box => ({
+                        furnitureID: box.furnitureID,
+                        id: box.id,
+                        x: box.x,
+                        y: box.y,
+                        width: box.width,
+                        length: box.length,
+                        color: box.color,
+                        rotation: box.rotation,
+                    }))
+                },
+                newLayout: {
+                    boxes: newLayoutBoxes.map(box => ({
+                        furnitureID: box.furnitureID,
+                        id: box.id,
+                        x: box.x,
+                        y: box.y,
+                        width: box.width,
+                        length: box.length,
+                        color: box.color,
+                        rotation: box.rotation,
+                    }))
+                }
+            }
+
+            var updateData = {};
+
+            // If a layout has been selected
+            if (loadedLayoutIndex != -1) {
+
+
+                // Overwrite the selected layout
+                allLayouts[loadedLayoutIndex] = layout;
+
+                updateData = {
+                    ...jsonData,
+                    [user.username]: {
+                        layouts: allLayouts
+                    }
+                }
+            }
+            else {
+
+                // Set the updateData location and format
+                updateData = {
+                    ...jsonData,
+                    [user.username]: {
+                        layouts: (allLayouts
+                            ? [...allLayouts, layout]
+                            : [layout]
+                        )
+                    }
                 }
             }
 
@@ -771,28 +810,40 @@ export default function DragAndDrop() {
                             </>
                         ) : (
                             <>
-                                {isConnected
-                                    ? <Link href={{ pathname: "../extraPages/systemRunning", params: { layoutName } }} asChild>
+                                {isConnected ?
+                                    (isSaved ?
+                                        (
+
+                                            <Link href={{ pathname: "../extraPages/systemRunning", params: { layoutName } }} asChild>
+                                                <ActionButton
+                                                    label="Ready To Go!"
+                                                    onPress={() => {
+                                                        sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                                                    }}
+                                                />
+                                            </Link>
+                                        )
+                                        :
+                                        (
+                                            <ActionButton
+                                                label="Save the layout first!"
+                                                onPress={() => {
+                                                    alert("Save the layout first!")
+                                                }}
+                                            />
+                                        )
+                                    )
+                                    :
+                                    (
                                         <ActionButton
-                                            label="Ready To Go!"
+                                            label="Connect to WebSocket!"
                                             onPress={() => {
-                                                // setLayout(true);
-                                                sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                                                alert("WebSocket Not Connected!")
                                             }}
                                         />
-                                    </Link>
-                                    : <ActionButton
-                                        label="Ready To Go!"
-                                        // onPress={() => {
-                                        //     alert("WebSocket Not Connected!")
-                                        // }}
-                                        // TESTING PURPOSES
-                                        onPress={() => {
-                                            setLayout(true);
-                                            sendMessage({ type: "desired_layout", locations: boxesFormatted })
-                                        }}
-                                    />
+                                    )
                                 }
+
                                 <ActionButton
                                     label="Reset Layout"
                                     onPress={resetLayout}

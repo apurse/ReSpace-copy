@@ -14,8 +14,6 @@ import * as FileSystem from 'expo-file-system';
 import { Robot } from "@/components/models/Robot";
 
 
-
-
 // Get dimensions of the screen
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -71,7 +69,7 @@ export default function systemRunning() {
   const [inputY, setInputY] = useState<Float>(0); // Value of input box of 'y' coordinate
   const [inputAngle, setInputAngle] = useState<Float>(0); // Value of angle of the rotation furniture
   const [boxes, setBoxes] = useState<Box[]>([]); // set boxes array
-  const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]); // Placed boxes of current layout
+  const [boxDestinations, setBoxDestinations] = useState<Box[]>([]); // Placed boxes of current layout
   const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
 
   // User settings
@@ -89,25 +87,18 @@ export default function systemRunning() {
     return;
   }
 
+  // Update the box coordinates based on robot position
   useEffect(() => {
 
-    console.log("use effect called")
-    console.log(robotData)
     // Get the old boxes 
     robotData.forEach((robot: Robot) => {
-
-      console.log("robot.carrying: ", robot.carrying)
-      // console.log(boxes)
-      
 
       // Get the furniture index within the JSON
       let boxIndex = boxes.findIndex((box: Box) => box.furnitureID === robot.carrying);
 
-      console.log("boxIndex: ", boxIndex)
-
+      // If found, set the values
       if (boxIndex != -1) {
 
-        // Set the values
         boxes[boxIndex].x = robot?.locationX;
         boxes[boxIndex].y = robot?.locationY;
         boxes[boxIndex].rotation = robot?.angle;
@@ -140,16 +131,25 @@ export default function systemRunning() {
       .findIndex((layout: any) => layout.name === selectedLayout);
 
 
-    // Get each box in the current layout and add to array
+    // Set the current position of each box
     var newBoxes: Box[] = [];
-    jsonData[user.username]?.layouts[layoutIndex].newLayout.boxes
+    jsonData[user.username]?.layouts[layoutIndex].currentLayout.boxes
       .forEach((box: Box) => {
         newBoxes.push(box);
       })
 
 
+    // Set the destinations as the grey boxes
+    var destinations: Box[] = [];
+    jsonData[user.username]?.layouts[layoutIndex].newLayout.boxes
+      .forEach((box: Box) => {
+        destinations.push(box);
+      })
+
+
     // Set all the boxes
     setBoxes(newBoxes)
+    setBoxDestinations(destinations)
   };
 
 
@@ -259,7 +259,7 @@ export default function systemRunning() {
             }}
           >
             {/* Display grey squares for origin point (optional) */}
-            {placedBoxes.map((box, index) => (
+            {boxDestinations.map((box, index) => (
               <View
                 key={`placed-${box.id}-${index}`}
                 style={[
