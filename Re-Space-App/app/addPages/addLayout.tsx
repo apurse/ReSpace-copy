@@ -9,7 +9,7 @@ import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@/hooks/useAuth";
 import { useLocalSearchParams } from "expo-router";
@@ -74,6 +74,7 @@ export default function DragAndDrop() {
     const [isCurrentLayoutSet, setIsCurrentLayoutSet] = useState(false); // Check if the current layout is set or not
     const [isSaved, setIsSaved] = useState(false); // Check if the layout has been saved
     const [loadedLayoutIndex, setLoadedLayoutIndex] = useState<number>(-1); // Check if the layout has been saved
+    const [duplicateNumber, setDuplicateNumber] = useState<number>(0); // Check if the layout has been saved
 
     // Box positions
     const [inputX, setInputX] = useState(''); // Value of input box of 'x' coordinate
@@ -91,11 +92,10 @@ export default function DragAndDrop() {
     const [zoomLevel, setZoomLevel] = useState(initialZoom); // Check zoom level
 
 
+
     const squareRef = useRef(null);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
-
-    var duplicateNumber = 0
 
 
     // Get the selected layout from the library
@@ -239,9 +239,9 @@ export default function DragAndDrop() {
                 jsonData = JSON.parse(readData);
             }
 
-            
+
             // Get all layouts
-            const allLayouts: any[] =  jsonData[user.username]?.layouts;
+            const allLayouts: any[] = jsonData[user.username]?.layouts;
 
 
             var nameUsed = false;
@@ -250,7 +250,7 @@ export default function DragAndDrop() {
             // If this is a new layout
             if (loadedLayoutIndex == -1) {
 
-                
+
                 // Check that the provided name is unique
                 jsonData[user.username]?.layouts?.forEach((layout: { name: string }) => {
                     nameUsed = (layout.name == layoutName) ? true : false;
@@ -259,7 +259,7 @@ export default function DragAndDrop() {
 
                 // If its not unique, make a newName with (x) on afterwards 
                 if (nameUsed) {
-                    duplicateNumber++;
+                    setDuplicateNumber(duplicateNumber + 1);
                     newName = (`${layoutName}_(${duplicateNumber})`)
                 }
             }
@@ -799,14 +799,17 @@ export default function DragAndDrop() {
                                     onClose={() => setModalVisible(false)}
                                     onSelectFurniture={addFurniture}
                                 />
-                                {/* ISSUE HERE */}
-                                <Link href="../(tabs)/library" asChild>
+                                {(loadedLayoutIndex != -1) &&
                                     <ActionButton
                                         label="Delete this layout"
-                                        onPress={deleteLayout}
+                                        onPress={async () => {
+                                            await deleteLayout()
+                                            router.replace('../(tabs)/library')
+                                        }}
                                         style={{ backgroundColor: '#fa440c' }}
                                     />
-                                </Link>
+                                }
+                                {/* </Link> */}
                             </>
                         ) : (
                             <>

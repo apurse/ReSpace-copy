@@ -258,7 +258,7 @@ export default function systemRunning() {
               borderColor: "red",
             }}
           >
-            {/* Display grey squares for origin point (optional) */}
+            {/* Display grey squares for end point */}
             {boxDestinations.map((box, index) => (
               <View
                 key={`placed-${box.id}-${index}`}

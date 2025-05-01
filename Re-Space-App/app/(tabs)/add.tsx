@@ -1,7 +1,7 @@
 import { View, ScrollView, StyleSheet, Text, Dimensions, Pressable } from 'react-native';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from '../_layout';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 
 // expo navigation: https://docs.expo.dev/router/navigating-pages/
 // Get dimensions of the screen
@@ -22,17 +22,21 @@ export default function AddLayout() {
       </View>
 
       <View style={uniqueStyles.buttonContainer}>
-        <Link href="/addPages/addLayout" asChild>
-          <Pressable style={uniqueStyles.button}>
-            <Text style={uniqueStyles.text}>Add Layout</Text>
-          </Pressable>
-        </Link>
+        <Pressable
+          style={uniqueStyles.button}
+          onPress={() =>
+            router.push('/addPages/addLayout')}
+        >
+          <Text style={uniqueStyles.text}>Add Layout</Text>
+        </Pressable>
 
-        <Link href="/addPages/addFurniture" asChild>
-          <Pressable style={uniqueStyles.button}>
-            <Text style={uniqueStyles.text}>Add Furniture</Text>
-          </Pressable>
-        </Link>
+        <Pressable
+          style={uniqueStyles.button}
+          onPress={() =>
+            router.push('/addPages/addFurniture')}
+        >
+          <Text style={uniqueStyles.text}>Add Furniture</Text>
+        </Pressable>
       </View>
 
 

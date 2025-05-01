@@ -99,7 +99,7 @@ async def handle_connection(websocket):
     elif client_type == "robot":
         robot = Robot(str(websocket.id), websocket)
         connected_robots[robot.id] = robot
-        # await update_apps_robot_list()
+        await update_apps_robot_list()
         print(f"Robot successfully connected with ip: {connected_ip}")
     else:
         await websocket.close()

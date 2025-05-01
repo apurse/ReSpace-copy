@@ -18,6 +18,7 @@ export default function robotInfo({ robot }: { robot: Robot }) {
             <Text style={uniqueStyles.text}>ID: {robot.robot_id.slice(0, 6)}</Text>
             <Text style={uniqueStyles.text}>Battery: {robot.battery}</Text>
             <Text style={uniqueStyles.text}>Current activity: {robot.current_activity}</Text>
+            <Text style={uniqueStyles.text}>Carrying: {robot.carrying}</Text>
             <Text style={uniqueStyles.text}>Location X: {robot.locationX.toFixed(2)}</Text>
             <Text style={uniqueStyles.text}>Location Y: {robot.locationY.toFixed(2)}</Text>
             <Text style={uniqueStyles.text}>Rotation: {robot.angle.toFixed(2)}</Text>
@@ -32,11 +33,11 @@ const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
         container: {
             width: '100%',
-            backgroundColor: isDarkMode ? '#52be80' : '#fff',
+            backgroundColor: isDarkMode ? '#06402B' : '#fff',
             borderColor: isDarkMode ? '#fff' : '#000',
             borderWidth: 1,
             borderRadius: 8,
-            height: 150,
+            height: 170,
             padding: 8,
             alignItems: 'center',
         },

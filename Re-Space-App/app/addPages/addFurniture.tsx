@@ -134,7 +134,7 @@ export default function AddLayout() {
     setUpdatedQR(false)
 
     // Make furniture ID
-    let generatedID = uuid.v4().substring(0, 5);
+    let generatedID = uuid.v4().substring(0, 5); // could duplicate itself, maybe add check
 
     const newFurniture = {
       furnitureID: generatedID,

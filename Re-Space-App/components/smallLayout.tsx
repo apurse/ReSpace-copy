@@ -1,7 +1,7 @@
 import { StyleSheet, View, Text, Pressable, Image } from "react-native";
 import * as Icons from './indexComponents/Icons';
 import { useTheme } from '../app/_layout';
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useSocket } from "@/hooks/useSocket";
 
 
@@ -15,23 +15,27 @@ export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any }) {
     sendMessage({ type: "room_map", data: "test" });
     console.log("refreshing")
   } else {
-    alert("No connection to the WebSocket.");
+    // alert("No connection to the WebSocket.");
   }
 
 
   return (
-    <Link href={{ pathname: "/addPages/addLayout", params: LayoutTitle }} asChild>
-      <Pressable style={uniqueStyles.layoutCard}>
-        <View style={uniqueStyles.layoutHeader}>
-          <Icons.StarIcon />
-          <Icons.StarIconOutline />
-          <Text style={uniqueStyles.layoutTitle}>{LayoutTitle}</Text>
-        </View>
-        <Image
-          style={uniqueStyles.imageBody}
-          source={{ uri: (`data:image/png;base64,${roomMap}`) }} />
-      </Pressable>
-    </Link>
+    <Pressable style={uniqueStyles.layoutCard}
+      onPress={() =>
+        router.push({
+          pathname: "/addPages/addLayout",
+          params: LayoutTitle,
+        })
+      }>
+      <View style={uniqueStyles.layoutHeader}>
+        <Icons.StarIcon />
+        <Icons.StarIconOutline />
+        <Text style={uniqueStyles.layoutTitle}>{LayoutTitle}</Text>
+      </View>
+      <Image
+        style={uniqueStyles.imageBody}
+        source={{ uri: (`data:image/png;base64,${roomMap}`) }} />
+    </Pressable>
   );
 };
 
