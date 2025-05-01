@@ -269,6 +269,7 @@ export default function DragAndDrop() {
             const layout = {
                 name: ((nameUsed) ? newName : layoutName),
                 room: room.name,
+                favourited: false,
                 currentLayout: {
                     boxes: oldLayoutBoxes.map(box => ({
                         furnitureID: box.furnitureID,

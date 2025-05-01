@@ -17,13 +17,23 @@ export default function Library() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const { loggedIn, user, setUser } = useAuth();
   const [layouts, setLayouts] = useState<any | null>(null); // Notifications
+  const [favouriteLayouts, setFavouriteLayouts] = useState<any | null>(null); // Notifications
+  const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false); // Notifications
   const [refreshing, setRefreshing] = useState(false);
 
+
+  /**
+   * Get the saved layouts from the layout JSON.
+   * @returns 
+   */
   const getLayouts = async () => {
 
+
+    // Get the layout JSON
     const layoutJson = FileSystem.documentDirectory + 'layouts.json';
     const checkJson = await FileSystem.getInfoAsync(layoutJson);
     if (!checkJson.exists) return;
+
 
     // Read data from json before writing new data
     const readData = await FileSystem.readAsStringAsync(layoutJson);
@@ -31,13 +41,21 @@ export default function Library() {
 
 
     // Push all layouts to an array and output as smallLayouts
-    var addLayouts: any = [];
-    jsonData[user.username]?.layouts?.forEach((layout: { name: string }) => {
-      console.log(layout.name)
-      addLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
+    var allLayouts: any = [];
+    var favourites: any = [];
+
+    jsonData[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
+      console.log(layout.name, layout.favourited)
+      // console.log(layout.favourited)
+      allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
+      if (layout.favourited) {
+        favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
+      }
     })
 
-    setLayouts(addLayouts);
+    setLayouts(allLayouts);
+    setFavouriteLayouts(favourites)
+
   }
 
   // Refresh on user change
@@ -59,8 +77,13 @@ export default function Library() {
       <Text style={defaultStyles.sectionTitle}>Filters</Text>
       <View style={uniqueStyles.filterContainer}>
         <FilterButton
-          Option="Rooms"
-          onPress={() => alert("WIP")}
+          Option="Favourites"
+          onPress={() => {
+            setFavouritesSelected(value => !value)
+            console.log("favourites value: ", favouritesSelected)
+            getLayouts()
+          }}
+          selected={favouritesSelected}
         />
         <FilterButton
           Option="Layouts"
@@ -76,7 +99,7 @@ export default function Library() {
       <Text style={defaultStyles.sectionTitle}>All Layouts</Text>
       {user &&
         <View style={defaultStyles.cardSectionContainer}>
-          {layouts}
+          {favouritesSelected ? favouriteLayouts : layouts}
         </View>
       }
 

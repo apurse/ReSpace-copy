@@ -63,7 +63,10 @@ export const BatteryIconCharge = () => {
 // Star icon
 
 export const StarIcon = () => {
-    return <Icon name="star" size={20} color="yellow" solid />;
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    return <Icon name="star" size={20} color="yellow" solid style={defaultStyles.starOutlineIcon} />;
 };
 
 export const StarIconOutline = () => {

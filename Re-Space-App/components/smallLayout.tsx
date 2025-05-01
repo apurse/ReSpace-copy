@@ -3,35 +3,110 @@ import * as Icons from './indexComponents/Icons';
 import { useTheme } from '../app/_layout';
 import { Link, router } from "expo-router";
 import { useSocket } from "@/hooks/useSocket";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import * as FileSystem from 'expo-file-system';
 
 
 export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any }) {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const { isConnected, sendMessage, roomMap } = useSocket();
+  const { roomMap } = useSocket();
+  const [isFavourited, setIsFavourited] = useState<boolean>(false);
+  const { user } = useAuth();
 
-  if (isConnected) {
-    sendMessage({ type: "room_map", data: "test" });
-    console.log("refreshing")
-  } else {
-    // alert("No connection to the WebSocket.");
+
+  var layoutJson = '';
+  var readData = '';
+  let jsonData = {
+    [user.username]: {
+      layouts: []
+    }
+  }
+  var allLayouts: any[] = [];
+  var layoutIndex = -1;
+
+
+  // Update on each load
+  useEffect(() => {
+
+
+    /**
+     * Get the layout JSON and layout information.
+     */
+    const getJson = async () => {
+
+      // Read and check there is JSON data
+      layoutJson = FileSystem.documentDirectory + 'layouts.json';
+      readData = await FileSystem.readAsStringAsync(layoutJson);
+      if (readData) jsonData = JSON.parse(readData);
+
+      
+      // Get the layout index within the JSON
+      layoutIndex = jsonData[user.username]?.layouts
+        .findIndex((layout: any) => layout.name === LayoutTitle);
+
+
+      // Get all layouts and overwrite the selected layout
+      allLayouts = jsonData[user.username]?.layouts;
+
+
+      // Set the favourited value
+      setIsFavourited(allLayouts[layoutIndex].favourited);
+    };
+
+
+    getJson()
+  })
+
+
+  /**
+   * Set a layout as favourited within the JSON entry.
+   */
+  const toggleFavourite = async () => {
+
+
+    // Invert the current favourite value
+    const inverseFavourited = !isFavourited;
+    setIsFavourited(inverseFavourited)
+
+    allLayouts[layoutIndex].favourited = inverseFavourited;
+
+
+    // Write the new data to the JSON
+    const updateData = {
+      ...jsonData,
+      [user.username]: {
+        layouts: allLayouts
+      }
+    }
+    await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(updateData));
   }
 
 
   return (
-    <Pressable style={uniqueStyles.layoutCard}
+    <Pressable
+      style={uniqueStyles.layoutCardContainer}
       onPress={() =>
         router.push({
           pathname: "/addPages/addLayout",
           params: LayoutTitle,
         })
       }>
+
       <View style={uniqueStyles.layoutHeader}>
-        <Icons.StarIcon />
-        <Icons.StarIconOutline />
+        <Pressable
+          onPress={toggleFavourite}>
+          {isFavourited ?
+            <Icons.StarIcon />
+            :
+            <Icons.StarIconOutline />
+          }
+        </Pressable>
         <Text style={uniqueStyles.layoutTitle}>{LayoutTitle}</Text>
       </View>
+
       <Image
         style={uniqueStyles.imageBody}
         source={{ uri: (`data:image/png;base64,${roomMap}`) }} />
@@ -41,12 +116,12 @@ export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any }) {
 
 const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
-    layoutCard: {
+    layoutCardContainer: {
       width: '45%',
       borderColor: isDarkMode ? '#fff' : '#ddd',
       borderWidth: 1,
       borderRadius: 8,
-      height: 180,
+      height: '50%',
       padding: 8,
       alignItems: 'center',
     },
@@ -54,6 +129,11 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: 8,
+    },
+    layoutCardContent: {
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'red',
     },
     layoutTitle: {
       fontSize: 16,
