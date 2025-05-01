@@ -788,12 +788,12 @@ export default function DragAndDrop() {
                                 <ActionButton
                                     label="Delete Furniture"
                                     onPress={deleteFurniture}
-                                    style={{ backgroundColor: '#fa440c' }}
+                                    style={{ backgroundColor: '#C62828' }}
                                 />
                                 <ActionButton
                                     label="Add Furniture"
                                     onPress={() => setModalVisible(true)}
-                                    style={{ backgroundColor: '#964B00' }}
+                                    style={{ backgroundColor: '#1565C0' }}
                                 />
                                 <FurnitureModal
                                     isVisible={isModalVisible}
@@ -851,19 +851,20 @@ export default function DragAndDrop() {
                                 <ActionButton
                                     label="Reset Layout"
                                     onPress={resetLayout}
-                                    style={{ backgroundColor: '#fa440c' }}
+                                    style={{ backgroundColor: '#455A64' }}
                                 />
                                 {!isSaved ?
                                     <ActionButton
                                         label="Save Layout"
                                         onPress={() => setLayout(true)}
-                                        style={{ backgroundColor: '#76f58f' }}
+                                        style={{ backgroundColor: '#00838F' }}
+                                        // textS={{ color: '#000' }}
                                     />
                                     :
                                     <ActionButton
                                         label="Layout saved!"
                                         onPress={() => console.log("filler")}
-                                        style={{ backgroundColor: 'grey' }}
+                                        style={{ backgroundColor: '#00838F' }}
                                     />
                                 }
                             </>

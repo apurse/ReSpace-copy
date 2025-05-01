@@ -8,11 +8,14 @@ import ActionButton from '@/components/settingsComponents/actionButton';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { useSocket } from "@/hooks/useSocket";
 import { Robot } from "@/components/models/Robot";
 import { useAuth } from "@/hooks/useAuth";
+import * as Icons from '../../components/indexComponents/Icons';
 
+// Get dimensions of the screen
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 const SettingsPage = () => {
     const { theme, toggleTheme } = useTheme();
@@ -118,25 +121,36 @@ const SettingsPage = () => {
                     Settings
                 </Text>
             </View>
+            <View style={uniqueStyles.segmentContainer}>
+                {/* <Text style={uniqueStyles.subSectionTitle}>
+                    Profile
+                </Text> */}
 
-            {user ?
-                <Link href="/settingsPages/accountSettings" asChild>
-                    <Pressable style={uniqueStyles.button}>
-                        <Text style={uniqueStyles.buttonText}>Account settings: {user.username}</Text>
+                {user ?
+                    <Link href="/settingsPages/accountSettings" asChild>
+                        <Pressable style={uniqueStyles.accountSettings}>
+                            <Icons.UserCircle />
+                            <View>
+                                <Text style={[uniqueStyles.buttonText, { fontSize: 24, fontWeight: 'bold' }]}>{user.username}</Text>
+                                <Text style={[uniqueStyles.buttonText, { fontSize: 16 }]}>Account settings</Text>
+                            </View>
+                        </Pressable>
+                    </Link>
+                    :
+                    <Pressable style={uniqueStyles.accountSettings}>
+                        <Icons.UserCircle />
+                        <View>
+                            <Text style={[uniqueStyles.buttonText, { fontSize: 24, fontWeight: 'bold' }]}>Please Login!</Text>
+                            <Text style={[uniqueStyles.buttonText, { fontSize: 16 }]}>Account settings</Text>
+                        </View>
                     </Pressable>
-                </Link>
-                :
-                <View style={uniqueStyles.button}>
-                    <Text style={uniqueStyles.buttonText}>Login to access account settings.</Text>
-                </View>
-            }
+                }
+            </View>
 
             <View style={uniqueStyles.segmentContainer}>
-                <View style={uniqueStyles.segmentTitleContainer}>
-                    <Text style={[uniqueStyles.segmentTitle, { color: isDarkMode ? '#fff' : '#000' }]}>
-                        Robot Settings
-                    </Text>
-                </View>
+                <Text style={uniqueStyles.subSectionTitle}>
+                    Robot Settings
+                </Text>
 
                 <SliderSetting label="Movement Speed"
                     min={1}
@@ -154,19 +168,18 @@ const SettingsPage = () => {
                     label="Re-map room"
                     onPress={() => alert("Re-mapping room")}
                     style={uniqueStyles.button}
-                    textS={uniqueStyles.buttonText}
                 />
 
-                <Link href="/settingsPages/controller" asChild>
-                    <Pressable style={uniqueStyles.button}>
-                        <Text style={uniqueStyles.buttonText}>Controller</Text>
-                    </Pressable>
-                </Link>
-
+                <ActionButton
+                    label="Controller"
+                    style={uniqueStyles.button}
+                    onPress={() => {
+                        router.push("/settingsPages/controller")
+                    }}
+                />
                 <ActionButton
                     label="Test Connection"
                     style={uniqueStyles.button}
-                    textS={uniqueStyles.buttonText}
                     onPress={async () => {
                         // Result comes back to the useEffect at the top of this page
                         if (isConnected) {
@@ -179,14 +192,14 @@ const SettingsPage = () => {
             </View>
 
             <View style={uniqueStyles.segmentContainer}>
-                <View style={uniqueStyles.segmentTitleContainer}>
-                    <Text style={[uniqueStyles.segmentTitle, { color: isDarkMode ? '#fff' : '#000' }]}>
+                {/* <View style={uniqueStyles.segmentTitleContainer}>
+                    <Text style={uniqueStyles.segmentTitle}>
                         App Settings
                     </Text>
-                </View>
+                </View> */}
 
-                <Text style={defaultStyles.sectionTitle}>
-                    Notification Preferences
+                <Text style={uniqueStyles.subSectionTitle}>
+                    App Settings
                 </Text>
                 <ToggleSetting
                     label="Completed Tasks"
@@ -219,7 +232,7 @@ const SettingsPage = () => {
                     onPress={() => alert("Todo...")}
                 />
 
-                <Text style={defaultStyles.sectionTitle}>
+                <Text style={uniqueStyles.subSectionTitle}>
                     Theme
                 </Text>
                 <ToggleSetting
@@ -247,6 +260,13 @@ const SettingsPage = () => {
 
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
+        accountSettings: {
+            flexDirection: 'row',
+            gap: 10,
+            verticalAlign: 'middle',
+            marginTop: 40,
+            width: '100%'
+        },
         segmentContainer: {
             width: '100%',
             height: 'auto',
@@ -259,11 +279,12 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             textAlign: 'center',
             fontSize: 30,
             fontWeight: 'bold',
+            color: isDarkMode ? '#fff' : '#000',
+            marginTop: 30,
+            marginBottom: -10,
         },
         button: {
-            // backgroundColor: '',
             paddingVertical: 15,
-            // alignItems: 'center',
             borderColor: 'white',
             borderRadius: 5,
             borderStyle: 'solid',
@@ -277,10 +298,15 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         signOut: {
             padding: 0,
             backgroundColor: 'null',
-            // textDecorationColor: 'red',
-            // textDecorationLine: 'underline',
             color: 'red'
         },
+        subSectionTitle: {
+            fontSize: 26,
+            fontWeight: 'bold',
+            color: isDarkMode ? '#fff' : '#000',
+            marginTop: 30,
+            marginBottom: -10,
+        }
     });
 
 export default SettingsPage;

@@ -40,7 +40,7 @@ const warnings = () => {
 const { message, color, warning, battery } = batteryLevel();
 
 // warnings function variables
-const { messageW = "", colorW = "", warningI = null } = warnings() || {};
+const { messageW = "", colorW = "#2E7D32", warningI = null } = warnings() || {};
 
 export default function HomeScreen() {
 
@@ -135,7 +135,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
     // Greeting and login section
 
     greeting: {
-      fontSize: width * 0.06,
+      fontSize: 28,
+      // fontWeight: 'bold',
       marginBottom: 5,
       marginTop: 5,
       textAlign: 'center',
@@ -165,10 +166,10 @@ const createUniqueStyles = (isDarkMode: boolean) =>
 
     statusCard: {
       padding: 16,
-      borderRadius: 8,
       alignItems: 'center',
       marginBottom: 24,
       marginTop: 25,
+      borderRadius: 8,
       borderColor: isDarkMode ? '#fff' : '#000',
       borderWidth: 0.5,
       width: '90%',

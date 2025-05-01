@@ -34,7 +34,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             alignItems: 'center',
             paddingVertical: 15,
             borderBottomWidth: 1,
-            borderBottomColor: '#ddd',
+            borderBottomColor: isDarkMode ? '#fff' : '#000',
         },
         label: {
             fontSize: 16,

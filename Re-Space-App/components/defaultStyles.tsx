@@ -17,22 +17,26 @@ export const createDefaultStyles = (isDarkMode: boolean) => StyleSheet.create({
 
   pageTitleSection: {
     width: '100%',
-    height: 100,
+    marginBottom: 20,
+    // height: 100,
     alignItems: 'center',
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: isDarkMode ? '#fff' : '#000',
   },
 
   pageTitle: {
     fontSize: 40,
     fontWeight: 'bold',
-    marginBottom: 8,
-    color: isDarkMode ? '#fff' : '#000', 
+    color: isDarkMode ? '#fff' : '#000',
   },
 
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     marginTop: 40, // 20 is even
-    color: isDarkMode ? '#fff' : '#000', 
+    color: isDarkMode ? '#fff' : '#000',
+    textAlign: 'center',
   },
 
   // small layout
