@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useRef, useCallback } from "react";
+import React, { createContext, useState} from "react";
 import * as SQLite from 'expo-sqlite';
 
 
@@ -6,12 +6,13 @@ import * as SQLite from 'expo-sqlite';
 export const AuthContext = createContext<any>(null);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [loggedIn, setLoggedIn] = useState<boolean | null>(false);
     const [user, setUser] = useState<object | null>();
     const [db, setdb] = useState<SQLite.SQLiteDatabase | null>(null);
 
 
-    // Setup the database by accessing the file and checking the table exists
+    /**
+     * Setup the authorisation database and check if the table exists
+     */
     const setupDB = async () => {
         const getdb = await SQLite.openDatabaseAsync('usersDB.db');
         await getdb.runAsync(`
@@ -22,21 +23,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     setupDB();
 
-
-    // Change login state
-    useEffect(() => {
-        if (user) {
-            console.log("User logged in");
-            setLoggedIn(true);
-        }
-        else {
-            console.log("User logged out!");
-            setLoggedIn(false);
-        };
-    }, [user]);
-
     return (
-        <AuthContext.Provider value={{ loggedIn, user, setUser, db }}>
+        <AuthContext.Provider value={{ user, setUser, db }}>
             {children}
         </AuthContext.Provider>
     );

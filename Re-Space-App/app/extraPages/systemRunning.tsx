@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet, Dimensions, Pressable, PanResponder, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, PanResponder, TextInput } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import RobotList from '@/components/indexComponents/robotList';
@@ -30,6 +30,7 @@ const gridHeight = roomDimensionsMM[1];
 // const initialZoom = 0.5;
 const viewGridWidth = 350;
 const viewGridHeigh = 350;
+
 // Dynamically calculate the initial zoom level based on the room size and screen size
 const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh + 150) / gridHeight);
 
@@ -52,34 +53,31 @@ export default function systemRunning() {
   };
 
 
+  // Hooks and colours
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const { socket, isConnected, robotData, sendMessage } = useSocket();
-  const { loggedIn, user, setUser } = useAuth();
-
+  const { isConnected, robotData, sendMessage } = useSocket();
+  const { user } = useAuth();
 
   // Back-end settings
-  const [notifications, setnotifications] = useState<string | null>(null); // Notifications
   const [hasBeenCalled, setHasBeenCalled] = useState<Boolean>(false);
-
-  // Box positions
-  const [inputX, setInputX] = useState<Float>(0); // Value of input box of 'x' coordinate
-  const [inputY, setInputY] = useState<Float>(0); // Value of input box of 'y' coordinate
-  const [inputAngle, setInputAngle] = useState<Float>(0); // Value of angle of the rotation furniture
-  const [boxes, setBoxes] = useState<Box[]>([]); // set boxes array
-  const [boxDestinations, setBoxDestinations] = useState<Box[]>([]); // Placed boxes of current layout
-  const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
-
-  // User settings
-  const [layoutName, setlayoutName] = useState<string | undefined>();
-  const [zoomLevel, setZoomLevel] = useState(initialZoom); // Check zoom level
-
-
   const squareRef = useRef(null);
   const [offsetX, setOffsetX] = useState(0);
   const [offsetY, setOffsetY] = useState(0);
+
+  // Box positions
+  const [inputX, setInputX] = useState<Float>(0);
+  const [inputY, setInputY] = useState<Float>(0);
+  const [inputAngle, setInputAngle] = useState<Float>(0);
+  const [boxes, setBoxes] = useState<Box[]>([]);
+  const [boxDestinations, setBoxDestinations] = useState<Box[]>([]);
+  const [selectedBox, setSelectedBox] = useState<number | null>(null);
+
+  // User settings
+  const [layoutName, setlayoutName] = useState<string | undefined>();
+  const [zoomLevel, setZoomLevel] = useState(initialZoom);
 
 
   if (!isConnected) {
@@ -118,8 +116,10 @@ export default function systemRunning() {
   */
   const loadLayout = async (selectedLayout: string) => {
 
+
     // Set the title
     setlayoutName(selectedLayout)
+
 
     // Read the data from JSON
     const readData = await FileSystem.readAsStringAsync(layoutJson);
@@ -171,6 +171,10 @@ export default function systemRunning() {
   }, [selectedLayout]);
 
 
+  /**
+   * Manage the box interactions, only on click here.
+   * @param id The box id
+   */
   const createPanResponder = (id: number) =>
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
@@ -191,6 +195,7 @@ export default function systemRunning() {
     // showsVerticalScrollIndicator={false}
     >
 
+
       {/* Title */}
       <TextInput
         value={layoutName}
@@ -200,11 +205,9 @@ export default function systemRunning() {
         placeholderTextColor={isDarkMode ? '#fff' : '#000'}
       />
 
-      {/* <Text style={defaultStyles.pageTitle}>Add Layout</Text> */}
-      <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
-
 
       {/* Grid */}
+      <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
       <View
         ref={squareRef}
         style={uniqueStyles.grid}
@@ -245,6 +248,7 @@ export default function systemRunning() {
             setOffsetY(newOffsetY);
           }}
         >
+
           {/* Internal room container */}
           <View
             style={{
@@ -258,6 +262,7 @@ export default function systemRunning() {
               borderColor: "red",
             }}
           >
+
             {/* Display grey squares for end point */}
             {boxDestinations.map((box, index) => (
               <View
@@ -278,6 +283,7 @@ export default function systemRunning() {
                 <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.furnitureID}</Text>
               </View>
             ))}
+
 
             {/* Display furniture */}
             {boxes.map((box, index) => {
@@ -310,6 +316,7 @@ export default function systemRunning() {
         </ReactNativeZoomableView>
       </View>
 
+
       {/* Show coordinates */}
       <View style={uniqueStyles.coordinatesContainer}>
         <Text style={uniqueStyles.coordinates}>X = {Math.round(inputX * 100) / 100}</Text>
@@ -318,6 +325,7 @@ export default function systemRunning() {
       </View>
 
 
+      {/* Progress bar */}
       <View style={[uniqueStyles.progressBar]}>
         <Text>Progress bar</Text>
       </View>
@@ -334,8 +342,9 @@ export default function systemRunning() {
         }}
       />
 
+
       {/* Robots section */}
-      {/* <Text style={defaultStyles.sectionTitle}>Connected Robots: {robotData.length}</Text> */}
+      <Text style={defaultStyles.sectionTitle}>Connected Robots: {robotData.length}</Text>
       <RobotList />
     </ScrollView>
   );
@@ -352,13 +361,9 @@ const createUniqueStyles = (isDarkMode: boolean) =>
     },
     stopContainer: {
       backgroundColor: "red",
-      // padding: 16,
       borderRadius: 8,
       alignItems: 'center',
-      // marginBottom: 24,
-      // marginTop: 25,
       borderColor: isDarkMode ? '#fff' : '#000',
-      // borderWidth: 0.5,
       width: '100%',
       height: 120,
       alignSelf: 'center',
@@ -366,11 +371,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
     },
     progressBar: {
       backgroundColor: "blue",
-      // padding: 16,
       borderRadius: 8,
       alignItems: 'center',
-      // marginBottom: 24,
-      // marginTop: 25,
       marginVertical: 10,
       borderColor: isDarkMode ? '#fff' : '#000',
       borderWidth: 0.5,

@@ -1,9 +1,9 @@
-import { useContext, useCallback } from "react";
+import { useContext } from "react";
 import { AuthContext } from "@/app/context/authorisationProvider";
 import * as Crypto from 'expo-crypto';
 
 export const useAuth = () => {
-  const { loggedIn, user, setUser, db } = useContext(AuthContext);
+  const { user, setUser, db } = useContext(AuthContext);
 
   /**
   * Grab instance of the entered password and hash it
@@ -19,5 +19,5 @@ export const useAuth = () => {
     return hashedPassword;
   }
 
-  return { loggedIn, user, setUser, db, hashPassword };
+  return { user, setUser, db, hashPassword };
 };

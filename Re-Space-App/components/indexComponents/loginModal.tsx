@@ -1,15 +1,15 @@
 import Modal from "react-native-modal";
-import { View, ScrollView, StyleSheet, Text, Dimensions, TextInput, Image, TouchableOpacity } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { View, ScrollView, StyleSheet, Text, Dimensions, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '@/app/_layout';
 import ActionButton from '@/components/settingsComponents/actionButton';
-import * as FileSystem from 'expo-file-system';
-import { useSocket } from "@/hooks/useSocket";
 import { useAuth } from "@/hooks/useAuth";
-import * as Crypto from 'expo-crypto';
 import * as Icons from '../../components/indexComponents/Icons';
 
+
+// Get dimensions of the screen
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
 // Defining types for function
@@ -17,20 +17,28 @@ interface LoginModalProps {
     isVisible: boolean;
     onClose: () => void;
 }
-const { width, height } = Dimensions.get('window');
+
 
 export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) => {
+
+    // Hooks and colours
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
+    const { setUser, db, hashPassword } = useAuth();
+
+    // User inputs
     const [username, setUsername] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [showPassword, setShowPassword] = useState(false);
-    const { socket, isConnected, sendMessage } = useSocket();
-    const { loggedIn, user, setUser, db, hashPassword } = useAuth();
+
     const [notifications, setnotifications] = useState<string | null>(null);
 
+
+    /**
+     * Show the password when the user selects the eye icon
+     */
     const toggleShowPassword = () => {
         setShowPassword(!showPassword);
     };
@@ -143,14 +151,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
             <View style={uniqueStyles.modalContent}>
                 <ScrollView contentContainerStyle={defaultStyles.body}>
 
+
+                    {/* Close button */}
                     <TouchableOpacity style={uniqueStyles.closeButton} onPress={onClose}>
                         <Text style={uniqueStyles.closeText}>Close</Text>
                     </TouchableOpacity>
-                    {/* Content */}
+
+
+                    {/* Title */}
                     <View style={defaultStyles.pageTitleSection}>
                         <Text style={defaultStyles.pageTitle}>Login</Text>
                     </View>
 
+
+                    {/* Form content */}
                     <View style={uniqueStyles.inputField}>
                         <Text style={uniqueStyles.inputHeader}>Username</Text>
                         <TextInput
@@ -180,6 +194,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
                     </View>
 
                     {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+                    
                     <ActionButton
                         label="Forgot password?"
                         onPress={() => alert("WIP")}

@@ -64,7 +64,7 @@ export default function DragAndDrop() {
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
     const { sendMessage, isConnected } = useSocket();
-    const { loggedIn, user, setUser } = useAuth();
+    const { user } = useAuth();
 
     // Back-end settings
     const [hasBeenCalled, setHasBeenCalled] = useState<Boolean>(false);
