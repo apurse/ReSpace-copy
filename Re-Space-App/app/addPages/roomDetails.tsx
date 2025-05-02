@@ -3,7 +3,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from "@/app/_layout";
 import * as FileSystem from 'expo-file-system';
-import { settingRoomName } from '@/components/libraryComponents/roomCreator';
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -21,7 +20,7 @@ export default function RoomDetails() {
             
             <View style={defaultStyles.pageTitleSection}>
                 {/* Room name | default name in case of empty input */}
-                <Text style={defaultStyles.pageTitle}>{roomName ? `${roomName}` : 'Room Details'}</Text>
+                <Text style={defaultStyles.pageTitle}>{roomName}</Text>
             </View>
             <View style={uniqueStyles.buttonContainer}>
                 <Pressable 
@@ -46,8 +45,7 @@ export default function RoomDetails() {
                           return;
                         }
                         
-                        const fileName = settingRoomName(roomName);
-                        const fileUri = `${FileSystem.documentDirectory}rooms/${fileName}.json`;
+                        const fileUri = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
                     
                         try {
                           const fileInfo = await FileSystem.getInfoAsync(fileUri);

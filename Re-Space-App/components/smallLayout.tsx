@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/useAuth";
 import * as FileSystem from 'expo-file-system';
 
 
-export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any }) {
+export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: any; roomName: string }) {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const uniqueStyles = createUniqueStyles(isDarkMode);
@@ -23,7 +23,7 @@ export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any }) {
     [user.username]: {
       layouts: []
     }
-  }
+  };
   var allLayouts: any[] = [];
   var layoutIndex = -1;
 
@@ -91,7 +91,7 @@ export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any }) {
       onPress={() =>
         router.push({
           pathname: "/addPages/addLayout",
-          params: LayoutTitle,
+          params: { layoutName: LayoutTitle, roomName},
         })
       }>
 

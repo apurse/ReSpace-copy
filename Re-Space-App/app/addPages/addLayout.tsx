@@ -9,10 +9,9 @@ import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
-import { Link, router } from 'expo-router';
+import { Link, router, useLocalSearchParams } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import { useAuth } from "@/hooks/useAuth";
-import { useLocalSearchParams } from "expo-router";
 
 
 // Get dimensions of the screen
@@ -20,7 +19,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
 // Local json file with layout data
-const layoutJson = FileSystem.documentDirectory + 'layouts.json';
+//const layoutJson = FileSystem.documentDirectory + 'layouts.json';
 
 
 // -------- Grid Visuals --------
@@ -88,10 +87,8 @@ export default function DragAndDrop() {
     // User settings
     const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null); // Track rotation interval
     const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
-    const [layoutName, setlayoutName] = useState<string | undefined>();
+    const [layoutHeading, setlayoutHeading] = useState<string | undefined>();
     const [zoomLevel, setZoomLevel] = useState(initialZoom); // Check zoom level
-
-
 
     const squareRef = useRef(null);
     const [offsetX, setOffsetX] = useState(0);
@@ -101,61 +98,60 @@ export default function DragAndDrop() {
     // Get the selected layout from the library
     const selectedLayout = useLocalSearchParams();
 
+    //  Local room json file
+    const { layoutName, roomName } = useLocalSearchParams<{ layoutName?: string, roomName?: string }>();
+    const roomFilePath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
 
     // Refresh layout on selected layout change
     useEffect(() => {
-
-        // Check selectedLayout isn't empty and has not been called
-        if (Object.keys(selectedLayout).length > 0 && !hasBeenCalled) {
-
-
-            // Convert from object of elements to string
-            var currentTitle = "";
-            for (const [key, value] of Object.entries(selectedLayout)) {
-                currentTitle += value;
-            }
-            console.log(currentTitle);
-
-
-            loadLayout(currentTitle)
-            setHasBeenCalled(true)
+        if (layoutName && !hasBeenCalled) {
+            console.log("Loading layout:", layoutName);
+            loadLayout(layoutName);
+            setHasBeenCalled(true);
         }
-    }, [selectedLayout]);
-
+    }, [layoutName]);
+    
 
     /**
      * Load the layout from the selected layout in the library.
      * @param selectedLayout String - The selected layout title in the library
      */
     const loadLayout = async (selectedLayout: string) => {
+        try {
+            console.log("loadlayout called");
 
-        console.log("loadlayout called")
+            // Set the title
+            setlayoutHeading(layoutName);
 
-        // Set the title
-        setlayoutName(selectedLayout)
+            // Read the data from JSON
+            const readData = await FileSystem.readAsStringAsync(roomFilePath);
+            const jsonData = JSON.parse(readData);
+
+            // Get the layout index within the JSON
+            let layoutIndex = jsonData[user.username]?.layouts
+                .findIndex((layout: any) => layout.name === layoutName
+            );
+
+            if (layoutIndex === -1) {
+                console.warn("Layout not found.");
+                return;
+            }
+
+            // Get each box in the current layout and add to array
+            var newBoxes: Box[] = [];
+            jsonData[user.username]?.layouts[layoutIndex].currentLayout.boxes
+                .forEach((box: Box) => {
+                    newBoxes.push(box);
+                });
 
 
-        // Read the data from JSON
-        const readData = await FileSystem.readAsStringAsync(layoutJson);
-        const jsonData = JSON.parse(readData);
-
-
-        // Get the layout index within the JSON
-        let layoutIndex = jsonData[user.username]?.layouts
-            .findIndex((layout: any) => layout.name === selectedLayout);
-
-
-        // Get each box in the current layout and add to array
-        var newBoxes: Box[] = [];
-        jsonData[user.username]?.layouts[layoutIndex].newLayout.boxes
-            .forEach((box: Box) => {
-                newBoxes.push(box);
-            })
-
-
-        // Set all the boxes and the layout number
-        setBoxes(newBoxes)
-        setLoadedLayoutIndex(layoutIndex)
+            // Set all the boxes and the layout number
+            setBoxes(newBoxes);
+            setLoadedLayoutIndex(layoutIndex);
+        } catch (err) {
+            console.error("Error loading layout:", err);
+        }
+        
     };
 
 
@@ -166,25 +162,25 @@ export default function DragAndDrop() {
         try {
 
             // Read the data from JSON
-            const readData = await FileSystem.readAsStringAsync(layoutJson);
+            const readData = await FileSystem.readAsStringAsync(roomFilePath);
             const jsonData = JSON.parse(readData);
 
             // Get the layout index within the JSON
             let layoutIndex = jsonData[user.username]?.layouts
-                .findIndex((layout: any) => layout.name === layoutName);
+                .findIndex((layout: any) => layout.name === layoutHeading);
 
             // Remove the layout
             jsonData[user.username].layouts.splice(layoutIndex, 1);
 
             // Write the new data 
-            await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(jsonData));
+            await FileSystem.writeAsStringAsync(roomFilePath, JSON.stringify(jsonData));
             console.log('Data has been cleared');
 
         } catch (error) {
             console.error('Error deleting json data');
         }
 
-        setlayoutName('');
+        setlayoutHeading('');
     };
 
     /**
@@ -193,13 +189,6 @@ export default function DragAndDrop() {
      * @param newLayoutBoxes The desired layout of the furniture.
      */
     const saveLayout = async (oldLayoutBoxes: Box[], newLayoutBoxes: Box[]) => {
-
-        // temp until rooms have been saved
-        const room = {
-            name: "test"
-        }
-
-
         try {
             if (!user) {
                 alert("User not logged in");
@@ -207,68 +196,56 @@ export default function DragAndDrop() {
             }
 
             // Check the layout has a name
-            if (!layoutName) {
+            if (!layoutHeading) {
                 setnotifications('Please add a unique title to this layout');
                 setTimeout(() => setnotifications(null), 3000);
                 return;
             }
 
             // If json file doesn't exist, create file
-            const checkJson = await FileSystem.getInfoAsync(layoutJson);
+            const checkJson = await FileSystem.getInfoAsync(roomFilePath);
             if (!checkJson.exists) {
-                await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify({
+                await FileSystem.writeAsStringAsync(roomFilePath, JSON.stringify({
 
                     // Json layout with user username
                     [user.username]: {
+                        furniture: [],
                         layouts: []
-                    }
+                      }
                 }));
-                console.log('Json file created:', layoutJson);
+                console.log('Json file created:', roomFilePath);
             }
 
             // Read data from json before writing new data
-            const readData = await FileSystem.readAsStringAsync(layoutJson);
-            let jsonData = {
-                [user.username]: {
-                    layouts: []
-                }
-            };
-
-            // Check there is data
-            if (readData) {
-                jsonData = JSON.parse(readData);
-            }
-
-
-            // Get all layouts
-            const allLayouts: any[] = jsonData[user.username]?.layouts;
+            const readData = await FileSystem.readAsStringAsync(roomFilePath);
+            const roomData = JSON.parse(readData);
 
 
             var nameUsed = false;
-            var newName = '';
+            var newName = layoutHeading;
 
             // If this is a new layout
             if (loadedLayoutIndex == -1) {
 
 
                 // Check that the provided name is unique
-                jsonData[user.username]?.layouts?.forEach((layout: { name: string }) => {
-                    nameUsed = (layout.name == layoutName) ? true : false;
+                roomData[user.username]?.layouts?.forEach((layout: { name: string }) => {
+                    nameUsed = (layout.name == layoutHeading) ? true : false;
                 })
 
 
                 // If its not unique, make a newName with (x) on afterwards 
                 if (nameUsed) {
                     setDuplicateNumber(duplicateNumber + 1);
-                    newName = (`${layoutName}_(${duplicateNumber})`)
+                    newName = (`${layoutHeading}_(${duplicateNumber})`)
                 }
             }
 
 
             // Set the json entry for each layout
             const layout = {
-                name: ((nameUsed) ? newName : layoutName),
-                room: room.name,
+                name: ((nameUsed) ? newName : layoutHeading),
+                room: roomName,
                 favourited: false,
                 currentLayout: {
                     boxes: oldLayoutBoxes.map(box => ({
@@ -296,43 +273,18 @@ export default function DragAndDrop() {
                 }
             }
 
-            var updateData = {};
-
-            // If a layout has been selected
-            if (loadedLayoutIndex != -1) {
-
-
-                // Overwrite the selected layout
-                allLayouts[loadedLayoutIndex] = layout;
-
-                updateData = {
-                    ...jsonData,
-                    [user.username]: {
-                        layouts: allLayouts
-                    }
-                }
+            if (loadedLayoutIndex !== -1) {
+                roomData[user.username].layouts[loadedLayoutIndex] = layout;
+            } else {
+                roomData[user.username].layouts.push(layout);
             }
-            else {
-
-                // Set the updateData location and format
-                updateData = {
-                    ...jsonData,
-                    [user.username]: {
-                        layouts: (allLayouts
-                            ? [...allLayouts, layout]
-                            : [layout]
-                        )
-                    }
-                }
-            }
-
 
             // Write new data to json
-            await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(updateData));
+            await FileSystem.writeAsStringAsync(roomFilePath, JSON.stringify(roomData));
 
-            // Show local json file in console
-            const data = await FileSystem.readAsStringAsync(layoutJson);
-            console.log('Layout json updated:', data);
+            // Read the updated file to confirm the changes
+            const updatedData = await FileSystem.readAsStringAsync(roomFilePath);
+            console.log('Layout json updated:', updatedData);
 
             setnotifications('New layout saved sucessfully');
             setTimeout(() => setnotifications(null), 3000);
@@ -375,7 +327,6 @@ export default function DragAndDrop() {
 
                     const finalX = clampedX - box.width / 2;
                     const finalY = clampedY - box.length / 2;
-
 
                     return { ...box, x: finalX, y: finalY };
                 }
@@ -599,8 +550,8 @@ export default function DragAndDrop() {
 
                     {/* Title */}
                     <TextInput
-                        value={layoutName}
-                        onChangeText={setlayoutName}
+                        value={layoutHeading}
+                        onChangeText={setlayoutHeading}
                         style={uniqueStyles.title}
                         placeholder='*New Layout ...'
                         placeholderTextColor={isDarkMode ? '#fff' : '#000'}
@@ -805,7 +756,7 @@ export default function DragAndDrop() {
                                         label="Delete this layout"
                                         onPress={async () => {
                                             await deleteLayout()
-                                            router.replace('../(tabs)/library')
+                                            router.back();
                                         }}
                                         style={{ backgroundColor: '#fa440c' }}
                                     />
@@ -818,7 +769,7 @@ export default function DragAndDrop() {
                                     (isSaved ?
                                         (
 
-                                            <Link href={{ pathname: "../extraPages/systemRunning", params: { layoutName } }} asChild>
+                                            <Link href={{ pathname: "../extraPages/systemRunning", params: { layoutHeading } }} asChild>
                                                 <ActionButton
                                                     label="Ready To Go!"
                                                     onPress={() => {

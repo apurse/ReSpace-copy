@@ -4,6 +4,7 @@ import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from "@/app/_layout";
 import { useRouter } from 'expo-router';
 import { createRoomIfNotExists } from '@/components/libraryComponents/roomCreator';
+import { useAuth } from '@/hooks/useAuth';
 
 // expo navigation: https://docs.expo.dev/router/navigating-pages/
 // Get dimensions of the screen
@@ -16,6 +17,7 @@ export default function newRoom() {
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
   const router = useRouter();
+  const { user } = useAuth();
   const [roomName, setRoomName] = useState('');
 
   return (
@@ -35,7 +37,7 @@ export default function newRoom() {
                   return;
                 }
 
-                const result = await createRoomIfNotExists(roomName);
+                const result = await createRoomIfNotExists(roomName, user);
 
                 if (result.success) {
                   router.push({ pathname: '/addPages/roomDetails', params: { roomName } });
