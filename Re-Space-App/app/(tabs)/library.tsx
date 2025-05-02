@@ -15,6 +15,7 @@ export default function Library() {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
+  const uniqueStyles = createUniqueStyles(isDarkMode);
   const { loggedIn, user, setUser } = useAuth();
   const [layouts, setLayouts] = useState<any | null>(null); // Notifications
   const [favouriteLayouts, setFavouriteLayouts] = useState<any | null>(null); // Notifications
@@ -44,18 +45,19 @@ export default function Library() {
     var allLayouts: any = [];
     var favourites: any = [];
 
+
+    // Filter layouts by values and push into the correct array
     jsonData[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
-      console.log(layout.name, layout.favourited)
-      // console.log(layout.favourited)
       allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
       if (layout.favourited) {
         favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
       }
     })
 
+
+    // Set the arrays
     setLayouts(allLayouts);
     setFavouriteLayouts(favourites)
-
   }
 
   // Refresh on user change
@@ -74,7 +76,7 @@ export default function Library() {
       </View >
 
       {/* Filters */}
-      <Text style={defaultStyles.sectionTitle}>Filters</Text>
+      <Text style={uniqueStyles.sectionTitle}>Filters</Text>
       <View style={uniqueStyles.filterContainer}>
         <FilterButton
           Option="Favourites"
@@ -96,11 +98,10 @@ export default function Library() {
       </View>
 
       {/* Show layouts if logged in */}
-      <Text style={defaultStyles.sectionTitle}>All Layouts</Text>
       {user &&
-        <View style={defaultStyles.cardSectionContainer}>
+      <><Text style={uniqueStyles.sectionTitle}>{!favouritesSelected ? (`All Layouts: ${layouts?.length}`) : (`Favourites: ${favouriteLayouts?.length}/${layouts?.length}`)}</Text><View style={defaultStyles.cardSectionContainer}>
           {favouritesSelected ? favouriteLayouts : layouts}
-        </View>
+        </View></>
       }
 
     </ScrollView>
@@ -109,12 +110,21 @@ export default function Library() {
 
 
 // styling goes here, same as css
-const uniqueStyles = StyleSheet.create({
-  filterContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: width * 0.04,
-    width: '100%',
-  }
-});
+const createUniqueStyles = (isDarkMode: boolean) =>
+  StyleSheet.create({
+    filterContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: width * 0.04,
+      width: '100%',
+
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginTop: 30, 
+      marginBottom: 15, 
+      color: isDarkMode ? '#fff' : '#000',
+    }
+  });

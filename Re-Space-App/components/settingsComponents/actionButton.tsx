@@ -12,7 +12,7 @@ const ActionButton = ({ label, onPress, style, textS, icon }: { label?: string; 
 
 const styles = StyleSheet.create({
     button: {
-        backgroundColor: '#4CAF50',
+        backgroundColor: '#2E7D32',
         padding: 15,
         alignItems: 'center',
         borderRadius: 5,

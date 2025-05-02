@@ -12,7 +12,7 @@ type SliderSettingProps = {
     onValueChange: (value: number) => void;
 };
 
-const SliderSetting: React.FC<SliderSettingProps> = ({label, min, max, value, onValueChange }) => {
+const SliderSetting: React.FC<SliderSettingProps> = ({ label, min, max, value, onValueChange }) => {
     // const [value, setValue] = useState((min + max) / 2);
 
     const { theme } = useTheme();
@@ -38,9 +38,10 @@ const SliderSetting: React.FC<SliderSettingProps> = ({label, min, max, value, on
 const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
         settingContainer: {
-            paddingVertical: 15,
+            // paddingVertical: 15,
             borderBottomWidth: 1,
-            borderBottomColor: '#ddd',
+            borderBottomColor: isDarkMode ? '#fff' : '#000',
+            marginTop: 20,
         },
         label: {
             fontSize: 16,

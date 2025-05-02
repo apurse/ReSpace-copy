@@ -92,6 +92,13 @@ export const UserIcon = () => {
     return <Icon name="user" size={30} color={isDarkMode ? '#000' : '#fff'}/>;
 };
 
+export const UserCircle = () => {
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const defaultStyles = createDefaultStyles(isDarkMode);
+    return <Icon name="user-circle" size={55} color={isDarkMode ? '#fff' : '#000'}/>;
+};
+
 export const EyeIcon = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';

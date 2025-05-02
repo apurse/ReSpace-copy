@@ -10,7 +10,8 @@ import * as FileSystem from 'expo-file-system';
 
 const layoutJson = FileSystem.documentDirectory + 'layouts.json';
 
-const { width, height } = Dimensions.get('window');
+// Get dimensions of the screen
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function Controller() {
     const { theme } = useTheme();
@@ -67,169 +68,177 @@ export default function Controller() {
 
     return (
         <ScrollView>
-
             <View style={defaultStyles.body}>
 
-                {/* Page Title */}
-                <View style={defaultStyles.pageTitleSection}>
-                    <Text style={defaultStyles.pageTitle}>Account Settings</Text>
-                </View>
 
-                <View style={uniqueStyles.inputField}>
-                    <Text style={uniqueStyles.inputHeader}>Change Username</Text>
-                    <TextInput
-                        value={username}
-                        onChangeText={setUsername}
-                        style={uniqueStyles.textInput}
-                    // placeholder='{}'
+                <View style={uniqueStyles.segmentContainer}>
+
+                    {/* Page Title */}
+                    <View style={defaultStyles.pageTitleSection}>
+                        <Text style={defaultStyles.pageTitle}>Account Settings</Text>
+                    </View>
+
+                    <Text style={[defaultStyles.sectionTitle, {marginTop: 10}]}>Credentials</Text>
+
+
+                    <View style={uniqueStyles.inputField}>
+                        <Text style={uniqueStyles.inputHeader}>Change Username</Text>
+                        <TextInput
+                            value={username}
+                            onChangeText={setUsername}
+                            style={uniqueStyles.textInput}
+                        // placeholder='{}'
+                        />
+                    </View>
+
+                    <ActionButton
+                        label="Change username"
+                        // textS={uniqueStyles.buttonText}
+                        onPress={async () => {
+                            if (!db) {
+                                alert("DB not working")
+                                return null;
+                            }
+                            try {
+
+                                // Update the username
+                                let sqlUpdateUsername = `UPDATE users SET username = ? WHERE username = ?`;
+                                await db.runAsync(
+                                    sqlUpdateUsername,
+                                    [username, user.username]
+                                )
+                                alert("Username successfully changed!")
+
+                                // need to add dynamic refresh, log user out then back in 
+
+                                // await setUser(false);
+                                // await setUser(user)
+
+                            } catch (error) {
+                                alert("Failed to change username!")
+                                console.log(error);
+                            }
+                        }}
                     />
-                </View>
 
-                <ActionButton
-                    label="Change username"
-                    // textS={uniqueStyles.buttonText}
-                    onPress={async () => {
-                        if (!db) {
-                            alert("DB not working")
-                            return null;
+                    <View style={uniqueStyles.inputField}>
+                        <Text style={uniqueStyles.inputHeader}>Current Password</Text>
+                        <TextInput
+                            onChangeText={setCurrentPassword}
+                            style={uniqueStyles.textInput}
+                            placeholder='*Enter current password...*'
+                        />
+                        <Text style={uniqueStyles.inputHeader}>New Password</Text>
+                        <TextInput
+                            value={user}
+                            onChangeText={setNewPassword}
+                            style={uniqueStyles.textInput}
+                            placeholder='*Enter new password...*'
+                        />
+                    </View>
+
+
+
+                    <ActionButton
+                        label="Change password"
+                        // textS={uniqueStyles.buttonText}
+                        onPress={async () => {
+                            if (!db) {
+                                alert("DB not working")
+                                return null;
+                            }
+                            try {
+
+                                // Hash the passwords
+                                var hashedCurrent = await hashPassword(currentPassword);
+                                var hashedNew = await hashPassword(newPassword);
+
+
+                                // Change the password based on the username and current password
+                                let sqlChangePassword = `UPDATE users SET password = ? WHERE username = ? AND password = ?`;
+                                await db.runAsync(
+                                    sqlChangePassword,
+                                    [hashedNew, user.username, hashedCurrent]
+                                )
+                                if (user.password !== hashedCurrent) {
+                                    setUser(false);
+                                    alert("Password successfully changed!")
+                                }
+
+                            } catch (error) {
+                                alert("Failed to change password!")
+                                console.log(error);
+                            }
                         }
-                        try {
-
-                            // Update the username
-                            let sqlUpdateUsername = `UPDATE users SET username = ? WHERE username = ?`;
-                            await db.runAsync(
-                                sqlUpdateUsername,
-                                [username, user.username]
-                            )
-                            alert("Username successfully changed!")
-
-                            // need to add dynamic refresh, log user out then back in 
-
-                            // await setUser(false);
-                            // await setUser(user)
-
-                        } catch (error) {
-                            alert("Failed to change username!")
-                            console.log(error);
                         }
-                    }}
-                />
-
-                <View style={uniqueStyles.inputField}>
-                    <Text style={uniqueStyles.inputHeader}>Current Password</Text>
-                    <TextInput
-                        onChangeText={setCurrentPassword}
-                        style={uniqueStyles.textInput}
-                        placeholder='*Enter current password...*'
                     />
-                    <Text style={uniqueStyles.inputHeader}>New Password</Text>
-                    <TextInput
-                        value={user}
-                        onChangeText={setNewPassword}
-                        style={uniqueStyles.textInput}
-                        placeholder='*Enter new password...*'
-                    />
-                </View>
 
+                    <Text style={defaultStyles.sectionTitle}>Management</Text>
 
+                    <ActionButton
+                        label="Delete account"
+                        // textS={uniqueStyles.buttonText}
+                        onPress={async () => {
+                            if (!db) {
+                                alert("DB not working")
+                                return null;
+                            }
+                            try {
 
-                <ActionButton
-                    label="Change password"
-                    // textS={uniqueStyles.buttonText}
-                    onPress={async () => {
-                        if (!db) {
-                            alert("DB not working")
-                            return null;
-                        }
-                        try {
-                            
-                            // Hash the passwords
-                            var hashedCurrent = await hashPassword(currentPassword);
-                            var hashedNew = await hashPassword(newPassword);
-
-                            
-                            // Change the password based on the username and current password
-                            let sqlChangePassword = `UPDATE users SET password = ? WHERE username = ? AND password = ?`;
-                            await db.runAsync(
-                                sqlChangePassword,
-                                [hashedNew, user.username, hashedCurrent]
-                            )
-                            if (user.password !== hashedCurrent){
+                                // Delete the user from the db
+                                let sqlDelete = `DELETE FROM users WHERE username = ?`;
+                                await db.runAsync(
+                                    sqlDelete,
+                                    [user.username]
+                                )
                                 setUser(false);
                                 alert("User successfully deleted!")
+
+                            } catch (error) {
+                                alert("Failed to delete user!")
+                                console.log(error);
                             }
+                        }}
+                        style={{ backgroundColor: '#C62828' }}
+                    />
+                    <ActionButton
+                        label="Delete all layouts for this account"
+                        // textS={uniqueStyles.buttonText}
+                        style={{ backgroundColor: '#C62828' }}
+                        onPress={() => clearJsonData(false)}
+                    />
 
-                        } catch (error) {
-                            alert("Failed to delete user!")
-                            console.log(error);
-                        }
-                    }
-                    }
-                />
-                <ActionButton
-                    label="Delete account"
-                    // textS={uniqueStyles.buttonText}
-                    onPress={async () => {
-                        if (!db) {
-                            alert("DB not working")
-                            return null;
-                        }
-                        try {
+                    <Text style={defaultStyles.sectionTitle}>Admin</Text>
+                    <ActionButton
+                        label="Delete all layouts for ALL accounts"
+                        // textS={uniqueStyles.buttonText}
+                        onPress={() => clearJsonData(true)}
+                        style={{ backgroundColor: '#C62828', borderColor: '#fff', borderWidth: 3 }}
 
-                            // Delete the user from the db
-                            let sqlDelete = `DELETE FROM users WHERE username = ?`;
-                            await db.runAsync(
-                                sqlDelete,
-                                [user.username]
-                            )
-                            setUser(false);
-                            alert("User successfully deleted!")
+                    />
+                    <ActionButton
+                        label="Delete ALL accounts on this device"
+                        // textS={uniqueStyles.buttonText}
+                        onPress={async () => {
+                            if (!db) {
+                                alert("DB not working")
+                                return null;
+                            }
+                            try {
 
-                        } catch (error) {
-                            alert("Failed to delete user!")
-                            console.log(error);
-                        }
-                    }}
-                    style={{ backgroundColor: 'red' }}
-                />
-                <ActionButton
-                    label="Delete all layouts for this account"
-                    // textS={uniqueStyles.buttonText}
-                    style={{ backgroundColor: 'red' }}
-                    onPress={() => clearJsonData(false)}
-                />
+                                // Delete the entire table to remove all users
+                                await db.runAsync(`DROP TABLE IF EXISTS users`)
+                                setUser(false);
+                                alert("All users removed!")
 
-                <Text style={defaultStyles.sectionTitle}>Admin</Text>
-                <ActionButton
-                    label="Delete all layouts for ALL accounts"
-                    // textS={uniqueStyles.buttonText}
-                    onPress={() => clearJsonData(true)}
-                    style={{ backgroundColor: 'yellow' }}
-                    textS={{ color: 'red', fontWeight: 'bold' }}
-                />
-                <ActionButton
-                    label="Delete ALL accounts on this device"
-                    // textS={uniqueStyles.buttonText}
-                    onPress={async () => {
-                        if (!db) {
-                            alert("DB not working")
-                            return null;
-                        }
-                        try {
-
-                            // Delete the entire table to remove all users
-                            await db.runAsync(`DROP TABLE IF EXISTS users`)
-                            setUser(false);
-                            alert("All users removed!")
-
-                        } catch (error) {
-                            alert("Failed to delete all users!")
-                            console.log(error);
-                        }
-                    }}
-                    style={{ backgroundColor: 'yellow' }}
-                    textS={{ color: 'red', fontWeight: 'bold' }}
-                />
+                            } catch (error) {
+                                alert("Failed to delete all users!")
+                                console.log(error);
+                            }
+                        }}
+                        style={{ backgroundColor: '#C62828', borderColor: '#fff', borderWidth: 3 }}
+                    />
+                </View>
             </View>
         </ScrollView>
     );
@@ -239,10 +248,9 @@ const createUniqueStyles = (isDarkMode: boolean) =>
     StyleSheet.create({
         button: {
             borderRadius: 20,
-            // width: width * 0.9,
-            // height: width * 0.2,
             marginBottom: 10,
             marginLeft: 10,
+            width: screenWidth * 0.9,
         },
         inputField: {
             width: '100%',
@@ -267,5 +275,9 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             fontSize: 14,
             fontWeight: 'bold',
             fontFamily: 'arial',
+        },
+        segmentContainer: {
+            width: '100%',
+            height: 'auto',
         }
     });
