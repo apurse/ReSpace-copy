@@ -8,24 +8,28 @@ import { useAuth } from "@/hooks/useAuth";
 import { useEffect, useState } from 'react';
 
 
-const { width, height } = Dimensions.get('window');
+// Get dimensions of the screen
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
 export default function Library() {
+
+  // Hooks and colours
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const { loggedIn, user, setUser } = useAuth();
-  const [layouts, setLayouts] = useState<any | null>(null); // Notifications
-  const [favouriteLayouts, setFavouriteLayouts] = useState<any | null>(null); // Notifications
-  const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false); // Notifications
+  const { user } = useAuth();
+
+  // Layouts and favourite layouts
+  const [layouts, setLayouts] = useState<any | null>(null);
+  const [favouriteLayouts, setFavouriteLayouts] = useState<any | null>(null);
+  const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState(false);
 
 
   /**
    * Get the saved layouts from the layout JSON.
-   * @returns 
    */
   const getLayouts = async () => {
 
@@ -48,9 +52,9 @@ export default function Library() {
 
     // Filter layouts by values and push into the correct array
     jsonData[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
-      allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
+      allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={''} />)
       if (layout.favourited) {
-        favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
+        favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={''} />)
       }
     })
 
@@ -65,6 +69,7 @@ export default function Library() {
     getLayouts()
   }, [user]);
 
+
   return (
     <ScrollView
       contentContainerStyle={defaultStyles.body}
@@ -74,6 +79,7 @@ export default function Library() {
       < View style={defaultStyles.pageTitleSection} >
         <Text style={defaultStyles.pageTitle}>Library</Text>
       </View >
+
 
       {/* Filters */}
       <Text style={uniqueStyles.sectionTitle}>Filters</Text>
@@ -97,34 +103,43 @@ export default function Library() {
         />
       </View>
 
+
       {/* Show layouts if logged in */}
       {user &&
-      <><Text style={uniqueStyles.sectionTitle}>{!favouritesSelected ? (`All Layouts: ${layouts?.length}`) : (`Favourites: ${favouriteLayouts?.length}/${layouts?.length}`)}</Text><View style={defaultStyles.cardSectionContainer}>
-          {favouritesSelected ? favouriteLayouts : layouts}
-        </View></>
+        <>
+          <Text style={uniqueStyles.sectionTitle}>
+            {!favouritesSelected ?
+              (`All Layouts: ${layouts?.length}`)
+              :
+              (`Favourites: ${favouriteLayouts?.length}/${layouts?.length}`)
+            }
+          </Text>
+
+          <View style={defaultStyles.cardSectionContainer}>
+            {favouritesSelected ? favouriteLayouts : layouts}
+          </View>
+        </>
       }
 
     </ScrollView>
   );
 }
 
-
-// styling goes here, same as css
 const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
     filterContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      gap: width * 0.04,
+      gap: screenWidth * 0.04,
       width: '100%',
 
     },
     sectionTitle: {
       fontSize: 20,
       fontWeight: 'bold',
-      marginTop: 30, 
-      marginBottom: 15, 
+      marginTop: 30,
+      marginBottom: 15,
       color: isDarkMode ? '#fff' : '#000',
     }
   });

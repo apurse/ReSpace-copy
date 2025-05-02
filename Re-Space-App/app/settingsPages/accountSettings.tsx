@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, StyleSheet, Text, TextInput, Dimensions, ScrollView } from "react-native";
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
@@ -7,33 +7,38 @@ import ActionButton from '@/components/settingsComponents/actionButton';
 import * as FileSystem from 'expo-file-system';
 
 
-
 const layoutJson = FileSystem.documentDirectory + 'layouts.json';
 
 // Get dimensions of the screen
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function Controller() {
+
+    // Hooks and colours
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
+    const { user, setUser, db, hashPassword } = useAuth();
 
-    const { loggedIn, user, setUser, db, hashPassword } = useAuth();
+    // User details
     const [username, setUsername] = useState<string>('');
     const [currentPassword, setCurrentPassword] = useState<string>('');
     const [newPassword, setNewPassword] = useState<string>('');
 
 
+    // On user change, set the username
     useEffect(() => {
         setUsername(user.username);
     }, [user]);
 
 
-    // Call function to clear the json data from device
-    const clearJsonData = async (all: boolean) => {
+    /**
+     * Clear the selected JSON data.
+     * @param clearAll Boolean - Clear the entire JSON
+     */
+    const clearLayoutJson = async (clearAll: boolean) => {
         try {
-
 
             // Read data from json before writing new data
             const readData = await FileSystem.readAsStringAsync(layoutJson);
@@ -48,13 +53,13 @@ export default function Controller() {
 
 
             // Erase the corresponding aspect
-            if (all) jsonData = {};
+            if (clearAll) jsonData = {};
             else jsonData[user.username] = { layouts: [] };
 
 
             // Write to JSON and alert user
             await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(jsonData));
-            alert((all) ? "All layouts for all accounts have been removed" : "All layouts for this account have been removed");
+            alert((clearAll) ? "All layouts for all accounts have been removed" : "All layouts for this account have been removed");
 
 
             // Show it happening 
@@ -69,31 +74,28 @@ export default function Controller() {
     return (
         <ScrollView>
             <View style={defaultStyles.body}>
-
-
                 <View style={uniqueStyles.segmentContainer}>
+
 
                     {/* Page Title */}
                     <View style={defaultStyles.pageTitleSection}>
                         <Text style={defaultStyles.pageTitle}>Account Settings</Text>
                     </View>
 
-                    <Text style={[defaultStyles.sectionTitle, {marginTop: 10}]}>Credentials</Text>
 
-
+                    {/* Credentials (username and password) */}
+                    <Text style={[defaultStyles.sectionTitle, { marginTop: 10 }]}>Credentials</Text>
                     <View style={uniqueStyles.inputField}>
                         <Text style={uniqueStyles.inputHeader}>Change Username</Text>
                         <TextInput
                             value={username}
                             onChangeText={setUsername}
                             style={uniqueStyles.textInput}
-                        // placeholder='{}'
                         />
                     </View>
 
                     <ActionButton
                         label="Change username"
-                        // textS={uniqueStyles.buttonText}
                         onPress={async () => {
                             if (!db) {
                                 alert("DB not working")
@@ -108,11 +110,7 @@ export default function Controller() {
                                     [username, user.username]
                                 )
                                 alert("Username successfully changed!")
-
-                                // need to add dynamic refresh, log user out then back in 
-
-                                // await setUser(false);
-                                // await setUser(user)
+                                setUser(false);
 
                             } catch (error) {
                                 alert("Failed to change username!")
@@ -137,11 +135,8 @@ export default function Controller() {
                         />
                     </View>
 
-
-
                     <ActionButton
                         label="Change password"
-                        // textS={uniqueStyles.buttonText}
                         onPress={async () => {
                             if (!db) {
                                 alert("DB not working")
@@ -169,15 +164,16 @@ export default function Controller() {
                                 alert("Failed to change password!")
                                 console.log(error);
                             }
-                        }
-                        }
+                        }}
                     />
 
+
+                    {/* Account Management */}
                     <Text style={defaultStyles.sectionTitle}>Management</Text>
 
                     <ActionButton
                         label="Delete account"
-                        // textS={uniqueStyles.buttonText}
+                        style={{ backgroundColor: '#C62828' }}
                         onPress={async () => {
                             if (!db) {
                                 alert("DB not working")
@@ -199,26 +195,25 @@ export default function Controller() {
                                 console.log(error);
                             }
                         }}
-                        style={{ backgroundColor: '#C62828' }}
-                    />
-                    <ActionButton
-                        label="Delete all layouts for this account"
-                        // textS={uniqueStyles.buttonText}
-                        style={{ backgroundColor: '#C62828' }}
-                        onPress={() => clearJsonData(false)}
                     />
 
+                    <ActionButton
+                        label="Delete all layouts for this account"
+                        style={{ backgroundColor: '#C62828' }}
+                        onPress={() => clearLayoutJson(false)}
+                    />
+
+
+                    {/* Admin settings */}
                     <Text style={defaultStyles.sectionTitle}>Admin</Text>
                     <ActionButton
                         label="Delete all layouts for ALL accounts"
-                        // textS={uniqueStyles.buttonText}
-                        onPress={() => clearJsonData(true)}
-                        style={{ backgroundColor: '#C62828', borderColor: '#fff', borderWidth: 3 }}
-
+                        style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#000' : '#fff', borderWidth: 3 }}
+                        onPress={() => clearLayoutJson(true)}
                     />
                     <ActionButton
                         label="Delete ALL accounts on this device"
-                        // textS={uniqueStyles.buttonText}
+                        style={{ backgroundColor: '#C62828', borderColor: '#fff', borderWidth: 3 }}
                         onPress={async () => {
                             if (!db) {
                                 alert("DB not working")
@@ -226,7 +221,7 @@ export default function Controller() {
                             }
                             try {
 
-                                // Delete the entire table to remove all users
+                                // Delete the entire DB table to remove all users
                                 await db.runAsync(`DROP TABLE IF EXISTS users`)
                                 setUser(false);
                                 alert("All users removed!")
@@ -236,7 +231,6 @@ export default function Controller() {
                                 console.log(error);
                             }
                         }}
-                        style={{ backgroundColor: '#C62828', borderColor: '#fff', borderWidth: 3 }}
                     />
                 </View>
             </View>

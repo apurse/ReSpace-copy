@@ -1,6 +1,4 @@
-// https://reactnative.dev/docs/network
-
-import React, { useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, Text, View, Pressable, Dimensions } from 'react-native';
 import ToggleSetting from '@/components/settingsComponents/toggle';
 import SliderSetting from '@/components/settingsComponents/slider';
@@ -10,44 +8,51 @@ import { useTheme } from '../_layout';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link, router } from "expo-router";
 import { useSocket } from "@/hooks/useSocket";
-import { Robot } from "@/components/models/Robot";
 import { useAuth } from "@/hooks/useAuth";
 import * as Icons from '../../components/indexComponents/Icons';
 
 // Get dimensions of the screen
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
+
 const SettingsPage = () => {
+
+    // Hooks and colours
     const { theme, toggleTheme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
-    let hasLoaded = false;
+    const { isConnected, sendMessage, latencyData } = useSocket();
+    const { user, setUser } = useAuth();
 
-
-    // Add state for each independent toggle
+    // Settings
     const [stopWhenHumansPresent, setStopWhenHumansPresent] = useState(true);
     const [completedTasks, setCompletedTasks] = useState(false);
     const [collisions, setCollisions] = useState(false);
     const [batteryLevels, setBatteryLevels] = useState(false);
-    // const [test, setTest] = useState(false);
     const [movementSpeed, setMovementSpeed] = useState(2);
     const [batteryNotificationThreshold, setBatteryNotificationThreshold] = useState(15);
-    const { socket, isConnected, robotData, sendMessage, latencyData } = useSocket();
-    const { loggedIn, user, setUser } = useAuth();
-    // Convert dictionary into an array of robots for iteration
 
+    let hasLoaded = false;
+
+
+    // Display latency data when value changes
     useEffect(() => {
         if (latencyData != undefined) {
             alert(`Websocket latency: ${latencyData}ms`);
         }
-    }, [latencyData]); // Triggers only when latencyData updates
+    }, [latencyData]);
 
 
+    // On page refresh, load local settings
     useEffect(() => {
         loadLocalSettings();
     }, []);
 
+
+    /**
+     * Retrieve and set the devices saved settings
+     */
     async function loadLocalSettings() {
         if (hasLoaded) return;
         hasLoaded = true;
@@ -100,32 +105,37 @@ const SettingsPage = () => {
             console.error("Error loading 'batteryNotification' setting:", error);
             setBatteryNotificationThreshold(-1);
         }
-
     }
 
 
+    /**
+     * Change the setting value based on user interaction.
+     * @param settingFunction The setting value being changes.
+     * @param key The setting key ?
+     * @param value The value being set for the setting.
+     */
     async function onChangeFunction(settingFunction: any, key: any, value: any) {
         if (value != null) {
             settingFunction(value);
             console.log("Changing value: " + value.toString());
             await AsyncStorage.setItem(key.toString(), value.toString());
-            // alert("Key: " + settingFunction.toString());
-
         }
     }
 
     return (
         <ScrollView contentContainerStyle={defaultStyles.body}>
+
+
+            {/* Page title */}
             <View style={defaultStyles.pageTitleSection}>
                 <Text style={defaultStyles.pageTitle}>
                     Settings
                 </Text>
             </View>
-            <View style={uniqueStyles.segmentContainer}>
-                {/* <Text style={uniqueStyles.subSectionTitle}>
-                    Profile
-                </Text> */}
 
+
+            {/* Account settings */}
+            <View style={uniqueStyles.segmentContainer}>
                 {user ?
                     <Link href="/settingsPages/accountSettings" asChild>
                         <Pressable style={uniqueStyles.accountSettings}>
@@ -147,6 +157,8 @@ const SettingsPage = () => {
                 }
             </View>
 
+
+            {/* Robot Settings */}
             <View style={uniqueStyles.segmentContainer}>
                 <Text style={uniqueStyles.subSectionTitle}>
                     Robot Settings
@@ -164,6 +176,7 @@ const SettingsPage = () => {
                     onValueChange={(value) => onChangeFunction(setStopWhenHumansPresent, "stopWhenHumansPresent", value)}
                     value={stopWhenHumansPresent}
                 />
+
                 <ActionButton
                     label="Re-map room"
                     onPress={() => alert("Re-mapping room")}
@@ -177,11 +190,11 @@ const SettingsPage = () => {
                         router.push("/settingsPages/controller")
                     }}
                 />
+
                 <ActionButton
                     label="Test Connection"
                     style={uniqueStyles.button}
                     onPress={async () => {
-                        // Result comes back to the useEffect at the top of this page
                         if (isConnected) {
                             sendMessage({ type: "latency_test", start_time: Date.now() });
                         } else {
@@ -191,13 +204,9 @@ const SettingsPage = () => {
                 />
             </View>
 
-            <View style={uniqueStyles.segmentContainer}>
-                {/* <View style={uniqueStyles.segmentTitleContainer}>
-                    <Text style={uniqueStyles.segmentTitle}>
-                        App Settings
-                    </Text>
-                </View> */}
 
+            {/* App Settings */}
+            <View style={uniqueStyles.segmentContainer}>
                 <Text style={uniqueStyles.subSectionTitle}>
                     App Settings
                 </Text>
@@ -223,10 +232,6 @@ const SettingsPage = () => {
                     value={batteryNotificationThreshold}
                     onValueChange={(value) => onChangeFunction(setBatteryNotificationThreshold, "batteryNotification", value)}
                 />
-
-                {/* <Text style={defaultStyles.sectionTitle}>
-                    Analytics and Reporting
-                </Text> */}
                 <ActionButton
                     label="Task History Logs"
                     onPress={() => alert("Todo...")}
@@ -241,6 +246,8 @@ const SettingsPage = () => {
                     onValueChange={() => onChangeFunction(toggleTheme, "isDarkMode", theme == 'light')}
                 />
             </View>
+
+            {/* Sign out button */}
             {user &&
                 <Link href="/" asChild>
                     <ActionButton
