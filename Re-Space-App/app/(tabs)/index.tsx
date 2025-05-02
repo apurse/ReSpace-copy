@@ -10,11 +10,14 @@ import { useAuth } from "@/hooks/useAuth";
 
 
 // Get dimensions of the screen
-const { width, height } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 const currentBatteryPerc = 67;
 const issuesFound = 0;
 
-// Monitoring status card based on percentage/battery level
+
+/**
+ * Monitoring status card based on percentage/battery level
+ */
 const batteryLevel = () => {
 
   const batteryStatus = [
@@ -29,7 +32,11 @@ const batteryLevel = () => {
   return batteryStatus.find(item => currentBatteryPerc > item.threshold) || { message: "Error", color: "#ec1a01", warning: Icons.WarningIcon, battery: Icons.WarningIcon }
 };
 
-// Change status if any issues found
+
+/**
+ * Change status if any issues found
+ * @returns 
+ */
 const warnings = () => {
   if (issuesFound) {
     return { messageW: "Issues found!", colorW: "#ec1a01", warningI: Icons.WarningIcon };
@@ -42,17 +49,22 @@ const { message, color, warning, battery } = batteryLevel();
 // warnings function variables
 const { messageW = "", colorW = "#2E7D32", warningI = null } = warnings() || {};
 
+
 export default function HomeScreen() {
 
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [hasSeenModal, setHasSeenModal] = useState(true); // set to true while developing
-  const [greeting, setGreeting] = useState<string | null>();
+  // Hooks and colours
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const { socket, isConnected, robotData, sendMessage } = useSocket();
-  const { loggedIn, user } = useAuth();
+  const { robotData } = useSocket();
+  const { user } = useAuth();
+
+  // Login states
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [hasSeenModal, setHasSeenModal] = useState(true); // set to true while developing
+  
+  const [greeting, setGreeting] = useState<string | null>();
 
 
   // Change greeting text based on time
@@ -92,6 +104,7 @@ export default function HomeScreen() {
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
 
+
       {/* Login button */}
       {!user &&
         <TouchableOpacity style={uniqueStyles.loginButton} onPress={() => setModalVisible(true)}>
@@ -102,8 +115,10 @@ export default function HomeScreen() {
         </TouchableOpacity>
       }
 
+
       {/* Greeting */}
       <Text style={uniqueStyles.greeting}>{greeting}</Text>
+
 
       {/* ReSpace monitoring status section */}
       <View style={[uniqueStyles.statusCard, { backgroundColor: colorW || color }]}>
@@ -116,10 +131,13 @@ export default function HomeScreen() {
         <Text style={uniqueStyles.statusText}>{currentBatteryPerc}%</Text>
       </View>
 
+
       {/* Robots section */}
       <Text style={defaultStyles.sectionTitle}>Connected Robots: {robotData.length}</Text>
       <RobotList />
 
+
+      {/* Login popup */}
       <LoginModal
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
@@ -136,7 +154,6 @@ const createUniqueStyles = (isDarkMode: boolean) =>
 
     greeting: {
       fontSize: 28,
-      // fontWeight: 'bold',
       marginBottom: 5,
       marginTop: 5,
       textAlign: 'center',
@@ -177,22 +194,22 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       alignSelf: 'center',
     },
     statusTitle: {
-      fontSize: width * 0.08,
+      textAlign: 'center',
+      fontSize: screenWidth * 0.08,
       color: '#fff',
       fontWeight: '400',
       marginBottom: 8,
     },
     statusText: {
-      fontSize: width * 0.06,
+      fontSize: screenWidth * 0.06,
       color: '#fff',
       fontWeight: '400',
     },
     statusIcons: {
       flexDirection: 'row',
-      gap: width * 0.3,
+      gap: screenWidth * 0.3,
       marginBottom: 5,
       marginTop: 5,
-      fontSize: height * 0.07,
+      fontSize: screenHeight * 0.07,
     }
-
   });

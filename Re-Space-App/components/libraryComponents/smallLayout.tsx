@@ -1,20 +1,28 @@
 import { StyleSheet, View, Text, Pressable, Image } from "react-native";
-import * as Icons from './indexComponents/Icons';
-import { useTheme } from '../app/_layout';
-import { Link, router } from "expo-router";
+import * as Icons from '../indexComponents/Icons';
+import { useTheme } from '../../app/_layout';
+import { router } from "expo-router";
 import { useSocket } from "@/hooks/useSocket";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import * as FileSystem from 'expo-file-system';
 
-
+/**
+ * A small layout displaying the title and favourite status which when clicked, loads up the corresponding layout.
+ * @param LayoutTitle String - The title of the layout. 
+ * @param roomName String - The name of the room the layout is for. 
+ */
 export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: any; roomName: string }) {
+
+  // Hooks and colours
   const { theme } = useTheme();
+  const { roomMap } = useSocket();
+  const { user } = useAuth();
   const isDarkMode = theme === 'dark';
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const { roomMap } = useSocket();
+
+  // Settings
   const [isFavourited, setIsFavourited] = useState<boolean>(false);
-  const { user } = useAuth();
 
 
   var layoutJson = '';
@@ -42,7 +50,7 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
       readData = await FileSystem.readAsStringAsync(layoutJson);
       if (readData) jsonData = JSON.parse(readData);
 
-      
+
       // Get the layout index within the JSON
       layoutIndex = jsonData[user.username]?.layouts
         .findIndex((layout: any) => layout.name === LayoutTitle);
@@ -91,10 +99,12 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
       onPress={() =>
         router.push({
           pathname: "/addPages/addLayout",
-          params: { layoutName: LayoutTitle, roomName},
+          params: { layoutName: LayoutTitle, roomName },
         })
       }>
 
+
+      {/* Title and favourited icon */}
       <View style={uniqueStyles.layoutHeader}>
         <Pressable
           onPress={toggleFavourite}>
@@ -107,6 +117,8 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
         <Text style={uniqueStyles.layoutTitle}>{LayoutTitle}</Text>
       </View>
 
+
+      {/* Content */}
       <Image
         style={uniqueStyles.imageBody}
         source={{ uri: (`data:image/png;base64,${roomMap}`) }} />

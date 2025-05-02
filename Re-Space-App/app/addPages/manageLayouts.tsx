@@ -4,7 +4,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import * as FileSystem from 'expo-file-system';
 import { useEffect, useState, useCallback } from 'react';
-import SmallLayout from '@/components/smallLayout';
+import SmallLayout from '@/components/libraryComponents/smallLayout';
 import { useAuth } from "@/hooks/useAuth";
 import { useFocusEffect } from '@react-navigation/native';
 

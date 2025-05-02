@@ -1,6 +1,6 @@
 import { View, RefreshControl, ScrollView, StyleSheet, Text, Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import SmallLayout from '@/components/smallLayout';
+import SmallLayout from '@/components/libraryComponents/smallLayout';
 import FilterButton from '@/components/libraryComponents/FilterButton';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from '../_layout';

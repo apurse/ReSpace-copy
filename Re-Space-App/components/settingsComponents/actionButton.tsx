@@ -1,4 +1,4 @@
-import React, { FunctionComponentElement } from 'react';
+import { FunctionComponentElement } from 'react';
 import {Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 const ActionButton = ({ label, onPress, style, textS, icon }: { label?: string; onPress: () => void; style?: object; textS?: object, icon?: FunctionComponentElement<{}>; } ) => {
