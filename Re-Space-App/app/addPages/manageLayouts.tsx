@@ -3,9 +3,11 @@ import { useTheme } from "@/app/_layout";
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import * as FileSystem from 'expo-file-system';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import SmallLayout from '@/components/smallLayout';
 import { useAuth } from "@/hooks/useAuth";
+import { useFocusEffect } from '@react-navigation/native';
+
 
 const { width } = Dimensions.get('window');
 
@@ -49,10 +51,12 @@ export default function ManageLayouts() {
     
   };
 
-  useEffect(() => {
-    getRoomLayouts();
-  }, [roomName]);
-
+  useFocusEffect(
+    useCallback(() => {
+      getRoomLayouts();
+    }, [roomName])
+  );
+  
   return (
     <ScrollView
       contentContainerStyle={defaultStyles.body}
