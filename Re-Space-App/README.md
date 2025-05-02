@@ -1,50 +1,47 @@
-# Welcome to your Expo app 👋
+# Re-Space Front-end Application
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+This app is the front-end part of the Re-Space furniture moving system, providing users a friendly and easy-to-use system for controlling the Re-Space robots. The app allows for users to control the system from the convenience of their own device.
 
-## Get started
+© Re-Space, 2025.
 
-1. Install dependencies
+#### Authentication
+Within the application, users can create accounts to access all system functionality. These accounts are comprised of a username and password.
+Accounts are stored in a local SQLite database, but will be changed in future productions.
 
-   ```bash
-   npm install
-   ```
+Once an account is created, users get access to the entire app system.
 
-2. Start the app
+#### Furniture management
 
-   ```bash
-    npx expo start
-   ```
 
-In the output, you'll find options to open the app in a
+#### Layout management
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Prerequisites
+1) ‘Node.js — Download Node.js®’. Accessed: Sep. 30, 2024. [Online]. Available: https://nodejs.org/en/download. Node Permissive MIT License.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## How to start the app
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+### Normal start:
+1) Open a new terminal and enter: 
+```
+cd Re-Space-App; npm install; npx expo start -c
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Direct connection:
+If normal start doesn't work, use a tunnel version for direct connections.
+1) Open a new terminal and enter: 
+```
+cd Re-Space-App; npm install; npx expo start --tunnel -c
+```
 
-## Learn more
+### Fix dependencies after update:
+```
+npm config set legacy-peer-deps true
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## Dependencies
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### React Native
+React Native uses the MIT License, found at https://github.com/facebook/react-native/blob/main/LICENSE
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Expo 
+Expo uses the MIT License, found at https://github.com/expo/expo/blob/main/LICENSE
