@@ -100,6 +100,15 @@ export default function ManageLayouts() {
       {/* Filters */}
       {/* <Text style={uniqueStyles.sectionTitle}>Filters</Text> */}
       <View style={uniqueStyles.filterContainer}>
+        
+        
+        {/* Make twice as big and white */}
+        <FilterButton
+          Option="Add new layout"
+          onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomName } })}
+        />
+
+
         <FilterButton
           Option="Favourites"
           onPress={() => {
@@ -109,15 +118,6 @@ export default function ManageLayouts() {
           selected={favouritesSelected}
         />
 
-        {/* Make twice as big and white */}
-        <FilterButton
-          Option="Add new layout"
-          onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomName } })}
-        />
-        {/* <FilterButton
-          Option="Furniture"
-          onPress={() => alert("WIP")}
-        /> */}
       </View>
 
 

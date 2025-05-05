@@ -44,7 +44,7 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
      * Get the layout JSON and layout information.
      */
     const getJson = async () => {
-            
+
       
       // Read and check there is JSON data
       layoutJson = `${FileSystem.documentDirectory}rooms/${roomName}.json`; 
@@ -135,7 +135,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       borderColor: isDarkMode ? '#fff' : '#ddd',
       borderWidth: 1,
       borderRadius: 8,
-      height: '50%',
+      height: 200,
       padding: 8,
       alignItems: 'center',
     },

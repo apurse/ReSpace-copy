@@ -18,10 +18,6 @@ import { useAuth } from "@/hooks/useAuth";
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
-// Local json file with layout data
-//const layoutJson = FileSystem.documentDirectory + 'layouts.json';
-
-
 // -------- Grid Visuals --------
 const roomDimensionsMM = [1200, 1200];
 const gridWidth = roomDimensionsMM[0];
@@ -96,19 +92,16 @@ export default function DragAndDrop() {
     const [offsetY, setOffsetY] = useState(0);
 
 
-    // Get the selected layout from the library
-    // const selectedLayout = useLocalSearchParams();
 
     //  Local room json file
     const { selectedLayout, roomName } = useLocalSearchParams<{ selectedLayout: string, roomName?: string }>();
     const roomFilePath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
 
-    
+
     // Refresh layout on selected layout change
     useEffect(() => {
-        console.log("useeiwbvew")
+        console.log("useEffect called")
         if (!hasBeenCalled) {
-            console.log("Loading layout:", selectedLayout);
             loadLayout(selectedLayout);
             setHasBeenCalled(true);
         }
@@ -121,7 +114,6 @@ export default function DragAndDrop() {
      */
     const loadLayout = async (selectedLayout: string) => {
         try {
-            console.log("loadlayout called");
 
             // Set the title
             setlayoutHeading(selectedLayout);
@@ -782,31 +774,29 @@ export default function DragAndDrop() {
                                         style={{ backgroundColor: '#fa440c' }}
                                     />
                                 }
-                                {/* </Link> */}
                             </>
                         ) : (
                             <>
                                 {isConnected ?
                                     (isSaved ?
                                         (
-
                                             <ActionButton
                                                 label="Ready To Go!"
                                                 onPress={() => {
                                                     console.log("link layoutName", layoutName)
                                                     console.log("link roomName", roomName)
-                                                    // router.push({
-                                                    //     pathname: "/extraPages/systemRunning",
-                                                    //     params: { selectedLayout: layoutName, roomName },
-                                                    // })
-                                                    sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                                                    router.push({
+                                                        pathname: "/extraPages/systemRunning",
+                                                        params: { layoutRunning: layoutName, roomName },
+                                                    })
+                                                    // sendMessage({ type: "desired_layout", locations: boxesFormatted })
                                                 }}
                                             />
                                         )
                                         :
                                         (
                                             <ActionButton
-                                                label="Save the layout first!"
+                                                label={(loadedLayoutIndex == -1) ? "Save the layout first!" : "Update the layout first!"}
                                                 onPress={() => {
                                                     alert("Save the layout first!")
                                                 }}
@@ -831,14 +821,13 @@ export default function DragAndDrop() {
                                 />
                                 {!isSaved ?
                                     <ActionButton
-                                        label="Save Layout"
+                                        label={(loadedLayoutIndex == -1) ? "Save Layout" : "Update Layout"}
                                         onPress={() => setLayout(true)}
                                         style={{ backgroundColor: '#00838F' }}
-                                    // textS={{ color: '#000' }}
                                     />
                                     :
                                     <ActionButton
-                                        label="Layout saved!"
+                                        label={(loadedLayoutIndex == -1) ? "Layout Saved!" : "Layout Updated!"}
                                         onPress={() => console.log("filler")}
                                         style={{ backgroundColor: '#00838F' }}
                                     />

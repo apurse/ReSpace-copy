@@ -19,7 +19,10 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
 // Local json file with layout data
-const layoutJson = FileSystem.documentDirectory + 'layouts.json';
+
+// Local room json file
+const { layoutRunning, roomName } = useLocalSearchParams<{ layoutRunning: string, roomName: string }>();
+const roomFilePath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
 
 
 // -------- Grid Visuals --------
@@ -74,6 +77,7 @@ export default function systemRunning() {
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [boxDestinations, setBoxDestinations] = useState<Box[]>([]);
   const [selectedBox, setSelectedBox] = useState<number | null>(null);
+  const [totalProgress, setTotalProgress] = useState<Float>(0);
 
   // User settings
   const [layoutName, setlayoutName] = useState<string | undefined>();
@@ -100,6 +104,24 @@ export default function systemRunning() {
         boxes[boxIndex].x = robot?.locationX;
         boxes[boxIndex].y = robot?.locationY;
         boxes[boxIndex].rotation = robot?.angle;
+
+
+        // calculate error margin
+        // if within 20cm eg
+
+
+        // // If current positions equal destinations (maybe easier way to do this) 
+        // if (
+        //   boxes[boxIndex].x == boxDestinations[boxIndex].x &&
+        //   boxes[boxIndex].y == boxDestinations[boxIndex].y &&
+        //   boxes[boxIndex].rotation == boxDestinations[boxIndex].rotation
+        // ) {
+
+
+        //   // Set new progress
+        //   var newProgress = totalProgress + (1 / boxes.length)
+        //   setTotalProgress(newProgress)
+        // }
       }
     })
 
@@ -108,7 +130,7 @@ export default function systemRunning() {
 
 
   // Get the selected layout from the library
-  const selectedLayout = useLocalSearchParams();
+  // const selectedLayout = useLocalSearchParams();
 
   /**
   * Load the layout from the selected layout in the library.
@@ -122,7 +144,7 @@ export default function systemRunning() {
 
 
     // Read the data from JSON
-    const readData = await FileSystem.readAsStringAsync(layoutJson);
+    const readData = await FileSystem.readAsStringAsync(roomFilePath);
     const jsonData = JSON.parse(readData);
 
 
@@ -152,23 +174,37 @@ export default function systemRunning() {
     setBoxDestinations(destinations)
   };
 
+  // for each box, destination - current pos, could save into array?
+  // overall progress - if position = destination, progress (bar width) = (boxes done) / total boxes
+
 
   // Refresh layout on selected layout change
   useEffect(() => {
+
+    console.log("selectedLayout: ", layoutRunning)
+    console.log("roomName: ", roomName)
     if (!hasBeenCalled) {
 
       // Convert from object of elements to string
-      var currentTitle = "";
-      for (const [key, value] of Object.entries(selectedLayout)) {
-        currentTitle += value;
-      }
-      console.log(currentTitle);
+      // var currentTitle = "";
+      // for (const [key, value] of Object.entries(layoutName)) {
+      //   currentTitle += value;
+      //   console.log("value", value)
+      //   console.log(currentTitle);
+      // }
+      // console.log(currentTitle);
 
-      loadLayout(currentTitle)
-      setHasBeenCalled(true)
+      try {
+        if (layoutRunning) {
+          loadLayout(layoutRunning)
+          setHasBeenCalled(true)
+        }
+      } catch (error) {
+        console.error(error)
+      }
     }
 
-  }, [selectedLayout]);
+  }, [layoutRunning]);
 
 
   /**
