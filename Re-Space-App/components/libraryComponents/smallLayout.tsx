@@ -44,9 +44,10 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
      * Get the layout JSON and layout information.
      */
     const getJson = async () => {
-
+            
+      
       // Read and check there is JSON data
-      layoutJson = FileSystem.documentDirectory + 'layouts.json';
+      layoutJson = `${FileSystem.documentDirectory}rooms/${roomName}.json`; 
       readData = await FileSystem.readAsStringAsync(layoutJson);
       if (readData) jsonData = JSON.parse(readData);
 
@@ -96,12 +97,13 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
   return (
     <Pressable
       style={uniqueStyles.layoutCardContainer}
-      onPress={() =>
+      onPress={() => {
         router.push({
           pathname: "/addPages/addLayout",
-          params: { layoutName: LayoutTitle, roomName },
+          params: { selectedLayout: LayoutTitle, roomName },
         })
-      }>
+      }}
+    >
 
 
       {/* Title and favourited icon */}

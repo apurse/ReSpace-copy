@@ -1,67 +1,78 @@
-import { View, Text, StyleSheet, Pressable, Dimensions, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl } from 'react-native';
 import { useTheme } from "@/app/_layout";
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import * as FileSystem from 'expo-file-system';
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import SmallLayout from '@/components/libraryComponents/smallLayout';
 import { useAuth } from "@/hooks/useAuth";
 import { useFocusEffect } from '@react-navigation/native';
+import FilterButton from '@/components/libraryComponents/FilterButton';
+
 
 // Get dimensions of the screen
 const { width } = Dimensions.get('window');
 
 export default function ManageLayouts() {
 
-  /**
-   * Hooks and colours
-   */
+  // Hooks and colours
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const router = useRouter();
-  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
   const { user } = useAuth();
 
-  //  Saved layout list
-  const [layouts, setLayouts] = useState<JSX.Element[] | null>(null);
-  //  Check to refresh page
+  // Layouts and favourite layouts
+  const [layouts, setLayouts] = useState<any | null>(null);
+  const [favouriteLayouts, setFavouriteLayouts] = useState<any | null>(null);
+  const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
+
 
   /**
    * Fetch layout data from room file
    */
-  const getRoomLayouts = async () => {
-    setRefreshing(true);
-    try {
-      if (!roomName) return;  //  Return if room name is incorrect
+  const getLayouts = async () => {
 
-      //  Read room file, return if file not exist
+
+    try {
+      if (!roomName) return;
+
+
+      // Read room file, return if file does not exist
       const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
       const fileCheck = await FileSystem.getInfoAsync(roomPath);
       if (!fileCheck.exists) return;
 
-      //  Read and parse data from room file
+
+      // Read and parse data from room file
       const data = await FileSystem.readAsStringAsync(roomPath);
-      const parsed = JSON.parse(data);
+      const jsonData = JSON.parse(data);
 
-      //  Get list of layouts
-      const layoutsArray = parsed[user.username]?.layouts ?? [];
 
-      //  Create layout element to show in page
-      const layoutElements = layoutsArray.map((layout: { name: string }) => (
-        <SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={roomName} />
-      ));
+      // Push all layouts to an array and output as smallLayouts
+      var allLayouts: any = [];
+      var favourites: any = [];
 
-      //  Add layout in list
-      setLayouts(layoutElements);
+
+      // Filter layouts by values and push into the correct array
+      jsonData[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
+        allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={roomName} />)
+        if (layout.favourited) {
+          favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={roomName} />)
+        }
+      })
+
+
+      // Set the arrays
+      setLayouts(allLayouts);
+      setFavouriteLayouts(favourites)
+
     } catch (error) {
-      console.error("Failed to laod layouts", error);
-    } finally {
-      setRefreshing(false);
+      console.error("Failed to load layouts", error);
     }
-    
   };
 
   /**
@@ -69,40 +80,63 @@ export default function ManageLayouts() {
    */
   useFocusEffect(
     useCallback(() => {
-      getRoomLayouts();
+      getLayouts();
     }, [roomName])
   );
-  
+
+
   return (
     <ScrollView
       contentContainerStyle={defaultStyles.body}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={getRoomLayouts} />
-      }
-    >
+        <RefreshControl refreshing={refreshing} onRefresh={getLayouts} />
+      }>
+
+
       <View style={defaultStyles.pageTitleSection}>
         <Text style={defaultStyles.pageTitle}>Manage Layouts</Text>
       </View>
 
-      {/* Create new layout buttom */}
-      <View style={uniqueStyles.buttonContainer}>
-        <Pressable
-          style={uniqueStyles.button}
+      {/* Filters */}
+      {/* <Text style={uniqueStyles.sectionTitle}>Filters</Text> */}
+      <View style={uniqueStyles.filterContainer}>
+        <FilterButton
+          Option="Favourites"
+          onPress={() => {
+            setFavouritesSelected(value => !value)
+            getLayouts()
+          }}
+          selected={favouritesSelected}
+        />
+
+        {/* Make twice as big and white */}
+        <FilterButton
+          Option="Add new layout"
           onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomName } })}
-        >
-          <Text style={uniqueStyles.text}>New Layout</Text>
-        </Pressable>
+        />
+        {/* <FilterButton
+          Option="Furniture"
+          onPress={() => alert("WIP")}
+        /> */}
       </View>
 
-      {/* Show saved laouts */}
-      <Text style={defaultStyles.sectionTitle}>Saved Layouts</Text>
-      <View style={defaultStyles.cardSectionContainer}>
-      {layouts && layouts.length > 0 ? (
-        layouts
-      ) : (
-        <Text style={defaultStyles.sectionTitle}>No layouts founrrd.</Text>
-      )}
-      </View>
+
+      {/* Show layouts if logged in */}
+      {user &&
+        <>
+          <Text style={uniqueStyles.sectionTitle}>
+            {!favouritesSelected ?
+              (`All Layouts: ${layouts?.length}`)
+              :
+              (`Favourites: ${favouriteLayouts?.length}/${layouts?.length}`)
+            }
+          </Text>
+
+          <View style={defaultStyles.cardSectionContainer}>
+            {favouritesSelected ? favouriteLayouts : layouts}
+          </View>
+        </>
+      }
     </ScrollView>
   );
 }
@@ -126,4 +160,19 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       color: isDarkMode ? '#000' : '#fff',
       fontWeight: '300',
     },
+    filterContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      gap: width * 0.04,
+      width: '100%',
+
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginTop: 30,
+      marginBottom: 15,
+      color: isDarkMode ? '#fff' : '#000',
+    }
   });

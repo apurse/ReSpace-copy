@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import { useRef } from "react";
 import { Dimensions, Pressable, StyleSheet } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useSocket } from "@/hooks/useSocket";
@@ -6,13 +6,13 @@ import { useSocket } from "@/hooks/useSocket";
 const { width } = Dimensions.get("window");
 
 const ControlButton = ({
-                           iconName,
-                           iconSize = 24,
-                           iconColor = "black",
-                           buttonStyle,
-                           message,
-                           targetRobot,
-                       }: {
+    iconName,
+    iconSize = 24,
+    iconColor = "black",
+    buttonStyle,
+    message,
+    targetRobot,
+}: {
     iconName: keyof typeof AntDesign.glyphMap;
     iconSize?: number;
     iconColor?: string;

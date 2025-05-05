@@ -76,6 +76,7 @@ export default function Library() {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={getLayouts} />
       }>
+        
       < View style={defaultStyles.pageTitleSection} >
         <Text style={defaultStyles.pageTitle}>Library</Text>
       </View >

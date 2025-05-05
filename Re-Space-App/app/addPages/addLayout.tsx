@@ -88,7 +88,7 @@ export default function DragAndDrop() {
     // User settings
     const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null); // Track rotation interval
     const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
-    const [layoutHeading, setlayoutHeading] = useState<string | undefined>();
+    const [layoutName, setlayoutHeading] = useState<string | undefined>();
     const [zoomLevel, setZoomLevel] = useState(initialZoom); // Check zoom level
 
     const squareRef = useRef(null);
@@ -97,21 +97,23 @@ export default function DragAndDrop() {
 
 
     // Get the selected layout from the library
-    const selectedLayout = useLocalSearchParams();
+    // const selectedLayout = useLocalSearchParams();
 
     //  Local room json file
-    const { layoutName, roomName } = useLocalSearchParams<{ layoutName?: string, roomName?: string }>();
+    const { selectedLayout, roomName } = useLocalSearchParams<{ selectedLayout: string, roomName?: string }>();
     const roomFilePath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
 
+    
     // Refresh layout on selected layout change
     useEffect(() => {
-        if (layoutName && !hasBeenCalled) {
-            console.log("Loading layout:", layoutName);
-            loadLayout(layoutName);
+        console.log("useeiwbvew")
+        if (!hasBeenCalled) {
+            console.log("Loading layout:", selectedLayout);
+            loadLayout(selectedLayout);
             setHasBeenCalled(true);
         }
-    }, [layoutName]);
-    
+    }, [selectedLayout]);
+
 
     /**
      * Load the layout from the selected layout in the library.
@@ -122,7 +124,7 @@ export default function DragAndDrop() {
             console.log("loadlayout called");
 
             // Set the title
-            setlayoutHeading(layoutName);
+            setlayoutHeading(selectedLayout);
 
             // Read the data from JSON
             const readData = await FileSystem.readAsStringAsync(roomFilePath);
@@ -130,8 +132,10 @@ export default function DragAndDrop() {
 
             // Get the layout index within the JSON
             let layoutIndex = jsonData[user.username]?.layouts
-                .findIndex((layout: any) => layout.name === layoutName
-            );
+                .findIndex((layout: any) => layout.name === selectedLayout
+                );
+
+            console.log("index: ", layoutIndex)
 
             if (layoutIndex === -1) {
                 console.warn("Layout not found.");
@@ -152,7 +156,7 @@ export default function DragAndDrop() {
         } catch (err) {
             console.error("Error loading layout:", err);
         }
-        
+
     };
 
 
@@ -168,7 +172,7 @@ export default function DragAndDrop() {
 
             // Get the layout index within the JSON
             let layoutIndex = jsonData[user.username]?.layouts
-                .findIndex((layout: any) => layout.name === layoutHeading);
+                .findIndex((layout: any) => layout.name === layoutName);
 
             // Remove the layout
             jsonData[user.username].layouts.splice(layoutIndex, 1);
@@ -197,7 +201,7 @@ export default function DragAndDrop() {
             }
 
             // Check the layout has a name
-            if (!layoutHeading) {
+            if (!layoutName) {
                 setnotifications('Please add a unique title to this layout');
                 setTimeout(() => setnotifications(null), 3000);
                 return;
@@ -212,7 +216,7 @@ export default function DragAndDrop() {
                     [user.username]: {
                         furniture: [],
                         layouts: []
-                      }
+                    }
                 }));
                 console.log('Json file created:', roomFilePath);
             }
@@ -221,9 +225,8 @@ export default function DragAndDrop() {
             const readData = await FileSystem.readAsStringAsync(roomFilePath);
             const roomData = JSON.parse(readData);
 
-
             var nameUsed = false;
-            var newName = layoutHeading;
+            var newName = layoutName;
 
             // If this is a new layout
             if (loadedLayoutIndex == -1) {
@@ -231,21 +234,27 @@ export default function DragAndDrop() {
 
                 // Check that the provided name is unique
                 roomData[user.username]?.layouts?.forEach((layout: { name: string }) => {
-                    nameUsed = (layout.name == layoutHeading) ? true : false;
+                    nameUsed = (layout.name == layoutName) ? true : false;
                 })
+
+                // HAS TO BE UNDER THE SAME ACCOUNT
+
+                console.log("roomData: ", roomData)
+                console.log("roomData.user: ", roomData[user.username])
+                console.log("roomData.user.layouts: ", roomData[user.username].layouts)
 
 
                 // If its not unique, make a newName with (x) on afterwards 
                 if (nameUsed) {
                     setDuplicateNumber(duplicateNumber + 1);
-                    newName = (`${layoutHeading}_(${duplicateNumber})`)
+                    newName = (`${layoutName}_(${duplicateNumber})`)
                 }
             }
 
 
             // Set the json entry for each layout
             const layout = {
-                name: ((nameUsed) ? newName : layoutHeading),
+                name: newName,
                 room: roomName,
                 favourited: false,
                 currentLayout: {
@@ -421,6 +430,9 @@ export default function DragAndDrop() {
         setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
         // sendMessage({ type: "current_layout", locations: boxesFormatted })
 
+        console.log("layoutName: ", layoutName)
+        console.log("roomName: ", roomName)
+
         let oldLayoutBoxes: Box[] = [];
         if (!setOldLayout) {
             oldLayoutBoxes = [...placedBoxes];
@@ -558,13 +570,13 @@ export default function DragAndDrop() {
 
                     {/* Title */}
                     <TextInput
-                        value={layoutHeading}
+                        value={layoutName}
                         onChangeText={setlayoutHeading}
                         style={uniqueStyles.title}
                         placeholder='*New Layout ...'
                         placeholderTextColor={isDarkMode ? '#fff' : '#000'}
                     />
-                    
+
                     {/* Show zoom value */}
                     <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
 
@@ -778,14 +790,18 @@ export default function DragAndDrop() {
                                     (isSaved ?
                                         (
 
-                                            <Link href={{ pathname: "../extraPages/systemRunning", params: { layoutHeading } }} asChild>
-                                                <ActionButton
-                                                    label="Ready To Go!"
-                                                    onPress={() => {
-                                                        sendMessage({ type: "desired_layout", locations: boxesFormatted })
-                                                    }}
-                                                />
-                                            </Link>
+                                            <ActionButton
+                                                label="Ready To Go!"
+                                                onPress={() => {
+                                                    console.log("link layoutName", layoutName)
+                                                    console.log("link roomName", roomName)
+                                                    // router.push({
+                                                    //     pathname: "/extraPages/systemRunning",
+                                                    //     params: { selectedLayout: layoutName, roomName },
+                                                    // })
+                                                    sendMessage({ type: "desired_layout", locations: boxesFormatted })
+                                                }}
+                                            />
                                         )
                                         :
                                         (
@@ -818,7 +834,7 @@ export default function DragAndDrop() {
                                         label="Save Layout"
                                         onPress={() => setLayout(true)}
                                         style={{ backgroundColor: '#00838F' }}
-                                        // textS={{ color: '#000' }}
+                                    // textS={{ color: '#000' }}
                                     />
                                     :
                                     <ActionButton

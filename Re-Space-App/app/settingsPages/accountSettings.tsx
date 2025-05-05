@@ -208,12 +208,12 @@ export default function Controller() {
                     <Text style={defaultStyles.sectionTitle}>Admin</Text>
                     <ActionButton
                         label="Delete all layouts for ALL accounts"
-                        style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#000' : '#fff', borderWidth: 3 }}
+                        style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#fff' : '#000', borderWidth: 3 }}
                         onPress={() => clearLayoutJson(true)}
                     />
                     <ActionButton
                         label="Delete ALL accounts on this device"
-                        style={{ backgroundColor: '#C62828', borderColor: '#fff', borderWidth: 3 }}
+                        style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#fff' : '#000', borderWidth: 3 }}
                         onPress={async () => {
                             if (!db) {
                                 alert("DB not working")
