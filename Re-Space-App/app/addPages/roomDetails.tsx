@@ -8,68 +8,80 @@ import * as FileSystem from 'expo-file-system';
 const { width, height } = Dimensions.get('window');
 
 export default function RoomDetails() {
-    const { theme } = useTheme();
-    const isDarkMode = theme === 'dark';
-    const defaultStyles = createDefaultStyles(isDarkMode);
-    const uniqueStyles = createUniqueStyles(isDarkMode);
-    const router = useRouter();
-    const { roomName } = useLocalSearchParams<{ roomName?: string }>();
+  
+  /**
+   * Hooks and colours
+   */
+  const { theme } = useTheme();
+  const isDarkMode = theme === 'dark';
+  const defaultStyles = createDefaultStyles(isDarkMode);
+  const uniqueStyles = createUniqueStyles(isDarkMode);
+  const router = useRouter();
+  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
 
-    return (
-        <View style={defaultStyles.body}>
-            
-            <View style={defaultStyles.pageTitleSection}>
-                {/* Room name | default name in case of empty input */}
-                <Text style={defaultStyles.pageTitle}>{roomName}</Text>
-            </View>
-            <View style={uniqueStyles.buttonContainer}>
-                <Pressable 
-                    style={uniqueStyles.button} 
-                    onPress={() => router.push({ pathname: '/addPages/manageLayouts', params: { roomName } })}
-                >
-                    <Text style={uniqueStyles.text}>Manage Layouts</Text>
-                </Pressable>
+  return (
+      <View style={defaultStyles.body}>
+          
+          <View style={defaultStyles.pageTitleSection}>
+              {/* Room name | default name in case of empty input */}
+              <Text style={defaultStyles.pageTitle}>{roomName}</Text>
+          </View>
 
-                <Pressable 
-                    style={uniqueStyles.button} 
-                    onPress={() => router.push({ pathname: '/addPages/manageFurniture', params: { roomName } })}
-                >
-                    <Text style={uniqueStyles.text}>Manage Furniture</Text>
-                </Pressable>
+          <View style={uniqueStyles.buttonContainer}>
 
-                <Pressable 
-                    style={[uniqueStyles.button, {backgroundColor: '#FF6969'}]} 
-                    onPress={async () => {
-                        if (!roomName) {
-                          alert("No room name specified.");
-                          return;
-                        }
-                        
-                        const fileUri = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+            {/* Go to manage layout page */}
+            <Pressable 
+                style={uniqueStyles.button} 
+                onPress={() => router.push({ pathname: '/addPages/manageLayouts', params: { roomName } })}
+            >
+                <Text style={uniqueStyles.text}>Manage Layouts</Text>
+            </Pressable>
+
+            {/* Go to manage furniture page */}
+            <Pressable 
+                style={uniqueStyles.button} 
+                onPress={() => router.push({ pathname: '/addPages/manageFurniture', params: { roomName } })}
+            >
+                <Text style={uniqueStyles.text}>Manage Furniture</Text>
+            </Pressable>
+
+            {/* Delete current room */}
+            <Pressable 
+                style={[uniqueStyles.button, {backgroundColor: '#FF6969'}]} 
+                onPress={async () => {
+                    if (!roomName) {
+                      alert("No room name specified.");
+                      return;
+                    }
                     
-                        try {
-                          const fileInfo = await FileSystem.getInfoAsync(fileUri);
-                    
-                          if (fileInfo.exists) {
-                            await FileSystem.deleteAsync(fileUri);
-                            alert(`Room "${roomName}" deleted successfully.`);
-                            router.push('/(tabs)/roomsManager');
-                          } else {
-                            alert("Room file not found.");
-                          }
-                        } catch (error) {
-                          console.error("Failed to delete room:", error);
-                          alert("An error occurred while deleting the room.");
-                        }
-                      }}
-                >
-                    <Text style={uniqueStyles.text}>Delete This Room</Text>
-                </Pressable>
-            </View>
+                    //  File path
+                    const fileUri = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+                
+                    try {
+                      //  Read room file
+                      const fileInfo = await FileSystem.getInfoAsync(fileUri);
+                      
+                      //  Delete file if it exists
+                      if (fileInfo.exists) {
+                        await FileSystem.deleteAsync(fileUri);
+                        alert(`Room "${roomName}" deleted successfully.`);
+                        router.push('/(tabs)/roomsManager');  //  Go back to room manager page after deliting current room file
+                      } else {
+                        alert("Room file not found.");
+                      }
+                    } catch (error) {
+                      console.error("Failed to delete room:", error);
+                      alert("An error occurred while deleting the room.");
+                    }
+                  }}
+            >
+                <Text style={uniqueStyles.text}>Delete This Room</Text>
+            </Pressable>
+          </View>
 
-        
-        </View>
-    );
+      
+      </View>
+  );
 }
 
 const createUniqueStyles = (isDarkMode: boolean) =>

@@ -7,6 +7,10 @@ import { useTheme } from "@/app/_layout";
 const { width, height } = Dimensions.get('window');
 
 export default function RoomDetails() {
+
+  /**
+   * Hooks and colours
+   */
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
@@ -19,6 +23,8 @@ export default function RoomDetails() {
             <View style={defaultStyles.pageTitleSection}>
                 <Text style={defaultStyles.pageTitle}>Manage Furniture</Text>
             </View>
+
+            {/* Add new furniture */}
             <View style={uniqueStyles.buttonContainer}>
                 <Pressable style={uniqueStyles.button} onPress={() => router.push('/addPages/addFurniture')}>
                     <Text style={uniqueStyles.text}>New Furniture</Text>

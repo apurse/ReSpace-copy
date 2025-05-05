@@ -11,18 +11,25 @@ import { useAuth } from '@/hooks/useAuth';
 const { width, height } = Dimensions.get('window');
 
 export default function newRoom() {
+
+  /**
+   * Hooks and colours
+   */
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
-
   const router = useRouter();
   const { user } = useAuth();
+
+  //  Room name
   const [roomName, setRoomName] = useState('');
 
   return (
     <View style={defaultStyles.body}> 
         <View style={uniqueStyles.buttonContainer}>
+
+          {/* Input room's name */}
             <TextInput 
             placeholder="Type new room's name" 
             value={roomName} 
@@ -36,9 +43,11 @@ export default function newRoom() {
                   alert("Please enter a room name.");
                   return;
                 }
-
+                
+                //  Create new room if it doesn't already exist
                 const result = await createRoomIfNotExists(roomName, user);
 
+                //  Go to the new room created or room selected if name room already exist
                 if (result.success) {
                   router.push({ pathname: '/addPages/roomDetails', params: { roomName } });
                 } else {
@@ -48,6 +57,7 @@ export default function newRoom() {
             >
               <Text style={uniqueStyles.text}>Create</Text>
             </Pressable>
+            {/* Cancel new room, go back to previous page */}
             <Pressable style={[uniqueStyles.button, {backgroundColor: '#fa440c'}]} onPress={() => router.back()}>
                 <Text style={uniqueStyles.text}>Cancel</Text>
             </Pressable>

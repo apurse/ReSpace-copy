@@ -15,7 +15,10 @@ import uuid from 'react-native-uuid';
 const localJson = FileSystem.documentDirectory + 'FurnitureData.json';
 
 
-// Call function to clear the json data from device
+/**
+ * Call function to clear the json data from device.
+ * This is temporary until a deliting furniture function is created.
+ */
 const clearJsonData = async () => {
   try {
     await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: [] }));
@@ -27,8 +30,10 @@ const clearJsonData = async () => {
 };
 
 
-// Get dimensions of the screen
+//  Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
+
+//  Set grid size
 const gridSize = [0.8 * width, 0.55 * height];
 
 

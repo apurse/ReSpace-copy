@@ -30,6 +30,7 @@ const gridHeight = roomDimensionsMM[1];
 // const initialZoom = 0.5;
 const viewGridWidth = 350;
 const viewGridHeigh = 350;
+
 // Dynamically calculate the initial zoom level based on the room size and screen size
 const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh + 150) / gridHeight);
 
@@ -482,6 +483,7 @@ export default function DragAndDrop() {
         setSelectedBox(null);
     };
 
+    //  Fix coordinates with two decimals after inputing a number
     useEffect(() => {
         if (selectedBox !== null) {
             const box = boxes.find((box) => box.id === selectedBox);
@@ -493,11 +495,13 @@ export default function DragAndDrop() {
         }
     }, [selectedBox, boxes])
 
+    //  Update X coordinate value with input
     const updateX = (e: string) => {
         let newX = parseFloat(e);
         if (!isNaN(newX)) {
-            newX = Math.min(Math.max(newX, 0), gridWidth);
+            newX = Math.min(Math.max(newX, 0), gridWidth); // Set limit
 
+            //  Update box X placement
             setBoxes((prevBoxes) =>
                 prevBoxes.map((box) =>
                     box.id === selectedBox ? { ...box, x: newX } : box
@@ -506,11 +510,13 @@ export default function DragAndDrop() {
         }
     };
 
+    //  Update Y coordinate value with input
     const updateY = (e: string) => {
         let newY = parseFloat(e);
         if (!isNaN(newY)) {
-            newY = Math.min(Math.max(newY, 0), gridHeight);
+            newY = Math.min(Math.max(newY, 0), gridHeight); // Set limit
 
+            //  Update box Y placement
             setBoxes((prevBoxes) =>
                 prevBoxes.map((box) =>
                     box.id === selectedBox ? { ...box, y: newY } : box
@@ -519,11 +525,13 @@ export default function DragAndDrop() {
         }
     };
 
+    //  Update angle value with input
     const updateAngle = (e: string) => {
         let newRotation = parseFloat(e);
         if (!isNaN(newRotation)) {
-            newRotation = Math.min(Math.max(newRotation, 0), 360);
+            newRotation = Math.min(Math.max(newRotation, 0), 360); // Set limit
 
+            //   Update box angle
             setBoxes((prevBoxes) =>
                 prevBoxes.map((box) =>
                     box.id === selectedBox ? { ...box, rotation: newRotation } : box
@@ -556,8 +564,8 @@ export default function DragAndDrop() {
                         placeholder='*New Layout ...'
                         placeholderTextColor={isDarkMode ? '#fff' : '#000'}
                     />
-
-                    {/* <Text style={defaultStyles.pageTitle}>Add Layout</Text> */}
+                    
+                    {/* Show zoom value */}
                     <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
 
                     {/* Rotation buttons */}
@@ -592,6 +600,7 @@ export default function DragAndDrop() {
                             console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
                         }}
                     >
+                        {/* Zoom function settings */}
                         <ReactNativeZoomableView
                             initialOffsetX={initialOffsetX}
                             initialOffsetY={initialOffsetY}

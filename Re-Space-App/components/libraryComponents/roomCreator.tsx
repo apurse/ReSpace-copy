@@ -3,7 +3,10 @@ import * as FileSystem from 'expo-file-system';
 const roomsPath = `${FileSystem.documentDirectory}rooms/`;
 
 
-// Validate original input
+/**
+ * Validate original input.
+ * Trim input, check for invalid characters, check valid length (16 char max).
+ */
 export const isValidRoomName = (roomName: string): boolean => {
   const trimmed = roomName.trim();
   const invalidChars = /[^a-z0-9_\- ]/i;
@@ -15,14 +18,18 @@ export const isValidRoomName = (roomName: string): boolean => {
   );
 };
 
-// Check if room file exists
+/**
+ * Check if room file exists
+ */
 export const doesRoomExist = async (roomName: string): Promise<boolean> => {
   const fileJson = `${roomsPath}${roomName}.json`;
   const info = await FileSystem.getInfoAsync(fileJson);
   return info.exists;
 };
 
-// Create room file if it doesn't exist
+/**
+ * Create room file if it doesn't exist
+ */
 export const createRoomIfNotExists = async (
   roomName: string,
   user: any
@@ -33,6 +40,7 @@ export const createRoomIfNotExists = async (
   roomData?: any;
 }> => {
 
+  //  Check if the input is valid
   if (!isValidRoomName(roomName)) {
     return {
       success: false,
@@ -41,6 +49,7 @@ export const createRoomIfNotExists = async (
     };
   }
 
+  //  Check there is a name for the room
   if (!roomName) {
     return {
       success: false,
@@ -48,14 +57,18 @@ export const createRoomIfNotExists = async (
     };
   }
 
+  //  Room file path
   const fileJson = `${roomsPath}${roomName}.json`;
 
   try {
+
+    //  Check if directory exist, if not, create one
     const dirInfo = await FileSystem.getInfoAsync(roomsPath);
     if (!dirInfo.exists) {
       await FileSystem.makeDirectoryAsync(roomsPath, { intermediates: true });
     }
 
+    //  Check if room already exist, if so, parse room data to be shown
     const fileExists = await doesRoomExist(roomName);
     if (fileExists) {
       console.log(`Room already exists: ${fileJson}`);
@@ -69,6 +82,7 @@ export const createRoomIfNotExists = async (
       };
     }
 
+    //  Room's Json file
     const roomData = {
       [user.username]: {
         furniture: [],
@@ -76,6 +90,7 @@ export const createRoomIfNotExists = async (
       }
     };
 
+    //  Create json file
     await FileSystem.writeAsStringAsync(fileJson, JSON.stringify(roomData));
     console.log(`Room created at: ${fileJson}`);
     return {
