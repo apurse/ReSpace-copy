@@ -122,7 +122,7 @@ export default function HomeScreen() {
 
       {/* ReSpace monitoring status section */}
       <View style={[uniqueStyles.statusCard, { backgroundColor: colorW || color }]}>
-        <Text style={uniqueStyles.statusTitle}>ReSpace Monitoring</Text>
+        <Text style={uniqueStyles.statusTitle}>Re-Space Monitoring</Text>
         <View style={uniqueStyles.statusIcons}>
           {React.createElement(battery)}
           {React.createElement(warningI || warning)}

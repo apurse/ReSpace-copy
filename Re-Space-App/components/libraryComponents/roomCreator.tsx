@@ -84,6 +84,7 @@ export const createRoomIfNotExists = async (
 
     //  Room's Json file
     const roomData = {
+      roomScan: '',
       [user.username]: {
         furniture: [],
         layouts: []
@@ -93,6 +94,7 @@ export const createRoomIfNotExists = async (
     //  Create json file
     await FileSystem.writeAsStringAsync(fileJson, JSON.stringify(roomData));
     console.log(`Room created at: ${fileJson}`);
+    console.log("backend", roomData)
     return {
       success: true,
       message: 'Room created successfully',

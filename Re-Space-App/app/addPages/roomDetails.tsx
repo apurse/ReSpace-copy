@@ -52,7 +52,7 @@ export default function RoomDetails() {
             console.log(temp)
             router.push({
               pathname: "/settingsPages/controller",
-              params: {scanning: temp}
+              params: {scanning: temp, roomName}
             })
           }}
         ><Text style={uniqueStyles.text}>Scan Room</Text>

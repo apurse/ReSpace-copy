@@ -7,6 +7,7 @@ import DropDownPicker from "react-native-dropdown-picker";
 import { useSocket } from "@/hooks/useSocket";
 import { Robot } from "@/components/models/Robot";
 import { useLocalSearchParams } from "expo-router";
+import * as FileSystem from 'expo-file-system';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -25,7 +26,7 @@ export default function Controller() {
     const [open, setOpen] = useState(false); // Open/close dropdown
     const [robotList, setRobotList] = useState<{ label: string; value: string }[]>([]);
 
-    const { scanning } = useLocalSearchParams<{ scanning: string }>();
+    const { scanning, roomName } = useLocalSearchParams<{ scanning: string, roomName: string }>();
 
 
     useEffect(() => {
@@ -47,6 +48,27 @@ export default function Controller() {
         if (scanning == "true")
             setScanningMode(true)
     }, [scanning])
+
+    const temp = async () => {
+        // Read and check there is JSON data
+        const layoutJson = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+        const readData = await FileSystem.readAsStringAsync(layoutJson);
+        let jsonData;
+        if (readData) 
+            jsonData = JSON.parse(readData);
+
+
+        jsonData.roomMap = roomMap;
+
+
+
+        // Write the new data to the JSON
+        const updateData = {
+            ...jsonData,
+            roomMap: roomMap,
+        }
+        await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(updateData));
+    }
 
     return (
         <View style={defaultStyles.body}>

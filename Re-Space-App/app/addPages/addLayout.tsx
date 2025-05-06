@@ -92,7 +92,6 @@ export default function DragAndDrop() {
     const [offsetY, setOffsetY] = useState(0);
 
 
-
     //  Local room json file
     const { selectedLayout, roomName } = useLocalSearchParams<{ selectedLayout: string, roomName?: string }>();
     const roomFilePath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;

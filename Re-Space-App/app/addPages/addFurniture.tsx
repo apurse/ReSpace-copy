@@ -9,25 +9,24 @@ import { ColourPickerModal } from '@/components/LayoutComponents/colourPickerMod
 import { useSocket } from "@/hooks/useSocket";
 import * as MediaLibrary from 'expo-media-library';
 import uuid from 'react-native-uuid';
+import { useLocalSearchParams } from 'expo-router';
+import { useAuth } from '@/hooks/useAuth';
 
-
-// Local json file with furniture data
-const localJson = FileSystem.documentDirectory + 'FurnitureData.json';
 
 
 /**
  * Call function to clear the json data from device.
- * This is temporary until a deliting furniture function is created.
+ * This is temporary until a deleting furniture function is created.
  */
-const clearJsonData = async () => {
-  try {
-    await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: [] }));
+// const clearJsonData = async () => {
+//   try {
+//     await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: [] }));
 
-    console.log('Data has been cleared');
-  } catch (error) {
-    console.error('Error deleting json data');
-  }
-};
+//     console.log('Data has been cleared');
+//   } catch (error) {
+//     console.error('Error deleting json data');
+//   }
+// };
 
 
 //  Get dimensions of the screen
@@ -45,6 +44,8 @@ export default function AddLayout() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { isConnected, sendMessage, QRCode } = useSocket();
+  const { user } = useAuth();
+
 
   // Form information
   const [name, setName] = useState<string>('');
@@ -63,6 +64,12 @@ export default function AddLayout() {
   const [updatedQR, setUpdatedQR] = useState(true);
   const [notifications, setnotifications] = useState<string | null>(null);
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+
+  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
+
+  // Read room file, return if file does not exist
+  const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+
 
 
   // Grab the new QR code once it's changed, only once
@@ -143,6 +150,7 @@ export default function AddLayout() {
 
     const newFurniture = {
       furnitureID: generatedID,
+      favourited: false,
       name,
       model,
       height: heightF,
@@ -150,29 +158,24 @@ export default function AddLayout() {
       length,
       quantity,
       selectedColour,
-      // QRData
+      qrcode: QRData
     };
 
     try {
 
-      // If json file doesn't exist, create file
-      const checkJson = await FileSystem.getInfoAsync(localJson);
-      if (!checkJson.exists) {
-        await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: [] }));
-        console.log('Json file created:', localJson);
-      }
-
       // Read data from json before writing new data
-      const readData = await FileSystem.readAsStringAsync(localJson);
-      let jsonData = { Furniture: [] }; // Give empty array to stop showing an error
+      const readData = await FileSystem.readAsStringAsync(roomPath);
+      const roomData = JSON.parse(readData);
 
-      // Check there is data
-      if (readData) {
-        jsonData = JSON.parse(readData);
-      }
 
-      // Adding data to json
-      const updateData = [...jsonData.Furniture, newFurniture];
+      // Write new data to json
+      roomData[user.username].furniture.push(newFurniture);
+      await FileSystem.writeAsStringAsync(roomPath, JSON.stringify(roomData));
+      
+
+      // Show local json file in console
+      const data = await FileSystem.readAsStringAsync(roomPath);
+      console.log('Furniture json updated:', data);
 
 
       // Send furniture across to server
@@ -181,13 +184,6 @@ export default function AddLayout() {
       } else {
         alert("No connection to the WebSocket.");
       }
-
-      // Write new data to json
-      await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: updateData }));
-
-      // Show local json file in console
-      const data = await FileSystem.readAsStringAsync(localJson);
-      // console.log('Furniture json updated:', data);
 
       // Show success notification for 3 seconds
       setnotifications('New furniture added sucessfully');

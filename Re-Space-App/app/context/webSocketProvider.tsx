@@ -114,7 +114,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                     setQRCode(base64String);
                     // console.log(base64String);
 
-                } else if (data.type === "room_map") {
+                } else if (data.type === "map") {
 
                     const base64String = data.base64;
                     setRoomMap(base64String);

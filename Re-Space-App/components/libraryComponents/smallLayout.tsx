@@ -1,8 +1,7 @@
-import { StyleSheet, View, Text, Pressable, Image } from "react-native";
+import { StyleSheet, View, Text, Pressable } from "react-native";
 import * as Icons from '../indexComponents/Icons';
 import { useTheme } from '../../app/_layout';
 import { router } from "expo-router";
-import { useSocket } from "@/hooks/useSocket";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import * as FileSystem from 'expo-file-system';
@@ -16,7 +15,6 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
 
   // Hooks and colours
   const { theme } = useTheme();
-  const { roomMap } = useSocket();
   const { user } = useAuth();
   const isDarkMode = theme === 'dark';
   const uniqueStyles = createUniqueStyles(isDarkMode);
@@ -25,49 +23,48 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
   const [isFavourited, setIsFavourited] = useState<boolean>(false);
 
 
-  var layoutJson = '';
-  var readData = '';
+  // Global variables
+  const layoutJson = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+  var allLayouts: any[] = [];
   let jsonData = {
     [user.username]: {
       layouts: []
     }
   };
-  var allLayouts: any[] = [];
-  var layoutIndex = -1;
+
+
+  /**
+  * Get the layout JSON and layout information.
+  * @returns layoutIndex - the index of the layout within the JSON.
+  */
+  const getJson = async () => {
+
+
+    // Read and check there is JSON data
+    const readData = await FileSystem.readAsStringAsync(layoutJson);
+    if (readData) jsonData = JSON.parse(readData);
+
+
+    // Get the layout index within the JSON
+    const layoutIndex = jsonData[user.username]?.layouts
+      .findIndex((layout: any) => layout.name === LayoutTitle);
+
+
+    // Get all layouts and overwrite the selected layout
+    allLayouts = jsonData[user.username]?.layouts;
+
+
+    // Set the favourited value
+    setIsFavourited(allLayouts[layoutIndex].favourited);
+
+    return layoutIndex;
+  };
 
 
   // Update on each load
   useEffect(() => {
-
-
-    /**
-     * Get the layout JSON and layout information.
-     */
-    const getJson = async () => {
-
-      
-      // Read and check there is JSON data
-      layoutJson = `${FileSystem.documentDirectory}rooms/${roomName}.json`; 
-      readData = await FileSystem.readAsStringAsync(layoutJson);
-      if (readData) jsonData = JSON.parse(readData);
-
-
-      // Get the layout index within the JSON
-      layoutIndex = jsonData[user.username]?.layouts
-        .findIndex((layout: any) => layout.name === LayoutTitle);
-
-
-      // Get all layouts and overwrite the selected layout
-      allLayouts = jsonData[user.username]?.layouts;
-
-
-      // Set the favourited value
-      setIsFavourited(allLayouts[layoutIndex].favourited);
-    };
-
-
     getJson()
-  })
+  }, [roomName, LayoutTitle])
 
 
   /**
@@ -75,18 +72,21 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
    */
   const toggleFavourite = async () => {
 
+    const index = await getJson();
+
 
     // Invert the current favourite value
     const inverseFavourited = !isFavourited;
     setIsFavourited(inverseFavourited)
 
-    allLayouts[layoutIndex].favourited = inverseFavourited;
+    allLayouts[index].favourited = inverseFavourited;
 
 
     // Write the new data to the JSON
     const updateData = {
       ...jsonData,
       [user.username]: {
+        ...jsonData[user.username],
         layouts: allLayouts
       }
     }
@@ -119,11 +119,6 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
         <Text style={uniqueStyles.layoutTitle}>{LayoutTitle}</Text>
       </View>
 
-
-      {/* Content */}
-      <Image
-        style={uniqueStyles.imageBody}
-        source={{ uri: (`data:image/png;base64,${roomMap}`) }} />
     </Pressable>
   );
 };
