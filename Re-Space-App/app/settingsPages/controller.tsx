@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Text, Dimensions } from "react-native";
+import { View, StyleSheet, Text, Dimensions, Image } from "react-native";
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import ControllerButton from "@/components/settingsComponents/controllerButton";
@@ -12,7 +12,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function Controller() {
     const { theme } = useTheme();
-    const { robotData } = useSocket();
+    const { robotData, roomMap } = useSocket();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const [scanningMode, setScanningMode] = useState(false); // Open/close dropdown
@@ -74,14 +74,23 @@ export default function Controller() {
                 />
             </View>
 
+            {scanningMode &&
+                <View style={uniqueStyles.mapContainer}>
+                    {roomMap}
+                    <Image
+                        style={uniqueStyles.imageBody}
+                        source={{ uri: (`data:image/png;base64,${roomMap}`) }} />
+                </View>
+            }
+
             {/* Controller Buttons */}
             <View style={uniqueStyles.controller}>
                 <View>
                     {scanningMode ?
                         (
-                            <><ControllerButton text="Start" />
+                            <><ControllerButton text="Start" buttonStyle={{ backgroundColor: '#2E7D32', color: 'white' }} />
                                 <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot} />
-                                <ControllerButton text="Save" /></>
+                                <ControllerButton text="Save" buttonStyle={{ backgroundColor: '#00838F' }} /></>
                         )
                         :
                         (
@@ -112,7 +121,7 @@ const createUniqueStyles = (isDarkMode: boolean, scanningMode: boolean) =>
         dropdownContainer: {
             width: "95%",
             alignSelf: "center",
-            top: -20
+            top: scanningMode ? -20 : 0,
         },
         label: {
             fontSize: 18,
@@ -134,12 +143,10 @@ const createUniqueStyles = (isDarkMode: boolean, scanningMode: boolean) =>
             // marginTop: scanningMode ?  : 0
         },
         controller: {
-            top: scanningMode ? 150 : 0,
-            // marginTop: -40,
+            top: scanningMode ? 10 : 0,
             flexDirection: 'row',
             flex: 1,
             justifyContent: 'center',
-            marginHorizontal: "auto",
             alignItems: 'center',
         },
         button: {
@@ -149,4 +156,15 @@ const createUniqueStyles = (isDarkMode: boolean, scanningMode: boolean) =>
             marginBottom: 10,
             marginLeft: 10,
         },
+        imageBody: {
+            // width: 180,
+            // height: 300,
+            width: '100%',
+            height: '100%',
+        },
+        mapContainer: {
+            width: '100%',
+            height: 300,
+            backgroundColor: 'grey'
+        }
     });

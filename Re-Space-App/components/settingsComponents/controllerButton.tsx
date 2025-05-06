@@ -1,5 +1,5 @@
-import { useRef } from "react";
-import { Dimensions, Pressable, StyleSheet, Text } from "react-native";
+import { useRef, useState } from "react";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useSocket } from "@/hooks/useSocket";
 
@@ -24,6 +24,8 @@ const ControlButton = ({
 }) => {
     const { sendMessage, isConnected } = useSocket();
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const [called, setCalled] = useState(false);
+
 
     const startSending = () => {
         if (!isConnected) {
@@ -48,21 +50,50 @@ const ControlButton = ({
         sendMessage({ type: "control", target: targetRobot, direction: "stop" });
     };
 
+    const save = () => {
+        if (text == "Start") {
+            console.log("filler1")
+        }
+        if (text == "Save") {
+            console.log("filler2")
+        }
+        setCalled(false)
+    }
+
     return (
-        <Pressable
-            onPressIn={startSending} // Start sending commands when button is pressed
-            onPressOut={stopSending} // Stop sending commands when button is released
-            style={({ pressed }) => [
-                { backgroundColor: pressed ? "lightgrey" : "grey" },
-                styles.button,
-                buttonStyle,
-            ]}
-        >
-            <AntDesign name={iconName} size={iconSize} color={iconColor} />
-            {text &&
-                <Text style={styles.text}>{text}</Text>
+        <View>
+            {text ?
+                (
+                    <Pressable
+                        onPressIn={() => {
+                            if (!called) {
+                                setCalled(true)
+                                save()
+                            }
+                        }} // Start sending commands when button is pressed
+                        style={({ pressed }) => [
+                            { backgroundColor: pressed ? "lightgrey" : "green" },
+                            styles.button,
+                            buttonStyle,
+                        ]}
+                    >
+                        <Text style={styles.text}>{text}</Text>
+                    </Pressable>
+                )
+                :
+                <Pressable
+                    onPressIn={startSending} // Start sending commands when button is pressed
+                    onPressOut={stopSending} // Stop sending commands when button is released
+                    style={({ pressed }) => [
+                        { backgroundColor: pressed ? "lightgrey" : "grey" },
+                        styles.button,
+                        buttonStyle,
+                    ]}
+                >
+                    <AntDesign name={iconName} size={iconSize} color={iconColor} />
+                </Pressable>
             }
-        </Pressable>
+        </View >
     );
 };
 
