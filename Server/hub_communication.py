@@ -1,10 +1,16 @@
 """SETUP: pip install asyncio websockets --break-system-packages"""
 
 import asyncio
+
+import numpy as np
 import websockets.asyncio
 import json
+
+from PIL import Image
 from websockets import serve
 import socket
+from io import BytesIO
+import base64
 
 from qr_generator import generateQRCode
 from map_generator import convertToPNG
@@ -212,6 +218,28 @@ async def handle_robot_message(robot, data):
 
     elif data["type"] == "furniture_location":
         print("Todo: furniture location")
+
+    elif data["type"] == "map":
+        map_data = data["data"]
+        map_meta_data = map_data["meta"]
+        map_width = map_meta_data["width"]
+        map_height = map_meta_data["height"]
+
+        grid_map_data = map_data["grid"]
+        grid = np.array(grid_map_data, dtype=np.int8).reshape((map_height, map_width))
+        # map values to 0–255 grayscale
+        img = np.zeros((map_height, map_width), dtype=np.uint8)
+        img[grid == 0] = 254  # free → bright
+        img[grid == 100] = 0  # occupied → dark
+        img[grid == -1] = 205  # unknown → mid-gray
+
+        # Flip to make easier to view
+        pil = Image.fromarray(img).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+        # Change to base64
+        buffered = BytesIO()
+        pil.save(buffered, format="PNG")
+        encoded_string = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        await send_to_app({"type": "map", "base64": encoded_string})
 
     elif data["type"] == "debug":
         print("Received debug message: ", data)
