@@ -105,12 +105,14 @@ export default function ManageLayouts() {
         {/* Make twice as big and white */}
         <FilterButton
           Option="Add new layout"
+          flexValue={1}
           onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomName } })}
-        />
+          />
 
 
         <FilterButton
           Option="Favourites"
+          flexValue={1}
           onPress={() => {
             setFavouritesSelected(value => !value)
             getLayouts()
@@ -143,30 +145,12 @@ export default function ManageLayouts() {
 
 const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
-    buttonContainer: {
-      gap: width * 0.1,
-    },
-    button: {
-      width: width * 0.75,
-      height: width * 0.1,
-      backgroundColor: isDarkMode ? '#fff' : '#000',
-      borderRadius: 20,
-      alignContent: 'center',
-      justifyContent: 'center',
-    },
-    text: {
-      textAlign: 'center',
-      fontSize: 24,
-      color: isDarkMode ? '#000' : '#fff',
-      fontWeight: '300',
-    },
     filterContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      gap: width * 0.04,
+      gap: width * 0.1,
       width: '100%',
-
     },
     sectionTitle: {
       fontSize: 20,

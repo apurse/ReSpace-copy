@@ -4,11 +4,11 @@ import { useTheme } from '../../app/_layout';
 const { width, height } = Dimensions.get('window');
 
 
-export default function FilterButton({ Option, onPress, selected }: { Option: string; onPress: () => void; selected?: boolean; }) {
+export default function FilterButton({ Option, flexValue, onPress, selected }: { Option: string; flexValue: number; onPress: () => void; selected?: boolean; }) {
 
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
-  const uniqueStyles = createUniqueStyles(isDarkMode);
+  const uniqueStyles = createUniqueStyles(isDarkMode, flexValue);
 
 
   return (
@@ -19,7 +19,7 @@ export default function FilterButton({ Option, onPress, selected }: { Option: st
   );
 };
 
-const createUniqueStyles = (isDarkMode: boolean) =>
+const createUniqueStyles = (isDarkMode: boolean, flexValue: number) =>
   StyleSheet.create({
     activeLayoutCard: {
       width: width / 4,
@@ -29,7 +29,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       height: width / 4,
       padding: 8,
       alignItems: 'center',
-      backgroundColor: 'red'
+      backgroundColor: 'red',
+      flex: flexValue
     },
     layoutCard: {
       width: width / 4,
@@ -39,7 +40,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       height: width / 4,
       padding: 8,
       alignItems: 'center',
-      opacity: 20
+      opacity: 20,
+      flex: flexValue
     },
     layoutTitle: {
       fontSize: 16,

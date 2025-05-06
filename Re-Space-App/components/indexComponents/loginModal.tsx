@@ -43,7 +43,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
         setShowPassword(!showPassword);
     };
 
-    // Check db and fields work, and get first instance of username
+    
+    /**
+     * Check db and fields work, and get first instance of username
+     * @returns 
+     */
     const checks = async () => {
         if (!db) {
             alert("DB not working")
@@ -82,7 +86,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isVisible, onClose }) =>
 
                 // If the hashed password input equals the row password
                 if (checkResults.hashedPassword == checkResults.rowFound.password) {
-                    // console.log(`logged password: ${checkResults.rowFound.password}.... entered password: ${checkResults.hashedPassword}`)
                     var password = checkResults.hashedPassword;
                     setUser({ username, password });
 

@@ -33,12 +33,21 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="add"
         options={{
           title: 'Add',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name={focused ? 'add-circle' : 'add-circle-outline'} color={color} />
+          ),
+        }}
+      /> */}
+      <Tabs.Screen
+        name="roomsManager"
+        options={{ 
+          title: 'Rooms',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'business' : 'business-outline'} color={color} />
           ),
         }}
       />
@@ -57,15 +66,6 @@ export default function TabLayout() {
           title: 'Settings',
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon name={focused ? 'settings' : 'settings-outline'} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="roomsManager"
-        options={{ 
-          title: 'WIP',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'business' : 'business-outline'} color={color} />
           ),
         }}
       />

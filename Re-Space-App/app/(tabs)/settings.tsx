@@ -249,17 +249,16 @@ const SettingsPage = () => {
 
             {/* Sign out button */}
             {user &&
-                <Link href="/" asChild>
-                    <ActionButton
-                        label="Sign out"
-                        onPress={() => {
-                            setUser(false)
-                            alert(`Signed out of ${user.username}!`)
-                        }}
-                        style={uniqueStyles.signOut}
-                        textS={uniqueStyles.signOut}
-                    />
-                </Link>
+                <ActionButton
+                    label="Sign out"
+                    onPress={() => {
+                        setUser(false)
+                        router.replace("/")
+                        alert(`Signed out of ${user.username}!`)
+                    }}
+                    style={uniqueStyles.signOut}
+                    textS={uniqueStyles.signOut}
+                />
             }
         </ScrollView>
     );
@@ -271,7 +270,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             flexDirection: 'row',
             gap: 10,
             verticalAlign: 'middle',
-            marginTop: 40,
+            marginTop: 20,
             width: '100%'
         },
         segmentContainer: {

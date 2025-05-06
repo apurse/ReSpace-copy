@@ -6,15 +6,17 @@ import ControllerButton from "@/components/settingsComponents/controllerButton";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSocket } from "@/hooks/useSocket";
 import { Robot } from "@/components/models/Robot";
+import { useLocalSearchParams } from "expo-router";
 
-const { width, height } = Dimensions.get('window');
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function Controller() {
     const { theme } = useTheme();
     const { robotData } = useSocket();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
-    const uniqueStyles = createUniqueStyles(isDarkMode);
+    const [scanningMode, setScanningMode] = useState(false); // Open/close dropdown
+    const uniqueStyles = createUniqueStyles(isDarkMode, scanningMode);
 
     // State for dropdown
     const [selectedRobot, setSelectedRobot] = useState(
@@ -22,6 +24,9 @@ export default function Controller() {
     );
     const [open, setOpen] = useState(false); // Open/close dropdown
     const [robotList, setRobotList] = useState<{ label: string; value: string }[]>([]);
+
+    const { scanning } = useLocalSearchParams<{ scanning: string }>();
+
 
     useEffect(() => {
         const updatedRobotList = robotData.map((robot: Robot) => ({
@@ -37,13 +42,21 @@ export default function Controller() {
         }
     }, [robotData]);
 
+    useEffect(() => {
+        console.log(scanning)
+        if (scanning == "true")
+            setScanningMode(true)
+    }, [scanning])
+
     return (
         <View style={defaultStyles.body}>
 
             {/* Page Title */}
-            <View style={defaultStyles.pageTitleSection}>
-                <Text style={defaultStyles.pageTitle}>Controller</Text>
-            </View>
+            {!scanningMode &&
+                < View style={defaultStyles.pageTitleSection}>
+                    <Text style={defaultStyles.pageTitle}>Controller</Text>
+                </View>
+            }
 
             {/* Dropdown Box */}
             <View style={uniqueStyles.dropdownContainer}>
@@ -64,9 +77,19 @@ export default function Controller() {
             {/* Controller Buttons */}
             <View style={uniqueStyles.controller}>
                 <View>
-                    <View style={uniqueStyles.button}></View>
-                    <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot}></ControllerButton>
-                    <View style={uniqueStyles.button}></View>
+                    {scanningMode ?
+                        (
+                            <><ControllerButton text="Start" />
+                                <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot} />
+                                <ControllerButton text="Save" /></>
+                        )
+                        :
+                        (
+                            <><View style={uniqueStyles.button} />
+                                <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot} />
+                                <View style={uniqueStyles.button} /></>
+                        )
+                    }
                 </View>
                 <View>
                     <ControllerButton iconName={"caretup"} message='forward' targetRobot={selectedRobot}></ControllerButton>
@@ -80,15 +103,16 @@ export default function Controller() {
                 </View>
             </View>
 
-        </View>
+        </View >
     );
 }
 
-const createUniqueStyles = (isDarkMode: boolean) =>
+const createUniqueStyles = (isDarkMode: boolean, scanningMode: boolean) =>
     StyleSheet.create({
         dropdownContainer: {
             width: "95%",
             alignSelf: "center",
+            top: -20
         },
         label: {
             fontSize: 18,
@@ -107,8 +131,11 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             backgroundColor: "#fff",
             borderColor: "#ccc",
             zIndex: 100, // Ensures dropdown appears on top
+            // marginTop: scanningMode ?  : 0
         },
         controller: {
+            top: scanningMode ? 150 : 0,
+            // marginTop: -40,
             flexDirection: 'row',
             flex: 1,
             justifyContent: 'center',
@@ -117,8 +144,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         },
         button: {
             borderRadius: 20,
-            width: width * 0.2,
-            height: width * 0.2,
+            width: screenWidth * 0.2,
+            height: screenWidth * 0.2,
             marginBottom: 10,
             marginLeft: 10,
         },

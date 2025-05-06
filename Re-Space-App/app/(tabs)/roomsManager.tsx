@@ -13,23 +13,21 @@ import { useEffect, useState, useCallback } from 'react';
  * Automatically fetches and updates room listing when this page is open.
  */
 
-//  Get screen window dimensions
+// Get screen window dimensions
 const { width } = Dimensions.get('window');
 
-//  Path for all room files
+// Path for all room files
 const roomsPath = `${FileSystem.documentDirectory}rooms/`;
 
 export default function RoomsManager() {
 
-  /**
-   * Hooks and colours
-   */
+  // Hooks and colours
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
 
-  //  Saved rooms
+  // Saved rooms
   const [rooms, setRooms] = useState<any[]>([]);
 
   /**
@@ -37,18 +35,18 @@ export default function RoomsManager() {
    */
   const fetchRooms = async () => {
 
-    //  Ensure directory exist
+    // Ensure directory exist
     try {
       const dirInfo = await FileSystem.getInfoAsync(roomsPath);
       if (!dirInfo.exists) {
         await FileSystem.makeDirectoryAsync(roomsPath, { intermediates: true });
       }
 
-      //  Read the files
+      // Read the files
       const files = await FileSystem.readDirectoryAsync(roomsPath);
       const jsonFiles = files.filter(file => file.endsWith('.json'));
 
-      //  Parse files data
+      // Parse files data
       const roomDataArray = await Promise.all(jsonFiles.map(async file => {
         const filePath = roomsPath + file;
         const content = await FileSystem.readAsStringAsync(filePath);
@@ -59,16 +57,15 @@ export default function RoomsManager() {
         };
       }));
 
-      //  Store rooms with parsed data
+      // Store rooms with parsed data
       setRooms(roomDataArray);
     } catch (error) {
       console.error('Failed to fetch rooms:', error);
     }
   };
 
-  /**
-   * Auto refresh the page to show saved rooms
-   */
+
+  // Auto refresh the page to show saved rooms
   useFocusEffect(
     useCallback(() => {
       fetchRooms();
@@ -88,17 +85,10 @@ export default function RoomsManager() {
             <Text style={uniqueStyles.text}>New Room</Text>
           </Pressable>
         </Link>
-
-        {/* Select room buttom (goes to library) */}
-        <Link href="/(tabs)/library" asChild>
-          <Pressable style={uniqueStyles.button}>
-            <Text style={uniqueStyles.text}>Select Room</Text>
-          </Pressable>
-        </Link>
       </View>
 
       {/* Show saved rooms */}
-      <Text style={defaultStyles.sectionTitle}>Existing Rooms</Text>
+      <Text style={[defaultStyles.sectionTitle, { marginBottom: 20 }]}>Existing Rooms</Text>
       <View style={{ gap: 10 }}>
         {rooms.map((room, index) => (
           <Pressable

@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Dimensions, Pressable, StyleSheet } from "react-native";
+import { Dimensions, Pressable, StyleSheet, Text } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
 import { useSocket } from "@/hooks/useSocket";
 
@@ -12,13 +12,15 @@ const ControlButton = ({
     buttonStyle,
     message,
     targetRobot,
+    text,
 }: {
-    iconName: keyof typeof AntDesign.glyphMap;
+    iconName?: keyof typeof AntDesign.glyphMap;
     iconSize?: number;
     iconColor?: string;
     buttonStyle?: object;
-    message: string;
-    targetRobot: string;
+    message?: string;
+    targetRobot?: string;
+    text?: string
 }) => {
     const { sendMessage, isConnected } = useSocket();
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,6 +59,9 @@ const ControlButton = ({
             ]}
         >
             <AntDesign name={iconName} size={iconSize} color={iconColor} />
+            {text &&
+                <Text style={styles.text}>{text}</Text>
+            }
         </Pressable>
     );
 };
@@ -71,6 +76,10 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
+    text: {
+        fontSize: 18,
+        fontWeight: 'bold'
+    }
 });
 
 export default ControlButton;

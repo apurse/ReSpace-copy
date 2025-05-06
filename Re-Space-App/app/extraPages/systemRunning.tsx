@@ -18,13 +18,6 @@ import { Robot } from "@/components/models/Robot";
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
-// Local json file with layout data
-
-// Local room json file
-const { layoutRunning, roomName } = useLocalSearchParams<{ layoutRunning: string, roomName: string }>();
-const roomFilePath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
-
-
 // -------- Grid Visuals --------
 const roomDimensionsMM = [1200, 1200];
 const gridWidth = roomDimensionsMM[0];
@@ -84,6 +77,12 @@ export default function systemRunning() {
   const [zoomLevel, setZoomLevel] = useState(initialZoom);
 
 
+  // Local room json file
+  const { layoutRunning, roomName } = useLocalSearchParams<{ layoutRunning: string, roomName: string }>();
+  const roomFilePath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+
+
+
   if (!isConnected) {
     console.warn("WebSocket not connected!");
     return;
@@ -117,6 +116,8 @@ export default function systemRunning() {
         //   boxes[boxIndex].rotation == boxDestinations[boxIndex].rotation
         // ) {
 
+        // if (boxes[boxIndex] == boxDestinations[boxIndex]) {
+        // }
 
         //   // Set new progress
         //   var newProgress = totalProgress + (1 / boxes.length)
@@ -128,9 +129,6 @@ export default function systemRunning() {
     setBoxes(boxes)
   }, [robotData])
 
-
-  // Get the selected layout from the library
-  // const selectedLayout = useLocalSearchParams();
 
   /**
   * Load the layout from the selected layout in the library.
@@ -184,15 +182,6 @@ export default function systemRunning() {
     console.log("selectedLayout: ", layoutRunning)
     console.log("roomName: ", roomName)
     if (!hasBeenCalled) {
-
-      // Convert from object of elements to string
-      // var currentTitle = "";
-      // for (const [key, value] of Object.entries(layoutName)) {
-      //   currentTitle += value;
-      //   console.log("value", value)
-      //   console.log(currentTitle);
-      // }
-      // console.log(currentTitle);
 
       try {
         if (layoutRunning) {

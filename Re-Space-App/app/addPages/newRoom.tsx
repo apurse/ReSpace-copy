@@ -49,7 +49,7 @@ export default function newRoom() {
 
                 //  Go to the new room created or room selected if name room already exist
                 if (result.success) {
-                  router.push({ pathname: '/addPages/roomDetails', params: { roomName } });
+                  router.replace({ pathname: '/addPages/roomDetails', params: { roomName } });
                 } else {
                   alert(result.message);
                 }

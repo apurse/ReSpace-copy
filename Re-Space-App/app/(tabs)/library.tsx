@@ -76,7 +76,7 @@ export default function Library() {
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={getLayouts} />
       }>
-        
+
       < View style={defaultStyles.pageTitleSection} >
         <Text style={defaultStyles.pageTitle}>Library</Text>
       </View >
@@ -86,6 +86,7 @@ export default function Library() {
       <Text style={uniqueStyles.sectionTitle}>Filters</Text>
       <View style={uniqueStyles.filterContainer}>
         <FilterButton
+          flexValue={1}
           Option="Favourites"
           onPress={() => {
             setFavouritesSelected(value => !value)
@@ -93,12 +94,14 @@ export default function Library() {
             getLayouts()
           }}
           selected={favouritesSelected}
-        />
+          />
         <FilterButton
+          flexValue={1}
           Option="Layouts"
           onPress={() => alert("WIP")}
-        />
+          />
         <FilterButton
+          flexValue={1}
           Option="Furniture"
           onPress={() => alert("WIP")}
         />

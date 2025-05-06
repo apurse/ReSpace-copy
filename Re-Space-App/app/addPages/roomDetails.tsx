@@ -8,7 +8,7 @@ import * as FileSystem from 'expo-file-system';
 const { width, height } = Dimensions.get('window');
 
 export default function RoomDetails() {
-  
+
   /**
    * Hooks and colours
    */
@@ -20,87 +20,100 @@ export default function RoomDetails() {
   const { roomName } = useLocalSearchParams<{ roomName?: string }>();
 
   return (
-      <View style={defaultStyles.body}>
-          
-          <View style={defaultStyles.pageTitleSection}>
-              {/* Room name | default name in case of empty input */}
-              <Text style={defaultStyles.pageTitle}>{roomName}</Text>
-          </View>
+    <View style={defaultStyles.body}>
 
-          <View style={uniqueStyles.buttonContainer}>
-
-            {/* Go to manage layout page */}
-            <Pressable 
-                style={uniqueStyles.button} 
-                onPress={() => router.push({ pathname: '/addPages/manageLayouts', params: { roomName } })}
-            >
-                <Text style={uniqueStyles.text}>Manage Layouts</Text>
-            </Pressable>
-
-            {/* Go to manage furniture page */}
-            <Pressable 
-                style={uniqueStyles.button} 
-                onPress={() => router.push({ pathname: '/addPages/manageFurniture', params: { roomName } })}
-            >
-                <Text style={uniqueStyles.text}>Manage Furniture</Text>
-            </Pressable>
-
-            {/* Delete current room */}
-            <Pressable 
-                style={[uniqueStyles.button, {backgroundColor: '#FF6969'}]} 
-                onPress={async () => {
-                    if (!roomName) {
-                      alert("No room name specified.");
-                      return;
-                    }
-                    
-                    //  File path
-                    const fileUri = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
-                
-                    try {
-                      //  Read room file
-                      const fileInfo = await FileSystem.getInfoAsync(fileUri);
-                      
-                      //  Delete file if it exists
-                      if (fileInfo.exists) {
-                        await FileSystem.deleteAsync(fileUri);
-                        alert(`Room "${roomName}" deleted successfully.`);
-                        router.push('/(tabs)/roomsManager');  //  Go back to room manager page after deliting current room file
-                      } else {
-                        alert("Room file not found.");
-                      }
-                    } catch (error) {
-                      console.error("Failed to delete room:", error);
-                      alert("An error occurred while deleting the room.");
-                    }
-                  }}
-            >
-                <Text style={uniqueStyles.text}>Delete This Room</Text>
-            </Pressable>
-          </View>
-
-      
+      <View style={defaultStyles.pageTitleSection}>
+        {/* Room name | default name in case of empty input */}
+        <Text style={defaultStyles.pageTitle}>{roomName}</Text>
       </View>
+
+      <View style={uniqueStyles.buttonContainer}>
+
+        {/* Go to manage layout page */}
+        <Pressable
+          style={uniqueStyles.button}
+          onPress={() => router.push({ pathname: '/addPages/manageLayouts', params: { roomName } })}
+        >
+          <Text style={uniqueStyles.text}>Manage Layouts</Text>
+        </Pressable>
+
+        {/* Go to manage furniture page */}
+        <Pressable
+          style={uniqueStyles.button}
+          onPress={() => router.push({ pathname: '/addPages/manageFurniture', params: { roomName } })}
+        >
+          <Text style={uniqueStyles.text}>Manage Furniture</Text>
+        </Pressable>
+
+        <Pressable
+          style={uniqueStyles.button}
+          onPress={() => {
+            var temp = "true"
+            console.log(temp)
+            router.push({
+              pathname: "/settingsPages/controller",
+              params: {scanning: temp}
+            })
+          }}
+        ><Text style={uniqueStyles.text}>Scan Room</Text>
+        </Pressable>
+
+        {/* Delete current room */}
+        <Pressable
+          style={[uniqueStyles.button, { backgroundColor: '#FF6969' }]}
+          onPress={async () => {
+            if (!roomName) {
+              alert("No room name specified.");
+              return;
+            }
+
+            //  File path
+            const fileUri = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+
+            try {
+              //  Read room file
+              const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+              //  Delete file if it exists
+              if (fileInfo.exists) {
+                await FileSystem.deleteAsync(fileUri);
+                alert(`Room "${roomName}" deleted successfully.`);
+                router.push('/(tabs)/roomsManager');  //  Go back to room manager page after deliting current room file
+              } else {
+                alert("Room file not found.");
+              }
+            } catch (error) {
+              console.error("Failed to delete room:", error);
+              alert("An error occurred while deleting the room.");
+            }
+          }}
+        >
+          <Text style={uniqueStyles.text}>Delete This Room</Text>
+        </Pressable>
+      </View>
+
+
+    </View>
   );
 }
 
 const createUniqueStyles = (isDarkMode: boolean) =>
-    StyleSheet.create({
-      buttonContainer: {
-        gap: width * 0.1,
-      },
-      button: {
-        width: width * 0.75,
-        height: width * 0.1,
-        backgroundColor: isDarkMode ? '#fff' : '#000',
-        borderRadius: 20,
-        alignContent: 'center',
-      },
-      text: {
-        textAlign: 'center',
-        fontSize: 24,
-        color: isDarkMode ? '#000' : '#fff',
-        top: 3,
-        fontWeight: '300',
-      }
-    });
+  StyleSheet.create({
+    buttonContainer: {
+      gap: width * 0.1,
+    },
+    button: {
+      width: width * 0.75,
+      height: width * 0.1,
+      backgroundColor: isDarkMode ? '#fff' : '#000',
+      borderRadius: 20,
+      alignContent: 'center',
+    },
+    text: {
+      textAlign: 'center',
+      fontSize: 24,
+      color: isDarkMode ? '#000' : '#fff',
+      top: 3,
+      fontWeight: '300',
+    }
+  });
