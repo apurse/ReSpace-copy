@@ -10,7 +10,8 @@ from PIL import Image
 from websockets import serve
 import socket
 from io import BytesIO
-import base64
+import base64, zlib
+from matplotlib import cm
 
 from qr_generator import generateQRCode
 from map_generator import convertToPNG
@@ -219,27 +220,64 @@ async def handle_robot_message(robot, data):
     elif data["type"] == "furniture_location":
         print("Todo: furniture location")
 
-    elif data["type"] == "map":
-        map_data = data["data"]
-        map_meta_data = map_data["meta"]
-        map_width = map_meta_data["width"]
-        map_height = map_meta_data["height"]
+    elif data["type"] == "map_and_costmap":
 
-        grid_map_data = map_data["grid"]
-        grid = np.array(grid_map_data, dtype=np.int8).reshape((map_height, map_width))
-        # map values to 0–255 grayscale
-        img = np.zeros((map_height, map_width), dtype=np.uint8)
-        img[grid == 0] = 254  # free → bright
-        img[grid == 100] = 0  # occupied → dark
-        img[grid == -1] = 205  # unknown → mid-gray
+        # Extract both map and costmap data
+        map_block = data["data"]["map"]
+        map_comp_str = map_block["grid"]
+        map_comp = base64.b64decode(map_comp_str)
+        map_decomp = zlib.decompress(map_comp)
 
-        # Flip to make easier to view
-        pil = Image.fromarray(img).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+        costmap_block = data["data"]["costmap"]
+        costmap_comp_str = costmap_block["grid"]
+        costmap_comp = base64.b64decode(costmap_comp_str)
+        costmap_decomp = zlib.decompress(costmap_comp)
+
+        # Get width and heights for both map and costmap
+        mw, mh = map_block["meta"]["width"], map_block["meta"]["height"]
+        cw, ch = costmap_block["meta"]["width"], costmap_block["meta"]["height"]
+
+        # Ensure width and heights match for map and costmap
+        if (mw, mh) != (cw, ch):
+            print("map & costmap dimensions must match")
+
+        # rebuild NumPy arrays from the raw bytes
+        map_arr = np.frombuffer(map_decomp, dtype=np.int8).reshape((mh, mw))
+        cost_arr = np.frombuffer(costmap_decomp, dtype=np.uint8).reshape((ch, cw))
+
+        # Render static map in grayscale
+        base = np.zeros((mh, mw), dtype=np.uint8)
+        base[map_arr == 0] = 254  # free -> light
+        base[map_arr == 100] = 0  # occupied -> dark
+        base[map_arr == -1] = 205  # unknown -> mid-gray
+        base_img = Image.fromarray(base).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
+        # Colourise the costmap with a colourmap
+        norm = cost_arr.astype(float) / (cost_arr.max() or 1.0)
+        cmap = cm.get_cmap('PuBu') # Set to PuBu colour scheme (Options: https://matplotlib.org/stable/users/explain/colors/colormaps.html)
+        colored_float = cmap(norm)  # returns H×W×4 array of floats
+        colored = (colored_float[:, :, :3] * 255).astype(np.uint8)  # drop alpha & scale
+        cost_img = Image.fromarray(colored).transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+
+        base_rgb = base_img.convert("RGB")
+        cost_rgb = cost_img.convert("RGB")
+
+        # Ensure two maps are the same size
+        if base_rgb.size != cost_rgb.size:
+            print(f"Size mismatch: base={base_rgb.size}, costmap={cost_rgb.size}")
+            # Resize costmap to match
+            cost_rgb = cost_rgb.resize(base_rgb.size, Image.Resampling.NEAREST)
+            print(f"Resized costmap to {cost_rgb.size}")
+
+        # Blend the two maps
+        overlay = Image.blend(base_rgb, cost_rgb, alpha=0.6)
+
+        pil = overlay.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
         # Change to base64
         buffered = BytesIO()
         pil.save(buffered, format="PNG")
         encoded_string = base64.b64encode(buffered.getvalue()).decode("utf-8")
-        await send_to_app({"type": "map", "base64": encoded_string})
+        await send_to_app({"type": "room_map", "base64": encoded_string})
 
     elif data["type"] == "debug":
         print("Received debug message: ", data)
