@@ -721,7 +721,7 @@ export default function DragAndDrop() {
                                 <ActionButton
                                     label="Delete Furniture"
                                     onPress={deleteFurniture}
-                                    style={{ backgroundColor: '#C62828' }}
+                                    style={{ backgroundColor: '#fa440c' }}
                                 />
                                 <ActionButton
                                     label="Add Furniture"
@@ -740,7 +740,7 @@ export default function DragAndDrop() {
                                             await deleteLayout()
                                             router.back();
                                         }}
-                                        style={{ backgroundColor: '#fa440c' }}
+                                        style={{ backgroundColor: '#C62828' }}
                                     />
                                 }
                             </>

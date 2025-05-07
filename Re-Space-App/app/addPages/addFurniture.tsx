@@ -1,33 +1,16 @@
 import { View, ScrollView, StyleSheet, Text, Dimensions, TextInput, Image } from 'react-native';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '@/app/_layout';
 import ActionButton from '@/components/settingsComponents/actionButton';
 import * as FileSystem from 'expo-file-system';
-import Furniture from '@/components/LayoutComponents/furniture';
 import { ColourPickerModal } from '@/components/LayoutComponents/colourPickerModal';
 import { useSocket } from "@/hooks/useSocket";
 import * as MediaLibrary from 'expo-media-library';
 import uuid from 'react-native-uuid';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { useRoom } from '@/hooks/useRoom';
-
-
-
-/**
- * Call function to clear the json data from device.
- * This is temporary until a deleting furniture function is created.
- */
-// const clearJsonData = async () => {
-//   try {
-//     await FileSystem.writeAsStringAsync(localJson, JSON.stringify({ Furniture: [] }));
-
-//     console.log('Data has been cleared');
-//   } catch (error) {
-//     console.error('Error deleting json data');
-//   }
-// };
 
 
 //  Get dimensions of the screen
@@ -46,8 +29,7 @@ export default function AddLayout() {
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { isConnected, sendMessage, QRCode } = useSocket();
   const { user } = useAuth();
-  const { roomName, jsonData, updateJsonData } = useRoom();
-
+  const { jsonData, updateJsonData } = useRoom();
 
   // Form information
   const [furnitureName, setName] = useState<string>('');
@@ -70,14 +52,14 @@ export default function AddLayout() {
   const [loadedFurnitureIndex, setLoadedFurnitureIndex] = useState<number>(-1); // Check if the layout has been saved
   const [duplicateNumber, setDuplicateNumber] = useState<number>(0); // Check if the layout has been saved
 
-
+  // Get the selected furniture
   const { selectedFurniture } = useLocalSearchParams<{ selectedFurniture: string }>();
 
 
   // Refresh layout on selected layout change
   useEffect(() => {
     if (!hasBeenCalled) {
-      loadLayout(selectedFurniture);
+      loadFurniture(selectedFurniture);
       setHasBeenCalled(true);
     }
   }, [selectedFurniture]);
@@ -96,7 +78,7 @@ export default function AddLayout() {
   * Load the layout from the selected layout in the library.
   * @param selectedFurniture String - The selected layout title in the library
   */
-  const loadLayout = async (selectedFurniture: string) => {
+  const loadFurniture = async (selectedFurniture: string) => {
     try {
 
       // Get the layout index within the JSON
@@ -132,6 +114,28 @@ export default function AddLayout() {
 
     } catch (err) {
       console.error("Error loading layout:", err);
+    }
+  };
+
+
+  /**
+ * Delete the selected furniture from the room JSON.
+ */
+  const deleteFurniture = async () => {
+    try {
+
+      // Get the layout index within the JSON
+      let layoutIndex = jsonData[user.username]?.furniture
+        .findIndex((furniture: any) => furniture.name === furnitureName);
+
+      // Remove the layout
+      jsonData[user.username].furniture.splice(layoutIndex, 1);
+
+      // Write the new data 
+      updateJsonData(jsonData)
+
+    } catch (error) {
+      console.error('Error deleting json data');
     }
   };
 
@@ -238,7 +242,7 @@ export default function AddLayout() {
 
     try {
 
-      
+
       // Either overwrite or add the jsonData
       if (loadedFurnitureIndex !== -1) {
         jsonData[user.username].furniture[loadedFurnitureIndex] = newFurniture;
@@ -419,6 +423,20 @@ export default function AddLayout() {
             />
           </View>
         )
+      }
+
+      {loadedFurnitureIndex != -1 &&
+        <View style={uniqueStyles.buttonContainer}>
+          <ActionButton
+            label="Delete Furniture"
+            onPress={async () => {
+              await deleteFurniture()
+              router.back();
+            }}
+            style={{ backgroundColor: '#C62828' }}
+          />
+        </View>
+
       }
 
 
