@@ -3,6 +3,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from "@/app/_layout";
 import * as FileSystem from 'expo-file-system';
+import { useRoom } from '@/hooks/useRoom';
+
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -17,7 +19,8 @@ export default function RoomDetails() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const router = useRouter();
-  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
+  const { roomName } = useRoom();
+
 
   return (
     <View style={defaultStyles.body}>

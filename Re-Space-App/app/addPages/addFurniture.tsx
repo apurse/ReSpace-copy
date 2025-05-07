@@ -11,6 +11,7 @@ import * as MediaLibrary from 'expo-media-library';
 import uuid from 'react-native-uuid';
 import { useLocalSearchParams } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
+import { useRoom } from '@/hooks/useRoom';
 
 
 
@@ -45,6 +46,7 @@ export default function AddLayout() {
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { isConnected, sendMessage, QRCode } = useSocket();
   const { user } = useAuth();
+  const { roomName, jsonData, updateJsonData } = useRoom();
 
 
   // Form information
@@ -69,23 +71,16 @@ export default function AddLayout() {
   const [duplicateNumber, setDuplicateNumber] = useState<number>(0); // Check if the layout has been saved
 
 
-
-  //  Local room json file
-  const { selectedFurniture, roomName } = useLocalSearchParams<{ selectedFurniture: string, roomName?: string }>();
-
-  // Read room file, return if file does not exist
-  const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+  const { selectedFurniture } = useLocalSearchParams<{ selectedFurniture: string }>();
 
 
   // Refresh layout on selected layout change
   useEffect(() => {
-    console.log("useEffect called")
     if (!hasBeenCalled) {
       loadLayout(selectedFurniture);
       setHasBeenCalled(true);
     }
   }, [selectedFurniture]);
-
 
 
   // Grab the new QR code once it's changed, only once
@@ -104,17 +99,13 @@ export default function AddLayout() {
   const loadLayout = async (selectedFurniture: string) => {
     try {
 
-      // Read the data from JSON
-      const readData = await FileSystem.readAsStringAsync(roomPath);
-      const jsonData = JSON.parse(readData);
-
       // Get the layout index within the JSON
       let furnitureIndex = jsonData[user.username]?.furniture
         .findIndex((furniture: any) => furniture.name === selectedFurniture
         );
 
-      console.log("index: ", furnitureIndex)
 
+      // If no index is found
       if (furnitureIndex === -1) {
         console.warn("Furniture not found.");
         return;
@@ -133,18 +124,16 @@ export default function AddLayout() {
       setSelectedColour(thisFurniture.selectedColour);
       setQRData(thisFurniture.qrcode);
 
-      setIsDownloaded(false);
 
-
+      // Set the index and downloaded state
       setLoadedFurnitureIndex(furnitureIndex)
+      setIsDownloaded(false);
 
 
     } catch (err) {
       console.error("Error loading layout:", err);
     }
-
   };
-
 
 
   /**
@@ -211,10 +200,6 @@ export default function AddLayout() {
     setIsSaved(true)
     setUpdatedQR(false)
 
-    // Read data from json before writing new data
-    const readData = await FileSystem.readAsStringAsync(roomPath);
-    const roomData = JSON.parse(readData);
-
     var nameUsed = false;
     var newName = furnitureName;
 
@@ -223,7 +208,7 @@ export default function AddLayout() {
 
 
       // Check that the provided name is unique
-      roomData[user.username]?.furniture?.forEach((furniture: { name: string }) => {
+      jsonData[user.username]?.furniture?.forEach((furniture: { name: string }) => {
         nameUsed = (furniture.name == furnitureName) ? true : false;
       })
 
@@ -253,19 +238,17 @@ export default function AddLayout() {
 
     try {
 
+      
+      // Either overwrite or add the jsonData
       if (loadedFurnitureIndex !== -1) {
-        roomData[user.username].furniture[loadedFurnitureIndex] = newFurniture;
+        jsonData[user.username].furniture[loadedFurnitureIndex] = newFurniture;
       } else {
-        roomData[user.username].furniture.push(newFurniture);
+        jsonData[user.username].furniture.push(newFurniture);
       }
 
-      // Write new data to json
-      await FileSystem.writeAsStringAsync(roomPath, JSON.stringify(roomData));
 
-
-      // Show local json file in console
-      const data = await FileSystem.readAsStringAsync(roomPath);
-      console.log('Furniture json updated:', data);
+      // Update the data in the provider
+      updateJsonData(jsonData)
 
 
       // Send furniture across to server

@@ -180,6 +180,10 @@ async def handle_app_message(data):
     elif data["type"] == "power":
         target_robot_id = data["target"]
         await send_to_robot(target_robot_id, data)
+        
+    elif data["type"] == "get_scan":
+        target_robot_id = data["target"]
+        await send_to_robot(target_robot_id, data)
 
     elif data["type"] == "latency_test":
         await send_to_app({"type": "latency_test", "start_time": data["start_time"]})
@@ -190,12 +194,6 @@ async def handle_app_message(data):
         # print(base64_string)
         await send_to_app({"type": "new_furniture", "base64": base64_string})
         
-    elif data["type"] == "room_map":
-        print(data["data"])
-        base64_string = convertToPNG('outside_lab.pgm') # Change to map provided by robots
-        # print(base64_string)
-        await send_to_app({"type": "room_map", "base64": base64_string})
-
     else:
         print("Received unknown command!")
         print("Unknown data: ", data)
@@ -281,6 +279,10 @@ async def handle_robot_message(robot, data):
 
     elif data["type"] == "debug":
         print("Received debug message: ", data)
+        
+    elif data["type"] == "set_scan":
+        await send_to_app(data)
+
 
     else:
         print("Received unknown command!")

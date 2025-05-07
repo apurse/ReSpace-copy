@@ -10,6 +10,9 @@ import 'react-native-reanimated';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SocketProvider } from "./context/webSocketProvider";
 import { AuthProvider } from "./context/authorisationProvider";
+import { RoomProvider } from "./context/roomProvider";
+import * as NavigationBar from 'expo-navigation-bar';
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -30,6 +33,9 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
+  NavigationBar.setVisibilityAsync("hidden");
+
+
   // Load dark mode setting from local storage
   useEffect(() => {
     const initializeTheme = async () => {
@@ -43,9 +49,14 @@ export default function RootLayout() {
       } catch (error) {
         console.error('Failed to fetch theme from AsyncStorage:', error);
       }
+      // await NavigationBar.setPositionAsync('absolute')
+      // await NavigationBar.setBackgroundColorAsync('red')
+      // const visibility = NavigationBar.useVisibility()
+      // console.log(visibility)
     };
 
     initializeTheme();
+
   }, []);
 
   useEffect(() => {
@@ -61,14 +72,16 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <SocketProvider>
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
-          <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="+not-found" />
-            </Stack >
-          </ThemeProvider>
-        </ThemeContext.Provider>
+        <RoomProvider>
+          <ThemeContext.Provider value={{ theme, toggleTheme }}>
+            <ThemeProvider value={theme === 'dark' ? DarkTheme : DefaultTheme}>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="+not-found" />
+              </Stack >
+            </ThemeProvider>
+          </ThemeContext.Provider>
+        </RoomProvider>
       </SocketProvider>
     </AuthProvider>
   );

@@ -91,7 +91,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                         setRobotData([]);
                         return
                     }
-                    console.log("Initial Data incoming: ", data.robots);
+                    // console.log("Initial Data incoming: ", data.robots);
                     // Convert JSON data into Robot objects
                     const newRobotData = data.robots.map((robot: { robot_id: string; battery: number; location: { x: number; y: number; }; current_activity: string; carrying: string | null; angle: number; }) =>
                         new Robot(
@@ -124,6 +124,11 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
 
                 } else if (data.type === "set_scan") {
                     setRoomScanFiles(data.details);
+                    console.log(data)
+
+                } else if (data.type === "map") {
+                    setRoomScanFiles(data.base64);
+                    console.log(roomScanFiles?.yaml)
 
                 } else {
                     console.log("Ignored message (not status):", data.type);

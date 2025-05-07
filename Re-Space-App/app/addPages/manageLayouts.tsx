@@ -8,6 +8,7 @@ import SmallLayout from '@/components/libraryComponents/smallLayout';
 import { useAuth } from "@/hooks/useAuth";
 import { useFocusEffect } from '@react-navigation/native';
 import FilterButton from '@/components/libraryComponents/FilterButton';
+import { useRoom } from '@/hooks/useRoom';
 
 
 // Get dimensions of the screen
@@ -21,6 +22,7 @@ export default function ManageLayouts() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { user } = useAuth();
+  const { roomName, jsonData } = useRoom();
 
   // Layouts and favourite layouts
   const [layouts, setLayouts] = useState<any | null>(null);
@@ -28,7 +30,6 @@ export default function ManageLayouts() {
   const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
   var roomScan = '';
 
 
@@ -40,17 +41,6 @@ export default function ManageLayouts() {
 
     try {
       if (!roomName) return;
-
-
-      // Read room file, return if file does not exist
-      const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
-      const fileCheck = await FileSystem.getInfoAsync(roomPath);
-      if (!fileCheck.exists) return;
-
-
-      // Read and parse data from room file
-      const data = await FileSystem.readAsStringAsync(roomPath);
-      const jsonData = JSON.parse(data);
 
       roomScan = jsonData.roomFiles.roomScan;
 
@@ -109,7 +99,7 @@ export default function ManageLayouts() {
         <FilterButton
           Option="Add new layout"
           flexValue={1}
-          onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomName, roomScan } })}
+          onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomScan } })}
           />
 
 

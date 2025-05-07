@@ -5,9 +5,10 @@ import * as FileSystem from "expo-file-system";
 import { useTheme } from "@/app/_layout";
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRoom } from '@/hooks/useRoom';
+import { useAuth } from "@/hooks/useAuth";
 
-// Local json file with furniture data
-const localJson = FileSystem.documentDirectory + "FurnitureData.json";
+
 
 // Defining types for furniture items
 export interface FurnitureItem {
@@ -35,22 +36,12 @@ const FurnitureModal: React.FC<FurnitureModalProps> = ({ isVisible, onClose, onS
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const uniqueStyles = createUniqueStyles(isDarkMode);
+    const { roomName, jsonData } = useRoom();
+    const { user } = useAuth();
 
     useEffect(() => {
-        // Parse furniture data to furnitureData
-        const loadFurnitureData = async () => {
-            try {
-                const json = await FileSystem.readAsStringAsync(localJson);
-                const parsedData = JSON.parse(json);
-                setFurnitureData(parsedData.Furniture);
-            } catch (error) {
-                console.error("Error loading furniture data:", error);
-            }
-        };
-
-        // Parse data when adding new furniture
         if (isVisible) {
-            loadFurnitureData();
+            setFurnitureData(jsonData[user.username].furniture);
         }
     }, [isVisible]);
 

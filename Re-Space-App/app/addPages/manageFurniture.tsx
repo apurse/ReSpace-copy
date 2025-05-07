@@ -8,7 +8,7 @@ import SmallFurniture from '@/components/libraryComponents/smallFurniture';
 import { useAuth } from "@/hooks/useAuth";
 import { useFocusEffect } from '@react-navigation/native';
 import FilterButton from '@/components/libraryComponents/FilterButton';
-
+import { useRoom } from '@/hooks/useRoom';
 
 // Get dimensions of the screen
 const { width } = Dimensions.get('window');
@@ -21,14 +21,13 @@ export default function ManageFurniture() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { user } = useAuth();
+  const { roomName, jsonData } = useRoom();
 
   // Layouts and favourite layouts
   const [layouts, setLayouts] = useState<any | null>(null);
   const [favouriteLayouts, setFavouriteLayouts] = useState<any | null>(null);
   const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
 
 
   /**
@@ -39,17 +38,6 @@ export default function ManageFurniture() {
 
     try {
       if (!roomName) return;
-
-
-      // Read room file, return if file does not exist
-      const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
-      const fileCheck = await FileSystem.getInfoAsync(roomPath);
-      if (!fileCheck.exists) return;
-
-
-      // Read and parse data from room file
-      const data = await FileSystem.readAsStringAsync(roomPath);
-      const jsonData = JSON.parse(data);
 
 
       // Push all layouts to an array and output as smallLayouts
@@ -132,7 +120,7 @@ export default function ManageFurniture() {
         <>
           <Text style={uniqueStyles.sectionTitle}>
             {!favouritesSelected ?
-              (`All Layouts: ${layouts?.length}`)
+              (`All Furniture: ${layouts?.length}`)
               :
               (`Favourites: ${favouriteLayouts?.length}/${layouts?.length}`)
             }
