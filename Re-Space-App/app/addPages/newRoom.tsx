@@ -1,10 +1,8 @@
-import { View, ScrollView, StyleSheet, Text, Dimensions, Pressable, Button, TextInput } from 'react-native';
+import { View, StyleSheet, Text, Dimensions, Pressable, TextInput } from 'react-native';
 import { useState } from 'react';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from "@/app/_layout";
 import { useRouter } from 'expo-router';
-import { createRoomIfNotExists } from '@/components/libraryComponents/roomCreator';
-import { useAuth } from '@/hooks/useAuth';
 import { useRoom } from '@/hooks/useRoom';
 
 // expo navigation: https://docs.expo.dev/router/navigating-pages/
@@ -13,30 +11,31 @@ const { width, height } = Dimensions.get('window');
 
 export default function newRoom() {
 
-  /**
-   * Hooks and colours
-   */
+  // Hooks and colours
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const router = useRouter();
-  const { roomName, setupRoomJSON, setRoomName } = useRoom();
+  const { setupRoomJSON } = useRoom();
 
-  //  Room name
+  // Room name
   const [tempName, setTempName] = useState('');
 
   return (
     <View style={defaultStyles.body}>
       <View style={uniqueStyles.buttonContainer}>
 
-        {/* Input room's name */}
+        {/* Input rooms name */}
         <TextInput
           placeholder="Type new room's name"
           value={tempName}
           onChangeText={setTempName}
           style={uniqueStyles.textInput}
         />
+
+
+        {/* Create button */}
         <Pressable
           style={[uniqueStyles.button, { backgroundColor: '#4CAF50' }]}
           onPress={async () => {
@@ -45,7 +44,9 @@ export default function newRoom() {
         >
           <Text style={uniqueStyles.text}>Create</Text>
         </Pressable>
-        {/* Cancel new room, go back to previous page */}
+
+
+        {/* Cancel button */}
         <Pressable style={[uniqueStyles.button, { backgroundColor: '#fa440c' }]} onPress={() => router.back()}>
           <Text style={uniqueStyles.text}>Cancel</Text>
         </Pressable>

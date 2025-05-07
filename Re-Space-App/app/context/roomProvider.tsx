@@ -43,12 +43,8 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
      * @param dataChange The data that is being added.
      */
     const updateJsonData = async (dataChange: any) => {
-        // Write new data to json
         await FileSystem.writeAsStringAsync(roomPath, JSON.stringify(dataChange));
-
-        // Read the updated file to confirm the changes
-        const updatedData = await FileSystem.readAsStringAsync(roomPath);
-        console.log(`${roomName} JSON updated: `, updatedData);
+        console.log(`${roomName} JSON updated:`, dataChange);
     }
 
 
@@ -58,7 +54,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
      */
     const setupRoomJSON = async (typedName: string) => {
 
-        if (typedName?.trim()) {
+        if (typedName.trim()) {
 
             //  Create new room if it doesn't already exist
             const result = await createRoomIfNotExists(typedName, user);

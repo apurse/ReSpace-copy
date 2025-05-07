@@ -10,8 +10,8 @@ import ActionButton from "@/components/settingsComponents/actionButton";
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
 import { useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
-import * as FileSystem from 'expo-file-system';
 import { Robot } from "@/components/models/Robot";
+import { useRoom } from '@/hooks/useRoom';
 
 
 // Get dimensions of the screen
@@ -56,6 +56,7 @@ export default function systemRunning() {
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { isConnected, robotData, sendMessage } = useSocket();
   const { user } = useAuth();
+  const { roomName, jsonData, updateJsonData } = useRoom();
 
   // Back-end settings
   const [hasBeenCalled, setHasBeenCalled] = useState<Boolean>(false);
@@ -78,9 +79,7 @@ export default function systemRunning() {
 
 
   // Local room json file
-  const { layoutRunning, roomName } = useLocalSearchParams<{ layoutRunning: string, roomName: string }>();
-  const roomFilePath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
-
+  const { layoutRunning } = useLocalSearchParams<{ layoutRunning: string }>();
 
 
   if (!isConnected) {
@@ -139,11 +138,6 @@ export default function systemRunning() {
 
     // Set the title
     setlayoutName(selectedLayout)
-
-
-    // Read the data from JSON
-    const readData = await FileSystem.readAsStringAsync(roomFilePath);
-    const jsonData = JSON.parse(readData);
 
 
     // Get the layout index within the JSON

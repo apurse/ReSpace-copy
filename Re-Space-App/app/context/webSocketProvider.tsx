@@ -13,6 +13,7 @@ interface Room {
     posegraph: string;
     pgm: string;
     png: string;
+    base64?: string;
 }
 
 
