@@ -1,8 +1,7 @@
 import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl } from 'react-native';
 import { useTheme } from "@/app/_layout";
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
-import * as FileSystem from 'expo-file-system';
 import { useState, useCallback } from 'react';
 import SmallLayout from '@/components/libraryComponents/smallLayout';
 import { useAuth } from "@/hooks/useAuth";
@@ -52,9 +51,9 @@ export default function ManageLayouts() {
 
       // Filter layouts by values and push into the correct array
       jsonData[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
-        allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={roomName} />)
+        allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
         if (layout.favourited) {
-          favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={roomName} />)
+          favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
         }
       })
 
@@ -99,7 +98,7 @@ export default function ManageLayouts() {
         <FilterButton
           Option="Add new layout"
           flexValue={1}
-          onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomScan } })}
+          onPress={() => router.push('/addPages/addLayout')}
           />
 
 

@@ -1,8 +1,7 @@
-import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl } from 'react-native';
 import { useTheme } from "@/app/_layout";
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
-import * as FileSystem from 'expo-file-system';
 import { useState, useCallback } from 'react';
 import SmallFurniture from '@/components/libraryComponents/smallFurniture';
 import { useAuth } from "@/hooks/useAuth";
@@ -47,9 +46,9 @@ export default function ManageFurniture() {
 
       // Filter layouts by values and push into the correct array
       jsonData[user.username]?.furniture?.forEach((furniture: { name: string, favourited: boolean }) => {
-        allLayouts.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} roomName={roomName} />)
+        allLayouts.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
         if (furniture.favourited) {
-          favourites.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} roomName={roomName} />)
+          favourites.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
         }
       })
 

@@ -4,43 +4,29 @@ import { useTheme } from '../../app/_layout';
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import * as FileSystem from 'expo-file-system';
+import { useRoom } from '@/hooks/useRoom';
+
 
 /**
  * A small layout displaying the title and favourite status which when clicked, loads up the corresponding layout.
  * @param LayoutTitle String - The title of the layout. 
  * @param roomName String - The name of the room the layout is for. 
  */
-export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: any; roomName: string }) {
+export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any; }) {
 
   // Hooks and colours
   const { theme } = useTheme();
   const { user } = useAuth();
   const isDarkMode = theme === 'dark';
   const uniqueStyles = createUniqueStyles(isDarkMode);
+  const { roomName, jsonData, updateJsonData } = useRoom();
 
   // Settings
   const [isFavourited, setIsFavourited] = useState<boolean>(false);
 
 
   // Global variables
-  const roomDataJson = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
   var allLayouts: any[] = [];
-  let jsonData = {
-    roomFiles: {
-      yaml: "",
-      data: "",
-      posegraph: "",
-      pmg: "",
-      roomScan: "",
-    },
-    [user.username]: {
-      furniture: [],
-      layouts: []
-    }
-
-  };
-  var thisRoomScan = '';
 
 
   /**
@@ -48,15 +34,6 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
   * @returns layoutIndex - the index of the layout within the JSON.
   */
   const getJson = async () => {
-
-
-    // Read and check there is JSON data
-    const readData = await FileSystem.readAsStringAsync(roomDataJson);
-    if (readData) jsonData = JSON.parse(readData);
-
-    console.log(readData)
-
-    thisRoomScan = jsonData.roomFiles.roomScan;
 
 
     // Get the layout index within the JSON
@@ -92,7 +69,6 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
     // Invert the current favourite value
     const inverseFavourited = !isFavourited;
     setIsFavourited(inverseFavourited)
-
     allLayouts[index].favourited = inverseFavourited;
 
 
@@ -104,7 +80,8 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
         layouts: allLayouts
       }
     }
-    await FileSystem.writeAsStringAsync(roomDataJson, JSON.stringify(updateData));
+
+    updateJsonData(updateData);
   }
 
 
@@ -114,7 +91,7 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
       onPress={() => {
         router.push({
           pathname: "/addPages/addLayout",
-          params: { selectedLayout: LayoutTitle, roomName, thisroomScan: thisRoomScan },
+          params: { selectedLayout: LayoutTitle },
         })
       }}
     >
