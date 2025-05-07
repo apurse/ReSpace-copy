@@ -13,7 +13,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function Controller() {
     const { theme } = useTheme();
-    const { robotData, roomMap } = useSocket();
+    const { robotData, roomScanFiles } = useSocket();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const [scanningMode, setScanningMode] = useState(false); // Open/close dropdown
@@ -58,14 +58,14 @@ export default function Controller() {
             jsonData = JSON.parse(readData);
 
 
-        jsonData.roomMap = roomMap;
+        jsonData.roomScanFiles = roomScanFiles;
 
 
 
         // Write the new data to the JSON
         const updateData = {
             ...jsonData,
-            roomMap: roomMap,
+            roomScanFiles: roomScanFiles,
         }
         await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(updateData));
     }
@@ -98,10 +98,10 @@ export default function Controller() {
 
             {scanningMode &&
                 <View style={uniqueStyles.mapContainer}>
-                    {roomMap}
+                    {/* {roomScanFiles} */}
                     <Image
                         style={uniqueStyles.imageBody}
-                        source={{ uri: (`data:image/png;base64,${roomMap}`) }} />
+                        source={{ uri: (`data:image/png;base64,${roomScanFiles?.png}`) }} />
                 </View>
             }
 

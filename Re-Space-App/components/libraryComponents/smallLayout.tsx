@@ -24,13 +24,23 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
 
 
   // Global variables
-  const layoutJson = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+  const roomDataJson = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
   var allLayouts: any[] = [];
   let jsonData = {
+    roomFiles: {
+      yaml: "",
+      data: "",
+      posegraph: "",
+      pmg: "",
+      roomScan: "",
+    },
     [user.username]: {
+      furniture: [],
       layouts: []
     }
+
   };
+  var thisRoomScan = '';
 
 
   /**
@@ -41,8 +51,12 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
 
 
     // Read and check there is JSON data
-    const readData = await FileSystem.readAsStringAsync(layoutJson);
+    const readData = await FileSystem.readAsStringAsync(roomDataJson);
     if (readData) jsonData = JSON.parse(readData);
+
+    console.log(readData)
+
+    thisRoomScan = jsonData.roomFiles.roomScan;
 
 
     // Get the layout index within the JSON
@@ -90,7 +104,7 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
         layouts: allLayouts
       }
     }
-    await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(updateData));
+    await FileSystem.writeAsStringAsync(roomDataJson, JSON.stringify(updateData));
   }
 
 
@@ -100,7 +114,7 @@ export default function SmallLayout({ LayoutTitle, roomName }: { LayoutTitle: an
       onPress={() => {
         router.push({
           pathname: "/addPages/addLayout",
-          params: { selectedLayout: LayoutTitle, roomName },
+          params: { selectedLayout: LayoutTitle, roomName, thisroomScan: thisRoomScan },
         })
       }}
     >

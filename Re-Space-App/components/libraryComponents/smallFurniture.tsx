@@ -109,8 +109,8 @@ export default function SmallFurniture({ FurnitureTitle, roomName }: { Furniture
       style={uniqueStyles.furnitureCardContainer}
       onPress={() => {
         router.push({
-          pathname: "/addPages/addLayout",
-          params: { selectedLayout: FurnitureTitle, roomName },
+          pathname: "/addPages/addFurniture",
+          params: { selectedFurniture: FurnitureTitle, roomName },
         })
       }}
     >

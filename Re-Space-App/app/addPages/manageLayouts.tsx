@@ -29,6 +29,7 @@ export default function ManageLayouts() {
   const [refreshing, setRefreshing] = useState(false);
 
   const { roomName } = useLocalSearchParams<{ roomName?: string }>();
+  var roomScan = '';
 
 
   /**
@@ -50,6 +51,8 @@ export default function ManageLayouts() {
       // Read and parse data from room file
       const data = await FileSystem.readAsStringAsync(roomPath);
       const jsonData = JSON.parse(data);
+
+      roomScan = jsonData.roomFiles.roomScan;
 
 
       // Push all layouts to an array and output as smallLayouts
@@ -106,7 +109,7 @@ export default function ManageLayouts() {
         <FilterButton
           Option="Add new layout"
           flexValue={1}
-          onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomName } })}
+          onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomName, roomScan } })}
           />
 
 

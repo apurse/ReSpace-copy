@@ -7,6 +7,14 @@ export const WebSocketContext = createContext<any>(null);
 
 const WS_URL = "ws://respace-hub.local:8002/app";
 
+interface Room {
+    yaml: string;
+    data: string;
+    posegraph: string;
+    pgm: string;
+    png: string;
+}
+
 
 export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -14,7 +22,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [robotData, setRobotData] = useState<Robot[]>([]);
     const [latencyData, setLatencyData] = useState<number>();
     const [QRCode, setQRCode] = useState<string>();
-    const [roomMap, setRoomMap] = useState<string>();
+    const [roomScanFiles, setRoomScanFiles] = useState<Room | undefined>();
     const reconnectInterval = useRef<NodeJS.Timeout | null>(null);
 
     // Function to connect WebSocket
@@ -50,7 +58,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                 console.log("Starting reconnection attempts...");
                 reconnectInterval.current = setInterval(() => {
                     connectWebSocket();
-                }, 50000000); // Retry every 5 seconds
+                }, 5000); // Retry every 5 seconds
             }
         };
 
@@ -85,7 +93,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                     }
                     console.log("Initial Data incoming: ", data.robots);
                     // Convert JSON data into Robot objects
-                    const newRobotData = data.robots.map((robot: { robot_id: string; battery: number; location: { x: number; y: number; }; current_activity: string; carrying: string | null; angle: number;}) =>
+                    const newRobotData = data.robots.map((robot: { robot_id: string; battery: number; location: { x: number; y: number; }; current_activity: string; carrying: string | null; angle: number; }) =>
                         new Robot(
                             robot.robot_id,
                             robot.battery,
@@ -114,11 +122,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                     setQRCode(base64String);
                     // console.log(base64String);
 
-                } else if (data.type === "map") {
-
-                    const base64String = data.base64;
-                    setRoomMap(base64String);
-                    // console.log(base64String);
+                } else if (data.type === "set_scan") {
+                    setRoomScanFiles(data.details);
 
                 } else {
                     console.log("Ignored message (not status):", data.type);
@@ -163,7 +168,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }, [isConnected, connectWebSocket]);
 
     return (
-        <WebSocketContext.Provider value={{ socket, isConnected, robotData, latencyData, QRCode, roomMap }}>
+        <WebSocketContext.Provider value={{ socket, isConnected, robotData, latencyData, QRCode, roomScanFiles }}>
             {children}
         </WebSocketContext.Provider>
     );

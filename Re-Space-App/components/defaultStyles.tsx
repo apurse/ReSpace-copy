@@ -54,11 +54,5 @@ export const createDefaultStyles = (isDarkMode: boolean) => StyleSheet.create({
     top: 16,
     right: 16,
     marginTop: 10,
-  },
-
-  starOutlineIcon: {
-    // position: 'absolute',
-    // top: 0,
-    // left: 0,
-  },
+  }
 });

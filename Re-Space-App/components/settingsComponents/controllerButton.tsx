@@ -49,13 +49,15 @@ const ControlButton = ({
         }
         sendMessage({ type: "control", target: targetRobot, direction: "stop" });
     };
-
+    
     const save = () => {
         if (text == "Start") {
             console.log("filler1")
+            // sendMessage({ type: "control", target: targetRobot, direction: "stop" });
         }
         if (text == "Save") {
             console.log("filler2")
+            sendMessage({ type: "get_scan", target: targetRobot});
         }
         setCalled(false)
     }

@@ -13,7 +13,7 @@ import FilterButton from '@/components/libraryComponents/FilterButton';
 // Get dimensions of the screen
 const { width } = Dimensions.get('window');
 
-export default function ManageLayouts() {
+export default function ManageFurniture() {
 
   // Hooks and colours
   const { theme } = useTheme();
