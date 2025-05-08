@@ -5,6 +5,7 @@ import { Link, router, useFocusEffect } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import { useEffect, useState, useCallback } from 'react';
 import { useRoom } from '@/hooks/useRoom';
+import { useAuth } from '@/hooks/useAuth';
 
 /**
  * RoomsManager.tsx
@@ -28,6 +29,7 @@ export default function RoomsManager() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { roomName, setRoomName } = useRoom();
+  const { user } = useAuth()
 
 
   // Saved rooms
@@ -82,33 +84,43 @@ export default function RoomsManager() {
         <Text style={defaultStyles.pageTitle}>Rooms Manager</Text>
       </View>
 
-      {/* Create new room buttom */}
-      <View style={uniqueStyles.buttonContainer}>
-        <Link href="/addPages/newRoom" asChild>
-          <Pressable style={uniqueStyles.button}>
-            <Text style={uniqueStyles.text}>New Room</Text>
-          </Pressable>
-        </Link>
-      </View>
+      {user ?
+        (
+          <>
+            {/* Create new room button */}
+            <View style={uniqueStyles.buttonContainer}>
+              <Link href="/addPages/newRoom" asChild>
+                <Pressable style={uniqueStyles.button}>
+                  <Text style={uniqueStyles.text}>New Room</Text>
+                </Pressable>
+              </Link>
+            </View>
 
-      {/* Show saved rooms */}
-      <Text style={[defaultStyles.sectionTitle, { marginBottom: 20 }]}>Existing Rooms</Text>
-      <View style={{ gap: 10 }}>
-        {rooms.map((room, index) => (
-          <Pressable
-            key={index}
-            style={[uniqueStyles.button, { backgroundColor: '#7aa7ff' }]}
 
-            // Navigate to roomDetails passing room's name and its data
-            onPress={() => {
-              setRoomName(room.name)
-              router.push('/addPages/roomDetails')
-            }}
-          >
-            <Text style={uniqueStyles.text}>{room.name}</Text>
-          </Pressable>
-        ))}
-      </View>
+            {/* Show saved rooms */}
+            <Text style={[defaultStyles.sectionTitle, { marginBottom: 20 }]}>Existing Rooms</Text><View style={{ gap: 10 }}>
+              {rooms.map((room, index) => (
+                <Pressable
+                  key={index}
+                  style={[uniqueStyles.button, { backgroundColor: '#7aa7ff' }]}
+
+                  // Navigate to roomDetails passing room's name and its data
+                  onPress={() => {
+                    setRoomName(room.name);
+                    router.push('/addPages/roomDetails');
+                  }}
+                >
+                  <Text style={uniqueStyles.text}>{room.name}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )
+        :
+        (
+          <Text style={[defaultStyles.sectionTitle, { marginBottom: 20 }]}>Please login to view rooms!</Text>
+        )
+      }
     </ScrollView>
   );
 }

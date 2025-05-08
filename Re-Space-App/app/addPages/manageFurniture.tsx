@@ -45,7 +45,7 @@ export default function ManageFurniture() {
 
 
       // Filter layouts by values and push into the correct array
-      jsonData[user.username]?.furniture?.forEach((furniture: { name: string, favourited: boolean }) => {
+      jsonData.users[user.username]?.furniture?.forEach((furniture: { name: string, favourited: boolean }) => {
         allLayouts.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
         if (furniture.favourited) {
           favourites.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
@@ -58,7 +58,7 @@ export default function ManageFurniture() {
       setFavouriteLayouts(favourites)
 
     } catch (error) {
-      console.error("Failed to load layouts", error);
+      console.error("Failed to load furniture", error);
     }
   };
 

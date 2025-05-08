@@ -51,7 +51,7 @@ export default function Library() {
 
 
     // Filter layouts by values and push into the correct array
-    jsonData[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
+    jsonData.users[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
       allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={''} />)
       if (layout.favourited) {
         favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={''} />)

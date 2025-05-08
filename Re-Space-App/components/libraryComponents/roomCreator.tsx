@@ -91,9 +91,11 @@ export const createRoomIfNotExists = async (
         pmg: "",
         roomScan: "",
       },
-      [user.username]: {
-        furniture: [],
-        layouts: []
+      users: {
+        [user.username]: {
+          furniture: [],
+          layouts: []
+        }
       }
     };
 

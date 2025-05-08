@@ -45,12 +45,12 @@ export default function SmallFurniture({ FurnitureTitle }: { FurnitureTitle: any
   const setBoxAndFavourite = async () => {
 
     // Get the furniture index within the JSON
-    const furnitureIndex = jsonData[user.username]?.furniture
+    const furnitureIndex = jsonData.users[user.username]?.furniture
       .findIndex((furniture: any) => furniture.name === FurnitureTitle);
 
 
     // Get all furniture and overwrite the selected value
-    allFurniture = jsonData[user.username]?.furniture;
+    allFurniture = jsonData.users[user.username]?.furniture;
 
 
     // Set the favourited value and box
@@ -83,9 +83,11 @@ export default function SmallFurniture({ FurnitureTitle }: { FurnitureTitle: any
     // Write the new data to the JSON
     const updateData = {
       ...jsonData,
-      [user.username]: {
-        ...jsonData[user.username],
-        furniture: allFurniture
+      users: {
+        [user.username]: {
+          ...jsonData.users[user.username],
+          furniture: allFurniture
+        }
       }
     }
 

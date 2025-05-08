@@ -41,16 +41,18 @@ export default function ManageLayouts() {
     try {
       if (!roomName) return;
 
-      roomScan = jsonData.roomFiles.roomScan;
+      roomScan = jsonData?.roomFiles?.roomScan;
 
 
       // Push all layouts to an array and output as smallLayouts
       var allLayouts: any = [];
       var favourites: any = [];
 
+      console.log("jsonData:", jsonData)
+
 
       // Filter layouts by values and push into the correct array
-      jsonData[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
+      jsonData.users[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
         allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
         if (layout.favourited) {
           favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)

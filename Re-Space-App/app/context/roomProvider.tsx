@@ -39,12 +39,14 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
 
 
         // If this user doesn't exist under this room, make user entry with arrays
-        if (!thisData[user.username]) {
+        if (!thisData.users[user.username]) {
             const updateData = {
                 ...thisData,
-                [user.username]: {
-                    furniture: [],
-                    layouts: []
+                users:{
+                    [user.username]: {
+                        furniture: [],
+                        layouts: []
+                    }
                 }
             }
 

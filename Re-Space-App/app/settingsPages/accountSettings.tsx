@@ -43,9 +43,11 @@ export default function Controller() {
 
             var updateData = {
                 ...jsonData,
-                [user.username]: {
-                    ...jsonData[user.username],
-                    layouts: []
+                users: {
+                    [user.username]: {
+                        ...jsonData.users[user.username],
+                        layouts: []
+                    }
                 }
             }
 
@@ -53,7 +55,7 @@ export default function Controller() {
 
             // Erase the corresponding aspect (need to fix)
             if (clearAll) updateData = {};
-            else jsonData[user.username] = { layouts: [] };
+            else jsonData.users[user.username] = { layouts: [] };
 
 
             updateJsonData()

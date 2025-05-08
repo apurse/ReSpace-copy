@@ -53,7 +53,6 @@ export default function systemRunning() {
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
-  const uniqueStyles = createUniqueStyles(isDarkMode);
   const { isConnected, robotData, sendMessage } = useSocket();
   const { user } = useAuth();
   const { roomName, jsonData, updateJsonData } = useRoom();
@@ -72,6 +71,7 @@ export default function systemRunning() {
   const [boxDestinations, setBoxDestinations] = useState<Box[]>([]);
   const [selectedBox, setSelectedBox] = useState<number | null>(null);
   const [totalProgress, setTotalProgress] = useState<Float>(0);
+  const uniqueStyles = createUniqueStyles(isDarkMode, totalProgress);
 
   // User settings
   const [layoutName, setlayoutName] = useState<string | undefined>();
@@ -105,25 +105,17 @@ export default function systemRunning() {
 
 
         // calculate error margin
-        // if within 20cm eg
+        // if within 2cm eg
 
+        if (boxes[boxIndex] == boxDestinations[boxIndex]) {
 
-        // // If current positions equal destinations (maybe easier way to do this) 
-        // if (
-        //   boxes[boxIndex].x == boxDestinations[boxIndex].x &&
-        //   boxes[boxIndex].y == boxDestinations[boxIndex].y &&
-        //   boxes[boxIndex].rotation == boxDestinations[boxIndex].rotation
-        // ) {
-
-        // if (boxes[boxIndex] == boxDestinations[boxIndex]) {
-        // }
-
-        //   // Set new progress
-        //   var newProgress = totalProgress + (1 / boxes.length)
-        //   setTotalProgress(newProgress)
-        // }
+          // Set new progress
+          var newProgress = totalProgress + (1 / boxes.length)
+          setTotalProgress(newProgress)
+        }
       }
-    })
+    }
+    )
 
     setBoxes(boxes)
   }, [robotData])
@@ -141,13 +133,13 @@ export default function systemRunning() {
 
 
     // Get the layout index within the JSON
-    let layoutIndex = jsonData[user.username]?.layouts
+    let layoutIndex = jsonData.users[user.username]?.layouts
       .findIndex((layout: any) => layout.name === selectedLayout);
 
 
     // Set the current position of each box
     var newBoxes: Box[] = [];
-    jsonData[user.username]?.layouts[layoutIndex].currentLayout.boxes
+    jsonData.users[user.username]?.layouts[layoutIndex].currentLayout.boxes
       .forEach((box: Box) => {
         newBoxes.push(box);
       })
@@ -155,7 +147,7 @@ export default function systemRunning() {
 
     // Set the destinations as the grey boxes
     var destinations: Box[] = [];
-    jsonData[user.username]?.layouts[layoutIndex].newLayout.boxes
+    jsonData.users[user.username]?.layouts[layoutIndex].newLayout.boxes
       .forEach((box: Box) => {
         destinations.push(box);
       })
@@ -345,8 +337,9 @@ export default function systemRunning() {
 
 
       {/* Progress bar */}
-      <View style={[uniqueStyles.progressBar]}>
+      <View style={[uniqueStyles.progressBarContainer]}>
         <Text>Progress bar</Text>
+        <View style={[uniqueStyles.progressBar]} />
       </View>
 
 
@@ -370,7 +363,7 @@ export default function systemRunning() {
 }
 
 // styles unique to this page go here
-const createUniqueStyles = (isDarkMode: boolean) =>
+const createUniqueStyles = (isDarkMode: boolean, totalProgress: number) =>
   StyleSheet.create({
     title: {
       fontSize: 30,
@@ -388,8 +381,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       alignSelf: 'center',
       fontSize: 200,
     },
-    progressBar: {
-      backgroundColor: "blue",
+    progressBarContainer: {
       borderRadius: 8,
       alignItems: 'center',
       marginVertical: 10,
@@ -398,6 +390,11 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       width: 0.8 * screenWidth,
       height: 20,
       alignSelf: 'center',
+    },
+    progressBar: {
+      height: '100%',
+      width: totalProgress,
+      backgroundColor: "blue",
     },
     grid: {
       width: viewGridWidth, // * scaleX once visuals are done

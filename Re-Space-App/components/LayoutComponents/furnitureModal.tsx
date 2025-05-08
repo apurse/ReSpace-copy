@@ -41,7 +41,7 @@ const FurnitureModal: React.FC<FurnitureModalProps> = ({ isVisible, onClose, onS
 
     useEffect(() => {
         if (isVisible) {
-            setFurnitureData(jsonData[user.username].furniture);
+            setFurnitureData(jsonData.users[user.username].furniture);
         }
     }, [isVisible]);
 

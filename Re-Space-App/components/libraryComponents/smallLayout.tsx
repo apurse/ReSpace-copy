@@ -37,12 +37,12 @@ export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any; }) {
 
 
     // Get the layout index within the JSON
-    const layoutIndex = jsonData[user.username]?.layouts
+    const layoutIndex = jsonData.users[user.username]?.layouts
       .findIndex((layout: any) => layout.name === LayoutTitle);
 
 
     // Get all layouts and overwrite the selected layout
-    allLayouts = jsonData[user.username]?.layouts;
+    allLayouts = jsonData.users[user.username]?.layouts;
 
 
     // Set the favourited value
@@ -75,9 +75,11 @@ export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any; }) {
     // Write the new data to the JSON
     const updateData = {
       ...jsonData,
-      [user.username]: {
-        ...jsonData[user.username],
-        layouts: allLayouts
+      users: {
+        [user.username]: {
+          ...jsonData.users[user.username],
+          layouts: allLayouts
+        }
       }
     }
 

@@ -79,7 +79,7 @@ export default function AddLayout() {
     try {
 
       // Get the layout index within the JSON
-      let furnitureIndex = jsonData[user.username]?.furniture
+      let furnitureIndex = jsonData.users[user.username]?.furniture
         .findIndex((furniture: any) => furniture.name === selectedFurniture
         );
 
@@ -91,7 +91,7 @@ export default function AddLayout() {
       }
 
       // Get each box in the current layout and add to array
-      const thisFurniture = jsonData[user.username]?.furniture[furnitureIndex];
+      const thisFurniture = jsonData.users[user.username]?.furniture[furnitureIndex];
 
       // Set the form
       setName(thisFurniture.name);
@@ -122,11 +122,11 @@ export default function AddLayout() {
     try {
 
       // Get the layout index within the JSON
-      let layoutIndex = jsonData[user.username]?.furniture
+      let layoutIndex = jsonData.users[user.username]?.furniture
         .findIndex((furniture: any) => furniture.name === furnitureName);
 
       // Remove the layout
-      jsonData[user.username].furniture.splice(layoutIndex, 1);
+      jsonData.users[user.username].furniture.splice(layoutIndex, 1);
 
       // Write the new data 
       updateJsonData(jsonData)
@@ -209,7 +209,7 @@ export default function AddLayout() {
 
 
       // Check that the provided name is unique
-      jsonData[user.username]?.furniture?.forEach((furniture: { name: string }) => {
+      jsonData.users[user.username]?.furniture?.forEach((furniture: { name: string }) => {
         nameUsed = (furniture.name == furnitureName) ? true : false;
       })
 
@@ -242,9 +242,9 @@ export default function AddLayout() {
 
       // Either overwrite or add the jsonData
       if (loadedFurnitureIndex !== -1) {
-        jsonData[user.username].furniture[loadedFurnitureIndex] = newFurniture;
+        jsonData.users[user.username].furniture[loadedFurnitureIndex] = newFurniture;
       } else {
-        jsonData[user.username].furniture.push(newFurniture);
+        jsonData.users[user.username].furniture.push(newFurniture);
       }
 
 
