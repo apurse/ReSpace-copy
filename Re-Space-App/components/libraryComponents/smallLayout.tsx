@@ -76,6 +76,7 @@ export default function SmallLayout({ LayoutTitle }: { LayoutTitle: any; }) {
     const updateData = {
       ...jsonData,
       users: {
+        ...jsonData?.users,
         [user.username]: {
           ...jsonData.users[user.username],
           layouts: allLayouts

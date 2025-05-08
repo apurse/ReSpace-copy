@@ -44,6 +44,7 @@ export default function Controller() {
             var updateData = {
                 ...jsonData,
                 users: {
+                    ...jsonData?.users,
                     [user.username]: {
                         ...jsonData.users[user.username],
                         layouts: []

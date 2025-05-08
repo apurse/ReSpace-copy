@@ -84,6 +84,7 @@ export default function SmallFurniture({ FurnitureTitle }: { FurnitureTitle: any
     const updateData = {
       ...jsonData,
       users: {
+        ...jsonData?.users,
         [user.username]: {
           ...jsonData.users[user.username],
           furniture: allFurniture

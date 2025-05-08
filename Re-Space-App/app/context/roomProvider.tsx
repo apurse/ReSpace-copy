@@ -43,6 +43,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
             const updateData = {
                 ...thisData,
                 users:{
+                    ...thisData?.users,
                     [user.username]: {
                         furniture: [],
                         layouts: []
