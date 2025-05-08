@@ -4,12 +4,12 @@
     "slug": "Re-Space-App",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/re-space-logo.png",
+    "icon": "./assets/images/inverted.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon-light.png",
+      "image": "./assets/images/inverted.png",
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },

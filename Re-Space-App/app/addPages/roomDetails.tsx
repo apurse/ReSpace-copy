@@ -20,7 +20,7 @@ export default function RoomDetails() {
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const router = useRouter();
   const { roomName } = useRoom();
-
+  
 
   return (
     <View style={defaultStyles.body}>

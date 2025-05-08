@@ -69,9 +69,7 @@ const ControlButton = ({
 
     return (
         <View>
-
             {text ?
-            
                 // Scanning unique buttons
                 (
                     <Pressable
