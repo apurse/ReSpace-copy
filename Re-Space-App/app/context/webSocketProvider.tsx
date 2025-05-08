@@ -9,11 +9,7 @@ const WS_URL = "ws://respace-hub.local:8002/app";
 
 interface Room {
     yaml?: string;
-    data?: string;
-    posegraph?: string;
-    pgm?: string;
     png?: string;
-    base64?: string;
 }
 
 
@@ -24,11 +20,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [latencyData, setLatencyData] = useState<number>();
     const [QRCode, setQRCode] = useState<string>();
     const [roomScanFiles, setRoomScanFiles] = useState<Room>();
+    const [scanningMap, setScanningMap] = useState<string>();
     const reconnectInterval = useRef<NodeJS.Timeout | null>(null);
-
-    useEffect(() => {
-        console.log("room", roomScanFiles)
-    }, [roomScanFiles])
 
 
     // Function to connect WebSocket
@@ -132,17 +125,12 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                     setRoomScanFiles(others => ({
                         ...others,
                         yaml: data?.yaml,
-                        data: data?.data,
-                        posegraph: data?.posegraph,
-                        pgm: data?.pgm,
                         png: data?.png,
                     }))
+                    console.log(data)
 
                 } else if (data.type === "scanning_map") {
-                    setRoomScanFiles(others => ({
-                        ...others,
-                        base64: data.base64
-                    }))
+                    setScanningMap(data.base64)
 
                 } else {
                     console.log("Ignored message (not status):", data.type);
@@ -187,7 +175,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     }, [isConnected, connectWebSocket]);
 
     return (
-        <WebSocketContext.Provider value={{ socket, isConnected, robotData, latencyData, QRCode, roomScanFiles }}>
+        <WebSocketContext.Provider value={{ socket, isConnected, robotData, latencyData, QRCode, roomScanFiles, scanningMap }}>
             {children}
         </WebSocketContext.Provider>
     );

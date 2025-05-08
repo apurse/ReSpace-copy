@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, StyleSheet, Text, Dimensions, Image } from "react-native";
+import { View, StyleSheet, Text, Dimensions, Image, ImageBackground } from "react-native";
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import ControllerButton from "@/components/settingsComponents/controllerButton";
@@ -14,7 +14,7 @@ export default function Controller() {
 
     // Hooks and colours
     const { theme } = useTheme();
-    const { robotData, roomScanFiles } = useSocket();
+    const { robotData, roomScanFiles, scanningMap } = useSocket();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
 
@@ -25,7 +25,10 @@ export default function Controller() {
     // Appearance settings
     const [dropDownVisible, setDropDownVisible] = useState(false);
     const [scanningMode, setScanningMode] = useState(false);
+    const [called, setCalled] = useState(false);
     const uniqueStyles = createUniqueStyles(isDarkMode, scanningMode);
+    const [previousImage, setPreviousImage] = useState<string>("")
+    const [newImage, setNewImage] = useState<string>("")
 
 
     // Check if in scanning mode
@@ -47,6 +50,11 @@ export default function Controller() {
         }
     }, [robotData]);
 
+    // Set the new scan as the new image
+    useEffect(() => {
+        setNewImage(scanningMap)
+    }, [scanningMap])
+
 
     // Set scanning mode based on scanning parameter
     useEffect(() => {
@@ -55,7 +63,7 @@ export default function Controller() {
             setScanningMode(true)
     }, [scanning])
 
-    
+
     return (
         <View style={defaultStyles.body}>
 
@@ -85,9 +93,17 @@ export default function Controller() {
             {/* Scanning Mode Map */}
             {scanningMode &&
                 <View style={uniqueStyles.mapContainer}>
-                    <Image
-                        style={uniqueStyles.imageBody}
-                        source={{ uri: (`data:image/png;base64,${roomScanFiles?.base64}`) }} />
+
+                    {/* Display the previous image while rendering new image */}
+                    <ImageBackground
+                    source={{ uri: (`data:image/png;base64,${previousImage}`) }}
+                    >
+                        {/* Render the new image */}
+                        <Image
+                            style={uniqueStyles.imageBody}
+                            source={{ uri: (`data:image/png;base64,${newImage}`) }} 
+                            onLoad={() => setPreviousImage(newImage)}/>
+                    </ImageBackground>
                 </View>
             }
 
