@@ -313,14 +313,12 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             zIndex: 1000,
         },
         eyeContainer: {
-            marginLeft: 10,
-            backgroundColor: '',
-            padding: 0,
+            backgroundColor: undefined,
             alignItems: 'center',
-            borderRadius: 5,
-            marginTop: 20,
-            verticalAlign: 'middle',
+            padding: 0,
+            width: 35,
+            height: 40,
             top: -53,
-            left: 130,
+            left: screenWidth * 0.63,
         }
     });

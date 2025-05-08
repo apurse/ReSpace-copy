@@ -5,9 +5,8 @@ import { useTheme } from '../_layout';
 import { useAuth } from "@/hooks/useAuth";
 import ActionButton from '@/components/settingsComponents/actionButton';
 import * as FileSystem from 'expo-file-system';
+import { useRoom } from '@/hooks/useRoom';
 
-
-const layoutJson = FileSystem.documentDirectory + 'layouts.json';
 
 // Get dimensions of the screen
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
@@ -20,6 +19,8 @@ export default function Controller() {
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
     const { user, setUser, db, hashPassword } = useAuth();
+    const { roomName, jsonData, updateJsonData } = useRoom();
+
 
     // User details
     const [username, setUsername] = useState<string>('');
@@ -40,31 +41,23 @@ export default function Controller() {
     const clearLayoutJson = async (clearAll: boolean) => {
         try {
 
-            // Read data from json before writing new data
-            const readData = await FileSystem.readAsStringAsync(layoutJson);
-            let jsonData = {
+            var updateData = {
+                ...jsonData,
                 [user.username]: {
+                    ...jsonData[user.username],
                     layouts: []
                 }
-            };
-
-            // Check there is data
-            if (readData) jsonData = JSON.parse(readData);
+            }
 
 
-            // Erase the corresponding aspect
-            if (clearAll) jsonData = {};
+
+            // Erase the corresponding aspect (need to fix)
+            if (clearAll) updateData = {};
             else jsonData[user.username] = { layouts: [] };
 
 
-            // Write to JSON and alert user
-            await FileSystem.writeAsStringAsync(layoutJson, JSON.stringify(jsonData));
+            updateJsonData()
             alert((clearAll) ? "All layouts for all accounts have been removed" : "All layouts for this account have been removed");
-
-
-            // Show it happening 
-            const data = await FileSystem.readAsStringAsync(layoutJson);
-            console.log('Layout json updated:', data);
 
         } catch (error) {
             console.error('Error deleting JSON data');

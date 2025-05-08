@@ -51,7 +51,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="library"
         options={{
           title: 'Library',
@@ -59,7 +59,7 @@ export default function TabLayout() {
             <TabBarIcon name={focused ? 'grid' : 'grid-outline'} color={color} />
           ),
         }}
-      />
+      /> */}
       <Tabs.Screen
         name="settings"
         options={{

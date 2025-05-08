@@ -1,19 +1,18 @@
-import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl } from 'react-native';
 import { useTheme } from "@/app/_layout";
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
-import * as FileSystem from 'expo-file-system';
 import { useState, useCallback } from 'react';
 import SmallFurniture from '@/components/libraryComponents/smallFurniture';
 import { useAuth } from "@/hooks/useAuth";
 import { useFocusEffect } from '@react-navigation/native';
 import FilterButton from '@/components/libraryComponents/FilterButton';
-
+import { useRoom } from '@/hooks/useRoom';
 
 // Get dimensions of the screen
 const { width } = Dimensions.get('window');
 
-export default function ManageLayouts() {
+export default function ManageFurniture() {
 
   // Hooks and colours
   const { theme } = useTheme();
@@ -21,14 +20,13 @@ export default function ManageLayouts() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { user } = useAuth();
+  const { roomName, jsonData } = useRoom();
 
   // Layouts and favourite layouts
   const [layouts, setLayouts] = useState<any | null>(null);
   const [favouriteLayouts, setFavouriteLayouts] = useState<any | null>(null);
   const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState(false);
-
-  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
 
 
   /**
@@ -41,17 +39,6 @@ export default function ManageLayouts() {
       if (!roomName) return;
 
 
-      // Read room file, return if file does not exist
-      const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
-      const fileCheck = await FileSystem.getInfoAsync(roomPath);
-      if (!fileCheck.exists) return;
-
-
-      // Read and parse data from room file
-      const data = await FileSystem.readAsStringAsync(roomPath);
-      const jsonData = JSON.parse(data);
-
-
       // Push all layouts to an array and output as smallLayouts
       var allLayouts: any = [];
       var favourites: any = [];
@@ -59,9 +46,9 @@ export default function ManageLayouts() {
 
       // Filter layouts by values and push into the correct array
       jsonData[user.username]?.furniture?.forEach((furniture: { name: string, favourited: boolean }) => {
-        allLayouts.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} roomName={roomName} />)
+        allLayouts.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
         if (furniture.favourited) {
-          favourites.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} roomName={roomName} />)
+          favourites.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
         }
       })
 
@@ -132,7 +119,7 @@ export default function ManageLayouts() {
         <>
           <Text style={uniqueStyles.sectionTitle}>
             {!favouritesSelected ?
-              (`All Layouts: ${layouts?.length}`)
+              (`All Furniture: ${layouts?.length}`)
               :
               (`Favourites: ${favouriteLayouts?.length}/${layouts?.length}`)
             }

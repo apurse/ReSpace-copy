@@ -66,14 +66,14 @@ export const StarIcon = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
-    return <Icon name="star" size={20} color="yellow" solid style={defaultStyles.starOutlineIcon} />;
+    return <Icon name="star" size={20} color="yellow" solid/>;
 };
 
 export const StarIconOutline = () => {
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
-    return <Icon name="star" size={20} color={isDarkMode ? '#fff' : '#000'} style={defaultStyles.starOutlineIcon} />;
+    return <Icon name="star" size={20} color={isDarkMode ? '#fff' : '#000'}/>;
 };
 
 // Search icon
@@ -112,4 +112,3 @@ export const EyeSlashIcon = () => {
     const defaultStyles = createDefaultStyles(isDarkMode);
     return <Icon name="eye-slash" size={24} color={isDarkMode ? '#000' : '#fff'}/>;
 };
-

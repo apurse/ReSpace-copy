@@ -1,8 +1,10 @@
 import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from "@/app/_layout";
 import * as FileSystem from 'expo-file-system';
+import { useRoom } from '@/hooks/useRoom';
+
 
 // Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
@@ -17,7 +19,8 @@ export default function RoomDetails() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const router = useRouter();
-  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
+  const { roomName } = useRoom();
+
 
   return (
     <View style={defaultStyles.body}>
@@ -32,7 +35,7 @@ export default function RoomDetails() {
         {/* Go to manage layout page */}
         <Pressable
           style={uniqueStyles.button}
-          onPress={() => router.push({ pathname: '/addPages/manageLayouts', params: { roomName } })}
+          onPress={() => router.push('/addPages/manageLayouts')}
         >
           <Text style={uniqueStyles.text}>Manage Layouts</Text>
         </Pressable>
@@ -40,7 +43,7 @@ export default function RoomDetails() {
         {/* Go to manage furniture page */}
         <Pressable
           style={uniqueStyles.button}
-          onPress={() => router.push({ pathname: '/addPages/manageFurniture', params: { roomName } })}
+          onPress={() => router.push('/addPages/manageFurniture')}
         >
           <Text style={uniqueStyles.text}>Manage Furniture</Text>
         </Pressable>

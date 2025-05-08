@@ -4,14 +4,15 @@ import { useTheme } from '../../app/_layout';
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import * as FileSystem from 'expo-file-system';
+import { useRoom } from '@/hooks/useRoom';
+
 
 /**
  * An entry of the furniture, displaying the title and favourite status which when clicked, loads it up.
  * @param FurnitureTitle String - The title of the furniture. 
  * @param roomName String - The name of the room the furniture is for. 
  */
-export default function SmallFurniture({ FurnitureTitle, roomName }: { FurnitureTitle: any; roomName: string }) {
+export default function SmallFurniture({ FurnitureTitle }: { FurnitureTitle: any;}) {
 
   // Box class
   type Box = {
@@ -27,33 +28,21 @@ export default function SmallFurniture({ FurnitureTitle, roomName }: { Furniture
   const { user } = useAuth();
   const isDarkMode = theme === 'dark';
   const uniqueStyles = createUniqueStyles(isDarkMode);
+  const { roomName, jsonData, updateJsonData } = useRoom();
 
   // Settings
   const [isFavourited, setIsFavourited] = useState<boolean>(false);
   const [box, setBox] = useState<Box>();
 
 
-  // Global variables
-  const furnitureJson = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
   var allFurniture: any[] = [];
-  let jsonData = {
-    [user.username]: {
-      furniture: []
-    }
-  };
 
 
   /**
-  * Get the room JSON and furniture information.
+  * Get the room JSON and set the correct furniture information.
   * @returns furnitureIndex - the index of the furniture within the JSON.
   */
-  const getJson = async () => {
-
-
-    // Read and check there is JSON data
-    const readData = await FileSystem.readAsStringAsync(furnitureJson);
-    if (readData) jsonData = JSON.parse(readData);
-
+  const setBoxAndFavourite = async () => {
 
     // Get the furniture index within the JSON
     const furnitureIndex = jsonData[user.username]?.furniture
@@ -74,16 +63,16 @@ export default function SmallFurniture({ FurnitureTitle, roomName }: { Furniture
 
   // Update on each load
   useEffect(() => {
-    getJson()
+    setBoxAndFavourite()
   }, [roomName, FurnitureTitle])
 
 
   /**
-   * Set a furniture as favourited within the JSON entry.
+   * Set a piece of furniture as favourited within the JSON entry.
    */
   const toggleFavourite = async () => {
 
-    var index = await getJson()
+    var index = await setBoxAndFavourite()
 
     // Invert and set the current favourite value
     const inverseFavourited = !isFavourited;
@@ -100,7 +89,7 @@ export default function SmallFurniture({ FurnitureTitle, roomName }: { Furniture
       }
     }
 
-    await FileSystem.writeAsStringAsync(furnitureJson, JSON.stringify(updateData));
+    updateJsonData(updateData)
   }
 
 
@@ -109,8 +98,8 @@ export default function SmallFurniture({ FurnitureTitle, roomName }: { Furniture
       style={uniqueStyles.furnitureCardContainer}
       onPress={() => {
         router.push({
-          pathname: "/addPages/addLayout",
-          params: { selectedLayout: FurnitureTitle, roomName },
+          pathname: "/addPages/addFurniture",
+          params: { selectedFurniture: FurnitureTitle, roomName },
         })
       }}
     >

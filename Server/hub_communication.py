@@ -317,6 +317,7 @@ async def handle_robot_message(robot, data):
         print("Received scan message: ", data)
         await send_to_app(data)
 
+
     else:
         print("Received unknown command!")
         print("Unknown data: ", data)

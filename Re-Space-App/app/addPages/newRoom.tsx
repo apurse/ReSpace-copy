@@ -1,10 +1,9 @@
-import { View, ScrollView, StyleSheet, Text, Dimensions, Pressable, Button, TextInput } from 'react-native';
+import { View, StyleSheet, Text, Dimensions, Pressable, TextInput } from 'react-native';
 import { useState } from 'react';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from "@/app/_layout";
 import { useRouter } from 'expo-router';
-import { createRoomIfNotExists } from '@/components/libraryComponents/roomCreator';
-import { useAuth } from '@/hooks/useAuth';
+import { useRoom } from '@/hooks/useRoom';
 
 // expo navigation: https://docs.expo.dev/router/navigating-pages/
 // Get dimensions of the screen
@@ -12,56 +11,46 @@ const { width, height } = Dimensions.get('window');
 
 export default function newRoom() {
 
-  /**
-   * Hooks and colours
-   */
+  // Hooks and colours
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const router = useRouter();
-  const { user } = useAuth();
+  const { setupRoomJSON } = useRoom();
 
-  //  Room name
-  const [roomName, setRoomName] = useState('');
+  // Room name
+  const [tempName, setTempName] = useState('');
 
   return (
-    <View style={defaultStyles.body}> 
-        <View style={uniqueStyles.buttonContainer}>
+    <View style={defaultStyles.body}>
+      <View style={uniqueStyles.buttonContainer}>
 
-          {/* Input room's name */}
-            <TextInput 
-            placeholder="Type new room's name" 
-            value={roomName} 
-            onChangeText={setRoomName}
-            style={uniqueStyles.textInput} 
-            />
-            <Pressable
-              style={[uniqueStyles.button, { backgroundColor: '#4CAF50' }]}
-              onPress={async () => {
-                if (!roomName.trim()) {
-                  alert("Please enter a room name.");
-                  return;
-                }
-                
-                //  Create new room if it doesn't already exist
-                const result = await createRoomIfNotExists(roomName, user);
+        {/* Input rooms name */}
+        <TextInput
+          placeholder="Type new room's name"
+          value={tempName}
+          onChangeText={setTempName}
+          style={uniqueStyles.textInput}
+        />
 
-                //  Go to the new room created or room selected if name room already exist
-                if (result.success) {
-                  router.replace({ pathname: '/addPages/roomDetails', params: { roomName } });
-                } else {
-                  alert(result.message);
-                }
-              }}
-            >
-              <Text style={uniqueStyles.text}>Create</Text>
-            </Pressable>
-            {/* Cancel new room, go back to previous page */}
-            <Pressable style={[uniqueStyles.button, {backgroundColor: '#fa440c'}]} onPress={() => router.back()}>
-                <Text style={uniqueStyles.text}>Cancel</Text>
-            </Pressable>
-        </View>
+
+        {/* Create button */}
+        <Pressable
+          style={[uniqueStyles.button, { backgroundColor: '#4CAF50' }]}
+          onPress={async () => {
+            setupRoomJSON(tempName)
+          }}
+        >
+          <Text style={uniqueStyles.text}>Create</Text>
+        </Pressable>
+
+
+        {/* Cancel button */}
+        <Pressable style={[uniqueStyles.button, { backgroundColor: '#fa440c' }]} onPress={() => router.back()}>
+          <Text style={uniqueStyles.text}>Cancel</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }

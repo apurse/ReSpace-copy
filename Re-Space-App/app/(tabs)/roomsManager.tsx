@@ -4,6 +4,7 @@ import { useTheme } from '../_layout';
 import { Link, router, useFocusEffect } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import { useEffect, useState, useCallback } from 'react';
+import { useRoom } from '@/hooks/useRoom';
 
 /**
  * RoomsManager.tsx
@@ -26,6 +27,8 @@ export default function RoomsManager() {
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
+  const { roomName, setRoomName } = useRoom();
+
 
   // Saved rooms
   const [rooms, setRooms] = useState<any[]>([]);
@@ -96,15 +99,10 @@ export default function RoomsManager() {
             style={[uniqueStyles.button, { backgroundColor: '#7aa7ff' }]}
 
             //  Navigate to roomDetails passing room's name and its data
-            onPress={() =>
-              router.push({
-                pathname: '/addPages/roomDetails',
-                params: {
-                  roomName: room.name,
-                  roomData: JSON.stringify(room.data),
-                },
-              })
-            }
+            onPress={() => {
+              setRoomName(room.name)
+              router.push('/addPages/roomDetails')
+            }}
           >
             <Text style={uniqueStyles.text}>{room.name}</Text>
           </Pressable>

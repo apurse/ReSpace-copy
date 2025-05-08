@@ -1,13 +1,13 @@
 import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl } from 'react-native';
 import { useTheme } from "@/app/_layout";
-import { router, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
-import * as FileSystem from 'expo-file-system';
 import { useState, useCallback } from 'react';
 import SmallLayout from '@/components/libraryComponents/smallLayout';
 import { useAuth } from "@/hooks/useAuth";
 import { useFocusEffect } from '@react-navigation/native';
 import FilterButton from '@/components/libraryComponents/FilterButton';
+import { useRoom } from '@/hooks/useRoom';
 
 
 // Get dimensions of the screen
@@ -21,6 +21,7 @@ export default function ManageLayouts() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { user } = useAuth();
+  const { roomName, jsonData } = useRoom();
 
   // Layouts and favourite layouts
   const [layouts, setLayouts] = useState<any | null>(null);
@@ -28,7 +29,7 @@ export default function ManageLayouts() {
   const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { roomName } = useLocalSearchParams<{ roomName?: string }>();
+  var roomScan = '';
 
 
   /**
@@ -40,16 +41,7 @@ export default function ManageLayouts() {
     try {
       if (!roomName) return;
 
-
-      // Read room file, return if file does not exist
-      const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
-      const fileCheck = await FileSystem.getInfoAsync(roomPath);
-      if (!fileCheck.exists) return;
-
-
-      // Read and parse data from room file
-      const data = await FileSystem.readAsStringAsync(roomPath);
-      const jsonData = JSON.parse(data);
+      roomScan = jsonData.roomFiles.roomScan;
 
 
       // Push all layouts to an array and output as smallLayouts
@@ -59,9 +51,9 @@ export default function ManageLayouts() {
 
       // Filter layouts by values and push into the correct array
       jsonData[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
-        allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={roomName} />)
+        allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
         if (layout.favourited) {
-          favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} roomName={roomName} />)
+          favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
         }
       })
 
@@ -106,7 +98,7 @@ export default function ManageLayouts() {
         <FilterButton
           Option="Add new layout"
           flexValue={1}
-          onPress={() => router.push({ pathname: '/addPages/addLayout', params: { roomName } })}
+          onPress={() => router.push('/addPages/addLayout')}
           />
 
 
