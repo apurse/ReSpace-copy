@@ -8,11 +8,11 @@ export const WebSocketContext = createContext<any>(null);
 const WS_URL = "ws://respace-hub.local:8002/app";
 
 interface Room {
-    yaml: string;
-    data: string;
-    posegraph: string;
-    pgm: string;
-    png: string;
+    yaml?: string;
+    data?: string;
+    posegraph?: string;
+    pgm?: string;
+    png?: string;
     base64?: string;
 }
 
@@ -23,8 +23,13 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     const [robotData, setRobotData] = useState<Robot[]>([]);
     const [latencyData, setLatencyData] = useState<number>();
     const [QRCode, setQRCode] = useState<string>();
-    const [roomScanFiles, setRoomScanFiles] = useState<Room | undefined>();
+    const [roomScanFiles, setRoomScanFiles] = useState<Room>();
     const reconnectInterval = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        console.log("room", roomScanFiles)
+    }, [roomScanFiles])
+
 
     // Function to connect WebSocket
     const connectWebSocket = useCallback(() => {
@@ -123,13 +128,21 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                     setQRCode(base64String);
                     // console.log(base64String);
 
-                } else if (data.type === "set_scan") {
-                    setRoomScanFiles(data.details);
-                    console.log(data)
+                } else if (data.type === "set_map") {
+                    setRoomScanFiles(others => ({
+                        ...others,
+                        yaml: data?.yaml,
+                        data: data?.data,
+                        posegraph: data?.posegraph,
+                        pgm: data?.pgm,
+                        png: data?.png,
+                    }))
 
-                } else if (data.type === "map") {
-                    setRoomScanFiles(data.base64);
-                    console.log(roomScanFiles?.yaml)
+                } else if (data.type === "scanning_map") {
+                    setRoomScanFiles(others => ({
+                        ...others,
+                        base64: data.base64
+                    }))
 
                 } else {
                     console.log("Ignored message (not status):", data.type);

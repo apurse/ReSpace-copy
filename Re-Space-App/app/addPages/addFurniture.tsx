@@ -16,9 +16,6 @@ import { useRoom } from '@/hooks/useRoom';
 //  Get dimensions of the screen
 const { width, height } = Dimensions.get('window');
 
-//  Set grid size
-const gridSize = [0.8 * width, 0.55 * height];
-
 
 export default function AddLayout() {
 
@@ -119,8 +116,8 @@ export default function AddLayout() {
 
 
   /**
- * Delete the selected furniture from the room JSON.
- */
+  * Delete the selected furniture from the room JSON.
+  */
   const deleteFurniture = async () => {
     try {
 
@@ -510,7 +507,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       fontFamily: 'arial',
     },
     buttonContainer: {
-      width: gridSize[0],
+      width: width * 0.8,
     },
     notificationText: {
       position: 'absolute',

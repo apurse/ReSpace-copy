@@ -55,12 +55,12 @@ export default function DragAndDrop() {
         rotation: Float;
     };
 
-    // Hooks
+    // Hooks and colours
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
-    var { sendMessage, isConnected } = useSocket();
+    var { isConnected } = useSocket();
     const { user } = useAuth();
     const { roomName, jsonData, updateJsonData } = useRoom();
 
@@ -79,7 +79,6 @@ export default function DragAndDrop() {
     const [inputY, setInputY] = useState(''); // Value of input box of 'y' coordinate
     const [inputAngle, setInputAngle] = useState(''); // Value of angle of the rotation furniture
     const [boxes, setBoxes] = useState(allBoxes); // set boxes array
-    const boxesFormatted = boxes.map(({ id, x, y, rotation }) => ({ id, x, y, rotation })); // Formatted boxes data
     const [placedBoxes, setPlacedBoxes] = useState<Box[]>([]); // Placed boxes of current layout
     const [selectedBox, setSelectedBox] = useState<number | null>(null); //Track active box for highlight feature
 
@@ -125,8 +124,7 @@ export default function DragAndDrop() {
                 .findIndex((layout: any) => layout.name === selectedLayout
                 );
 
-            console.log("index: ", layoutIndex)
-
+                
             // If no index is found
             if (layoutIndex === -1) {
                 console.warn("Layout not found.");

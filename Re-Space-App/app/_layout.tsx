@@ -1,6 +1,4 @@
-// _layout.tsx
-
-import React, { createContext, useContext, useState, ReactChild } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -11,7 +9,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SocketProvider } from "./context/webSocketProvider";
 import { AuthProvider } from "./context/authorisationProvider";
 import { RoomProvider } from "./context/roomProvider";
-import * as NavigationBar from 'expo-navigation-bar';
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -26,15 +23,12 @@ const ThemeContext = createContext({
 // Hook to use theme context
 export const useTheme = () => useContext(ThemeContext);
 export default function RootLayout() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const toggleTheme = () => setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
 
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
-
-  NavigationBar.setVisibilityAsync("hidden");
-
 
   // Load dark mode setting from local storage
   useEffect(() => {
@@ -49,10 +43,6 @@ export default function RootLayout() {
       } catch (error) {
         console.error('Failed to fetch theme from AsyncStorage:', error);
       }
-      // await NavigationBar.setPositionAsync('absolute')
-      // await NavigationBar.setBackgroundColorAsync('red')
-      // const visibility = NavigationBar.useVisibility()
-      // console.log(visibility)
     };
 
     initializeTheme();

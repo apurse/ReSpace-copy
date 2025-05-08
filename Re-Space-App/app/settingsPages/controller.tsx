@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { View, StyleSheet, Text, Dimensions, Image } from "react-native";
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
@@ -11,23 +11,28 @@ import { useLocalSearchParams } from "expo-router";
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 export default function Controller() {
+
+    // Hooks and colours
     const { theme } = useTheme();
     const { robotData, roomScanFiles } = useSocket();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
-    const [scanningMode, setScanningMode] = useState(false); // Open/close dropdown
-    const uniqueStyles = createUniqueStyles(isDarkMode, scanningMode);
 
-    // State for dropdown
-    const [selectedRobot, setSelectedRobot] = useState(
-        robotData.length > 0 ? robotData[0].robot_id : ""
-    );
-    const [open, setOpen] = useState(false); // Open/close dropdown
+    // Robot settings
+    const [selectedRobot, setSelectedRobot] = useState(robotData.length > 0 ? robotData[0].robot_id : "");
     const [robotList, setRobotList] = useState<{ label: string; value: string }[]>([]);
 
+    // Appearance settings
+    const [dropDownVisible, setDropDownVisible] = useState(false);
+    const [scanningMode, setScanningMode] = useState(false);
+    const uniqueStyles = createUniqueStyles(isDarkMode, scanningMode);
+
+
+    // Check if in scanning mode
     const { scanning } = useLocalSearchParams<{ scanning: string }>();
 
 
+    // Update the robot list on robotData change
     useEffect(() => {
         const updatedRobotList = robotData.map((robot: Robot) => ({
             label: robot.robot_id,
@@ -42,12 +47,15 @@ export default function Controller() {
         }
     }, [robotData]);
 
+
+    // Set scanning mode based on scanning parameter
     useEffect(() => {
         console.log(scanning)
         if (scanning == "true")
             setScanningMode(true)
     }, [scanning])
 
+    
     return (
         <View style={defaultStyles.body}>
 
@@ -62,10 +70,10 @@ export default function Controller() {
             <View style={uniqueStyles.dropdownContainer}>
                 <Text style={uniqueStyles.label}>Select Robot:</Text>
                 <DropDownPicker
-                    open={open}
+                    open={dropDownVisible}
                     value={selectedRobot}
                     items={robotList}
-                    setOpen={setOpen}
+                    setOpen={setDropDownVisible}
                     setValue={setSelectedRobot}
                     setItems={setRobotList}
                     placeholder="Select a Robot"
@@ -74,9 +82,9 @@ export default function Controller() {
                 />
             </View>
 
+            {/* Scanning Mode Map */}
             {scanningMode &&
                 <View style={uniqueStyles.mapContainer}>
-                    {/* {roomScanFiles} */}
                     <Image
                         style={uniqueStyles.imageBody}
                         source={{ uri: (`data:image/png;base64,${roomScanFiles?.base64}`) }} />
@@ -88,9 +96,9 @@ export default function Controller() {
                 <View>
                     {scanningMode ?
                         (
-                            <><ControllerButton text="Start" buttonStyle={{ backgroundColor: '#2E7D32', color: 'white' }} />
+                            <><ControllerButton text="Start" buttonStyle={{ backgroundColor: '#2E7D32', color: 'white' }} targetRobot={selectedRobot} />
                                 <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot} />
-                                <ControllerButton text="Save" buttonStyle={{ backgroundColor: '#00838F' }} /></>
+                                <ControllerButton text="Save" buttonStyle={{ backgroundColor: '#00838F' }} targetRobot={selectedRobot} /></>
                         )
                         :
                         (
@@ -139,8 +147,7 @@ const createUniqueStyles = (isDarkMode: boolean, scanningMode: boolean) =>
         dropDownContainer: {
             backgroundColor: "#fff",
             borderColor: "#ccc",
-            zIndex: 100, // Ensures dropdown appears on top
-            // marginTop: scanningMode ?  : 0
+            zIndex: 100,
         },
         controller: {
             top: scanningMode ? 10 : 0,
@@ -157,8 +164,6 @@ const createUniqueStyles = (isDarkMode: boolean, scanningMode: boolean) =>
             marginLeft: 10,
         },
         imageBody: {
-            // width: 180,
-            // height: 300,
             width: '100%',
             height: '100%',
         },

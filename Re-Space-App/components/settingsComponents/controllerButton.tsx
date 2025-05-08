@@ -26,7 +26,10 @@ const ControlButton = ({
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
     const [called, setCalled] = useState(false);
 
-
+    /**
+     * Send control messages to the target robot with a direction
+     * @returns 
+     */
     const startSending = () => {
         if (!isConnected) {
             console.warn("WebSocket not connected!");
@@ -38,9 +41,13 @@ const ControlButton = ({
 
         intervalRef.current = setInterval(() => {
             sendMessage({ type: "control", target: targetRobot, direction: message });
-        }, 100); // Send message every 100ms
+        }, 100); // repeat every 0.1 seconds
     };
 
+
+    /**
+     * Clear the sending interval and tell the robot to stop
+     */
     const stopSending = () => {
         console.log("Stopping movement");
         if (intervalRef.current) {
@@ -49,30 +56,31 @@ const ControlButton = ({
         }
         sendMessage({ type: "control", target: targetRobot, direction: "stop" });
     };
-    
-    const save = () => {
-        if (text == "Start") {
-            console.log("filler1")
-            // sendMessage({ type: "control", target: targetRobot, direction: "stop" });
-        }
-        if (text == "Save") {
-            console.log("filler2")
-            sendMessage({ type: "get_scan", target: targetRobot});
-        }
+
+    /**
+     * Scanning-unique buttons, start the robot and save the layout
+     */
+    const scanningFunctions = () => {
+        //if (text == "Start") sendMessage({ type: "control", target: targetRobot, direction: "stop" });
+        if (text == "Save") sendMessage({ type: "get_map", target: targetRobot });
+
         setCalled(false)
     }
 
     return (
         <View>
+
             {text ?
+            
+                // Scanning unique buttons
                 (
                     <Pressable
                         onPressIn={() => {
                             if (!called) {
                                 setCalled(true)
-                                save()
+                                scanningFunctions()
                             }
-                        }} // Start sending commands when button is pressed
+                        }}
                         style={({ pressed }) => [
                             { backgroundColor: pressed ? "lightgrey" : "green" },
                             styles.button,
@@ -83,9 +91,11 @@ const ControlButton = ({
                     </Pressable>
                 )
                 :
+
+                // Normal controller buttons
                 <Pressable
-                    onPressIn={startSending} // Start sending commands when button is pressed
-                    onPressOut={stopSending} // Stop sending commands when button is released
+                    onPressIn={startSending}
+                    onPressOut={stopSending}
                     style={({ pressed }) => [
                         { backgroundColor: pressed ? "lightgrey" : "grey" },
                         styles.button,
