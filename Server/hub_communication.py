@@ -196,6 +196,10 @@ async def handle_app_message(data):
         # print(base64_string)
         await send_to_app({"type": "room_map", "base64": base64_string})
 
+    elif data["type"] == "get_map":
+        target_robot_id = data["target"]
+        await send_to_robot(target_robot_id, data)
+
     else:
         print("Received unknown command!")
         print("Unknown data: ", data)
@@ -203,6 +207,7 @@ async def handle_app_message(data):
 
 async def handle_robot_message(robot, data):
     if data["type"] == "status_update":
+        print("Received status update: ", data)
         # Forward status to the app
         # robot.battery = data["battery"] # Todo: add battery (probably read from arduino using ros status_update node)
         robot.battery = 69
@@ -220,13 +225,19 @@ async def handle_robot_message(robot, data):
     elif data["type"] == "furniture_location":
         print("Todo: furniture location")
 
-    elif data["type"] == "map_and_costmap":
+    elif data["type"] == "scanning_map":
 
         # Extract both map and costmap data
         map_block = data["data"]["map"]
         map_comp_str = map_block["grid"]
         map_comp = base64.b64decode(map_comp_str)
         map_decomp = zlib.decompress(map_comp)
+
+        resolution = map_block["meta"]["resolution"]
+        origin = map_block["meta"]["origin"]["position"]
+        originX = origin["x"]
+        originY = origin["y"]
+        map_height = map_block["meta"]["height"]
 
         costmap_block = data["data"]["costmap"]
         costmap_comp_str = costmap_block["grid"]
@@ -272,15 +283,39 @@ async def handle_robot_message(robot, data):
         # Blend the two maps
         overlay = Image.blend(base_rgb, cost_rgb, alpha=0.6)
 
-        pil = overlay.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
-        # Change to base64
+        map_x = int((robot.locationX - originX) / resolution)
+        map_y = int((robot.locationY - originY) / resolution)
+        # print("Location x:", robot.locationX)
+        # print("Location y:", robot.locationY)
+
+        pixel_x = map_x
+        pixel_y = map_height - map_y
+
+        marker = Image.open("robot.png").convert("RGBA")
+        # Todo: change to size of map height or width divided by a certain value
+        marker = marker.resize((32, 32), Image.Resampling.LANCZOS)
+        marker.rotate(-90)
+        overlay_rgba = overlay.convert("RGBA")
+        mx = pixel_x - marker.width // 2
+        my = pixel_y - marker.height // 2
+
+        overlay_rgba.paste(marker, (mx, my), marker)
+
+        # Use for debugging
+        overlay_rgba.save("new_map.png")
+
+        # # Change to base64
         buffered = BytesIO()
-        pil.save(buffered, format="PNG")
+        overlay_rgba.save(buffered, format="PNG")
         encoded_string = base64.b64encode(buffered.getvalue()).decode("utf-8")
-        await send_to_app({"type": "room_map", "base64": encoded_string})
+        await send_to_app({"type": "scanning_map", "base64": encoded_string})
 
     elif data["type"] == "debug":
         print("Received debug message: ", data)
+
+    elif data["type"] == "set_map":
+        print("Received scan message: ", data)
+        await send_to_app(data)
 
     else:
         print("Received unknown command!")
@@ -342,7 +377,7 @@ async def update_apps_robot_list():
 
 async def main():
     hostname = socket.gethostname()
-    print(f"Server running at ws://{hostname}.local:{port}")
+    print(f"Server running at ws://{hostname}:{port}")
 
     async with serve(handle_connection, host, port):
         try:
