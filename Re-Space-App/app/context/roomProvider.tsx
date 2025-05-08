@@ -27,6 +27,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
      * Get the room data from the JSON.
      */
     const getRoomData = async () => {
+
         // Read room file, return if file does not exist
         const fileCheck = await FileSystem.getInfoAsync(roomPath);
         if (!fileCheck.exists) return;
@@ -34,7 +35,23 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
 
         // Read and parse data from room file
         const data = await FileSystem.readAsStringAsync(roomPath);
-        setJsonData(JSON.parse(data));
+        const thisData = JSON.parse(data);
+
+
+        // If this user doesn't exist under this room, make empty arrays
+        const userIndex = thisData.findIndex((users: any) => users === user.username);
+        if (userIndex == -1) {
+            const updateData = {
+                ...jsonData,
+                [user.username]: {
+                    furniture: [],
+                    layouts: []
+                }
+            }
+            await updateJsonData(updateData)
+        };
+
+        setJsonData(thisData);
     };
 
 
