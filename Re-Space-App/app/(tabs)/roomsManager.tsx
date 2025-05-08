@@ -72,6 +72,7 @@ export default function RoomsManager() {
   useFocusEffect(
     useCallback(() => {
       fetchRooms();
+      setRoomName("")
     }, [])
   );
 
@@ -98,7 +99,7 @@ export default function RoomsManager() {
             key={index}
             style={[uniqueStyles.button, { backgroundColor: '#7aa7ff' }]}
 
-            //  Navigate to roomDetails passing room's name and its data
+            // Navigate to roomDetails passing room's name and its data
             onPress={() => {
               setRoomName(room.name)
               router.push('/addPages/roomDetails')

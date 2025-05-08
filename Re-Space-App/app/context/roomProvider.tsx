@@ -38,20 +38,23 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
         const thisData = JSON.parse(data);
 
 
-        // If this user doesn't exist under this room, make empty arrays
-        const userIndex = thisData.findIndex((users: any) => users === user.username);
-        if (userIndex == -1) {
+        // If this user doesn't exist under this room, make user entry with arrays
+        if (!thisData[user.username]) {
             const updateData = {
-                ...jsonData,
+                ...thisData,
                 [user.username]: {
                     furniture: [],
                     layouts: []
                 }
             }
-            await updateJsonData(updateData)
-        };
 
-        setJsonData(thisData);
+            // Update and set the new data
+            await updateJsonData(updateData)
+            setJsonData(updateData)
+        }
+
+        // Set the read data
+        else setJsonData(thisData);
     };
 
 
