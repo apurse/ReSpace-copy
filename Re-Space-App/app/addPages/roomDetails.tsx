@@ -47,15 +47,14 @@ export default function RoomDetails() {
           <Text style={uniqueStyles.text}>Manage Furniture</Text>
         </Pressable>
 
-        {jsonData?.png &&
           <View style={uniqueStyles.mapContainer}>
             {/* Render the new image */}
             <Image
               style={uniqueStyles.imageBody}
-              source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles.png}`) }}
+              source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`) }}
             />
           </View>
-        }
+
 
         <Pressable
           style={uniqueStyles.button}

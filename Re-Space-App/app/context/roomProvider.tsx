@@ -27,6 +27,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Update the room files when updated in the socket provider.
     useEffect(() => {
+        console.log(roomScanFiles)
         const updateData = {
             ...jsonData,
             roomFiles: {
@@ -83,6 +84,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
     const updateJsonData = async (dataChange: any) => {
         await FileSystem.writeAsStringAsync(roomPath, JSON.stringify(dataChange));
         console.log(`${roomName} JSON updated:`, dataChange);
+        setJsonData(dataChange);
     }
 
 

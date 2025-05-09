@@ -122,11 +122,10 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
                     // console.log(base64String);
 
                 } else if (data.type === "set_map") {
-                    setRoomScanFiles(others => ({
-                        ...others,
-                        yaml: data?.yaml,
-                        png: data?.png,
-                    }))
+                    setRoomScanFiles({
+                        yaml: data?.details?.yaml,
+                        png: data?.details?.png,
+                    })
                     console.log(data)
 
                 } else if (data.type === "scanning_map") {
