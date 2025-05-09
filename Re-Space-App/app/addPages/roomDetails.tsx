@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from "@/app/_layout";
@@ -11,24 +11,23 @@ const { width, height } = Dimensions.get('window');
 
 export default function RoomDetails() {
 
-  /**
-   * Hooks and colours
-   */
+  // Hooks and colours
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const router = useRouter();
-  const { roomName } = useRoom();
-  
+  const { roomName, jsonData } = useRoom();
+
 
   return (
     <View style={defaultStyles.body}>
 
+      {/* Room name */}
       <View style={defaultStyles.pageTitleSection}>
-        {/* Room name | default name in case of empty input */}
         <Text style={defaultStyles.pageTitle}>{roomName}</Text>
       </View>
+
 
       <View style={uniqueStyles.buttonContainer}>
 
@@ -48,6 +47,16 @@ export default function RoomDetails() {
           <Text style={uniqueStyles.text}>Manage Furniture</Text>
         </Pressable>
 
+        {jsonData?.png &&
+          <View style={uniqueStyles.mapContainer}>
+            {/* Render the new image */}
+            <Image
+              style={uniqueStyles.imageBody}
+              source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles.png}`) }}
+            />
+          </View>
+        }
+
         <Pressable
           style={uniqueStyles.button}
           onPress={() => {
@@ -55,7 +64,7 @@ export default function RoomDetails() {
             console.log(temp)
             router.push({
               pathname: "/settingsPages/controller",
-              params: {scanning: temp, roomName}
+              params: { scanning: temp, roomName }
             })
           }}
         ><Text style={uniqueStyles.text}>Scan Room</Text>
@@ -118,5 +127,14 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       color: isDarkMode ? '#000' : '#fff',
       top: 3,
       fontWeight: '300',
+    },
+    mapContainer: {
+      width: '100%',
+      height: 300,
+      backgroundColor: 'grey'
+    },
+    imageBody: {
+      width: '100%',
+      height: '100%',
     }
   });

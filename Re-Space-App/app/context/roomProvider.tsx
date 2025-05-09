@@ -3,6 +3,7 @@ import * as FileSystem from 'expo-file-system';
 import { createRoomIfNotExists } from '@/components/libraryComponents/roomCreator';
 import { router } from "expo-router";
 import { useAuth } from '@/hooks/useAuth';
+import { useSocket } from "@/hooks/useSocket";
 
 
 // Create the authorisation Context
@@ -13,6 +14,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
     const [roomName, setRoomName] = useState<string>();
     const [jsonData, setJsonData] = useState<object>();
     const { user } = useAuth();
+    const { roomScanFiles } = useSocket();
 
     const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
 
@@ -21,6 +23,19 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
     useEffect(() => {
         getRoomData()
     }, [roomName])
+
+
+    // Update the room files when updated in the socket provider.
+    useEffect(() => {
+        const updateData = {
+            ...jsonData,
+            roomFiles: {
+                yaml: roomScanFiles?.yaml,
+                png: roomScanFiles?.png,
+            }
+        }
+        updateJsonData(updateData)
+    }, [roomScanFiles])
 
 
     /**
@@ -42,7 +57,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
         if (!thisData.users[user.username]) {
             const updateData = {
                 ...thisData,
-                users:{
+                users: {
                     ...thisData?.users,
                     [user.username]: {
                         furniture: [],
