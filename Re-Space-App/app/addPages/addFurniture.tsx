@@ -17,9 +17,9 @@ import { useRoom } from '@/hooks/useRoom';
 const { width, height } = Dimensions.get('window');
 
 
-export default function AddLayout() {
+export default function AddFurniture() {
 
-  // Hooks and theme
+  // Hooks and colours
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
@@ -29,14 +29,15 @@ export default function AddLayout() {
   const { jsonData, updateJsonData } = useRoom();
 
   // Form information
-  const [furnitureName, setName] = useState<string>('');
+  const [furnitureName, setFurnitureName] = useState<string>('');
+  const [furnitureID, setFurnitureID] = useState<string>('');
   const [model, setModel] = useState<string>('');
   const [heightF, setHeight] = useState<number>(0);
   const [widthF, setWidth] = useState<number>(0);
   const [length, setLength] = useState<number>(0);
   const [quantity, setQuantity] = useState<number>(0);
   const [selectedColour, setSelectedColour] = useState<string>('#aabbcc');
-  const [QRData, setQRData] = useState<string>('');
+  const [localQRCode, setLocalQRCode] = useState<string>('');
 
   // Background settings
   const [hasBeenCalled, setHasBeenCalled] = useState<Boolean>(false);
@@ -46,18 +47,26 @@ export default function AddLayout() {
   const [updatedQR, setUpdatedQR] = useState(true);
   const [notifications, setnotifications] = useState<string | null>(null);
   const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
-  const [loadedFurnitureIndex, setLoadedFurnitureIndex] = useState<number>(-1); // Check if the layout has been saved
-  const [duplicateNumber, setDuplicateNumber] = useState<number>(0); // Check if the layout has been saved
+  const [loadedFurnitureIndex, setLoadedFurnitureIndex] = useState<number>(-1);
+  const [duplicateNumber, setDuplicateNumber] = useState<number>(0);
 
   // Get the selected furniture
   const { selectedFurniture } = useLocalSearchParams<{ selectedFurniture: string }>();
 
-
-  // Refresh layout on selected layout change
+  // Refresh furniture on selected furniture change
   useEffect(() => {
-    if (!hasBeenCalled) {
+
+    // If selected, load furniture
+    if (selectedFurniture && !hasBeenCalled) {
       loadFurniture(selectedFurniture);
       setHasBeenCalled(true);
+    }
+
+    // If not, set furniture ID
+    else {
+      console.log("New furniture being added!")
+      let id = uuid.v4().substring(0, 6)
+      setFurnitureID(id);
     }
   }, [selectedFurniture]);
 
@@ -66,19 +75,20 @@ export default function AddLayout() {
   useEffect(() => {
     if (QRCode && !updatedQR) {
       setUpdatedQR(true)
-      setQRData(QRCode)
+      setLocalQRCode(QRCode)
+      saveFurniture()
     }
-  }, [QRCode, updatedQR])
+  }, [QRCode])
 
 
   /**
-  * Load the layout from the selected layout in the library.
-  * @param selectedFurniture String - The selected layout title in the library
+  * Load the furniture from the selected furniture in the library.
+  * @param selectedFurniture String - The selected furniture title in the library
   */
   const loadFurniture = async (selectedFurniture: string) => {
     try {
 
-      // Get the layout index within the JSON
+      // Get the furniture index within the JSON
       let furnitureIndex = jsonData.users[user.username]?.furniture
         .findIndex((furniture: any) => furniture.name === selectedFurniture
         );
@@ -90,18 +100,18 @@ export default function AddLayout() {
         return;
       }
 
-      // Get each box in the current layout and add to array
+      // Get each box in the current furniture and add to array
       const thisFurniture = jsonData.users[user.username]?.furniture[furnitureIndex];
 
       // Set the form
-      setName(thisFurniture.name);
+      setFurnitureName(thisFurniture.name);
       setModel(thisFurniture.model);
       setHeight(thisFurniture.height);
       setWidth(thisFurniture.width);
       setLength(thisFurniture.length);
       setQuantity(thisFurniture.quantity);
       setSelectedColour(thisFurniture.selectedColour);
-      setQRData(thisFurniture.qrcode);
+      setLocalQRCode(thisFurniture.qrcode);
 
 
       // Set the index and downloaded state
@@ -110,7 +120,7 @@ export default function AddLayout() {
 
 
     } catch (err) {
-      console.error("Error loading layout:", err);
+      console.error("Error loading furniture:", err);
     }
   };
 
@@ -121,12 +131,12 @@ export default function AddLayout() {
   const deleteFurniture = async () => {
     try {
 
-      // Get the layout index within the JSON
-      let layoutIndex = jsonData.users[user.username]?.furniture
+      // Get the furniture index within the JSON
+      let furnitureIndex = jsonData.users[user.username]?.furniture
         .findIndex((furniture: any) => furniture.name === furnitureName);
 
-      // Remove the layout
-      jsonData.users[user.username].furniture.splice(layoutIndex, 1);
+      // Remove the furniture
+      jsonData.users[user.username].furniture.splice(furnitureIndex, 1);
 
       // Write the new data 
       updateJsonData(jsonData)
@@ -165,14 +175,14 @@ export default function AddLayout() {
 
 
       // Reset form
-      setName('');
+      setFurnitureName('');
       setModel('');
       setHeight(0);
       setWidth(0);
       setLength(0);
       setQuantity(0);
       setSelectedColour('#aabbcc');
-      setQRData('');
+      setLocalQRCode('');
 
       setIsDownloaded(true);
 
@@ -183,10 +193,55 @@ export default function AddLayout() {
 
 
   /**
-   * Save the new furniture to the furniture JSON.
-   * @returns 
+   * Get the newQR code from the communication hub.
    */
-  const saveFurniture = async () => {
+  const getNewQR = async () => {
+
+
+    // Prepare the furniture Data
+    await prepFurniture()
+
+
+    // Ensure the button changes and allow for updating the qrcode
+    setIsSaved(true)
+    setUpdatedQR(false)
+
+    console.log(furnitureID)
+
+
+    const filteredFurniture = {
+      furnitureID: furnitureID,
+      name: furnitureName,
+      model: model,
+      width: widthF,
+      length: length,
+      selectedColour: selectedColour,
+    }
+
+    try {
+
+      // Send furniture across to server
+      if (isConnected) {
+        sendMessage({ type: "new_furniture", data: filteredFurniture });
+      } else {
+        alert("No connection to the WebSocket.");
+      }
+    }
+
+    catch (error) {
+      console.error('Failed to update/save data to json file:', error);
+
+      // Show notifications of failure for 3 seconds
+      setnotifications('Failed to add new furniture.')
+      setTimeout(() => setnotifications(null), 3000);
+    }
+  };
+
+
+  /**
+   * Check the data provided is correct.
+   */
+  const prepFurniture = async () => {
 
     if (!furnitureName || !heightF || !widthF || !length) {
 
@@ -197,18 +252,13 @@ export default function AddLayout() {
       return;
     }
 
-    // Ensure the button changes and allow for updating the qrcode
-    setIsSaved(true)
-    setUpdatedQR(false)
 
-    var nameUsed = false;
-    var newName = furnitureName;
-
-    // If this is a new layout
+    // If this is a new furniture
     if (loadedFurnitureIndex == -1) {
-
-
+      
+      
       // Check that the provided name is unique
+      var nameUsed = false;
       jsonData.users[user.username]?.furniture?.forEach((furniture: { name: string }) => {
         nameUsed = (furniture.name == furnitureName) ? true : false;
       })
@@ -217,15 +267,19 @@ export default function AddLayout() {
       // If its not unique, make a newName with (x) on afterwards 
       if (nameUsed) {
         setDuplicateNumber(duplicateNumber + 1);
-        newName = (`${furnitureName}_(${duplicateNumber})`)
+        setFurnitureName(`${furnitureName}_(${duplicateNumber})`)
       }
     }
+  }
 
-    // Make furniture ID
-    let generatedID = uuid.v4().substring(0, 5); // could duplicate itself, maybe add check
+
+  /**
+   * Save the new furniture to the furniture JSON.
+   */
+  const saveFurniture = async () => {
 
     const newFurniture = {
-      furnitureID: generatedID,
+      furnitureID: furnitureID,
       favourited: false,
       name: furnitureName,
       model: model,
@@ -239,7 +293,6 @@ export default function AddLayout() {
 
     try {
 
-
       // Either overwrite or add the jsonData
       if (loadedFurnitureIndex !== -1) {
         jsonData.users[user.username].furniture[loadedFurnitureIndex] = newFurniture;
@@ -247,17 +300,8 @@ export default function AddLayout() {
         jsonData.users[user.username].furniture.push(newFurniture);
       }
 
-
       // Update the data in the provider
       updateJsonData(jsonData)
-
-
-      // Send furniture across to server
-      if (isConnected) {
-        sendMessage({ type: "new_furniture", data: newFurniture });
-      } else {
-        alert("No connection to the WebSocket.");
-      }
 
       // Show success notification for 3 seconds
       setnotifications('New furniture added sucessfully');
@@ -274,6 +318,7 @@ export default function AddLayout() {
   };
 
 
+
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
 
@@ -287,7 +332,7 @@ export default function AddLayout() {
           <Text style={uniqueStyles.inputHeader}>Name</Text>
           <TextInput
             value={furnitureName}
-            onChangeText={setName}
+            onChangeText={setFurnitureName}
             style={uniqueStyles.textInput}
             placeholder='*Enter name...*'
             placeholderTextColor={isDarkMode ? '#000' : '#fff'}
@@ -392,7 +437,7 @@ export default function AddLayout() {
                 {/* {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>} */}
                 <ActionButton
                   label="Save Furniture"
-                  onPress={saveFurniture}
+                  onPress={getNewQR}
                 />
               </View>
             )
@@ -437,14 +482,14 @@ export default function AddLayout() {
       }
 
 
-      {QRData != '' &&
+      {localQRCode != '' &&
 
         <View style={{ alignItems: 'center' }}>
           {/* QR generation */}
           <View style={uniqueStyles.pngContainer}>
             <Image
               style={uniqueStyles.imageBody}
-              source={{ uri: (`data:image/png;base64,${QRCode}`) }} />
+              source={{ uri: (`data:image/png;base64,${localQRCode}`) }} />
           </View>
 
           {/* Download button */}
@@ -453,7 +498,7 @@ export default function AddLayout() {
               {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
               <ActionButton
                 label="Download QR Code"
-                onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
+                onPress={() => downloadQR(`data:image/png;base64,${localQRCode}`)}
               />
             </View>
             :
@@ -461,7 +506,7 @@ export default function AddLayout() {
               {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
               <ActionButton
                 label="QR Downloaded!"
-                onPress={() => downloadQR(`data:image/png;base64,${QRCode}`)}
+                onPress={() => downloadQR(`data:image/png;base64,${localQRCode}`)}
                 style={{ backgroundColor: 'grey' }}
               />
             </View>
