@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl, Alert } from 'react-native';
 import { useTheme } from "@/app/_layout";
 import { router } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import SmallFurniture from '@/components/libraryComponents/smallFurniture';
 import { useAuth } from "@/hooks/useAuth";
 import { useFocusEffect } from '@react-navigation/native';
@@ -20,33 +20,37 @@ export default function ManageFurniture() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { user } = useAuth();
-  const { roomName, jsonData } = useRoom();
+  const { roomName, jsonData, updateJsonData } = useRoom();
 
-  // Layouts and favourite layouts
-  const [layouts, setLayouts] = useState<any | null>(null);
-  const [favouriteLayouts, setFavouriteLayouts] = useState<any | null>(null);
+  // furniture and favourite furniture
+  const [furniture, setFurniture] = useState<any | null>(null);
+  const [favouriteFurniture, setFavouriteFurniture] = useState<any | null>(null);
   const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [length, setLength] = useState<number>();
 
 
   /**
    * Fetch layout data from room file
    */
-  const getLayouts = async () => {
+  const getFurniture = async () => {
 
 
     try {
       if (!roomName) return;
 
 
-      // Push all layouts to an array and output as smallLayouts
-      var allLayouts: any = [];
+      // Push all furniture to an array and output as smallFurniture
+      var allFurniture: any = [];
       var favourites: any = [];
 
+      var entries = 0;
 
-      // Filter layouts by values and push into the correct array
+
+      // Filter furniture by values and push into the correct array
       jsonData.users[user.username]?.furniture?.forEach((furniture: { name: string, favourited: boolean }) => {
-        allLayouts.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
+        allFurniture.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
+        entries++;
         if (furniture.favourited) {
           favourites.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
         }
@@ -54,45 +58,49 @@ export default function ManageFurniture() {
 
 
       // Set the arrays
-      setLayouts(allLayouts);
-      setFavouriteLayouts(favourites)
+      setFurniture(allFurniture);
+      setFavouriteFurniture(favourites)
+      setLength(entries)
 
     } catch (error) {
       console.error("Failed to load furniture", error);
     }
   };
 
-  /**
-   * Auto refresh page with saved layouts
-   */
+  
+  // Auto refresh page with saved furniture
   useFocusEffect(
     useCallback(() => {
-      getLayouts();
+      getFurniture();
     }, [roomName])
   );
+
+
+  // Refresh page on jsonData change (used for clearing)
+  useEffect(() => {
+    getFurniture()
+  }, [jsonData])
 
 
   return (
     <ScrollView
       contentContainerStyle={defaultStyles.body}
       refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={getLayouts} />
+        <RefreshControl refreshing={refreshing} onRefresh={getFurniture} />
       }>
 
 
       <View style={defaultStyles.pageTitleSection}>
-        <Text style={[defaultStyles.pageTitle, {fontSize: 38}]}>Manage Furniture</Text>
+        <Text style={[defaultStyles.pageTitle, { fontSize: 38 }]}>Manage Furniture</Text>
       </View>
 
       {/* Filters */}
-      {/* <Text style={uniqueStyles.sectionTitle}>Filters</Text> */}
       <View style={uniqueStyles.filterContainer}>
 
-
-        {/* Make twice as big and white */}
         <FilterButton
           Option="Add new furniture"
           flexValue={1}
+          iconName='pluscircleo'
           onPress={() =>
             router.push({
               pathname: '/addPages/addFurniture',
@@ -100,33 +108,71 @@ export default function ManageFurniture() {
             })}
         />
 
-
         <FilterButton
           Option="Favourites"
           flexValue={1}
+          iconName='staro'
           onPress={() => {
             setFavouritesSelected(value => !value)
-            getLayouts()
+            getFurniture()
           }}
           selected={favouritesSelected}
+        />
+
+        <FilterButton
+          Option="Clear furniture"
+          flexValue={1}
+          iconName='minuscircleo'
+          onPress={() => {
+
+            // Prompt the users with a check
+            Alert.alert(
+              'Clear all furniture?',
+              'This will remove all furniture entries for this user in this room. This action cannot be undone.',
+              [
+                {
+                  text: 'Yes', onPress: () => {  
+                    
+                    
+                    // Clear the furniture array for this user
+                    const updateData = {
+                      ...jsonData,
+                      users: {
+                        ...jsonData?.users,
+                        [user.username]: {
+                          ...jsonData?.users[user.username],
+                          furniture: []
+                        }
+                      }
+                    }
+                    updateJsonData(updateData);
+                    alert(`Cleared ${length} furniture entries!`);
+                  }
+                },
+                { text: 'No', onPress: () => alert(`Clearing furniture cancelled!`) },
+              ],
+              { cancelable: false },
+            );
+          }
+          }
         />
 
       </View>
 
 
-      {/* Show layouts if logged in */}
+      {/* Show furniture if logged in */}
       {user &&
         <>
           <Text style={uniqueStyles.sectionTitle}>
             {!favouritesSelected ?
-              (`All Furniture: ${layouts?.length}`)
+              (`All Furniture: ${furniture?.length}`)
               :
-              (`Favourites: ${favouriteLayouts?.length}/${layouts?.length}`)
+              (`Favourites: ${favouriteFurniture?.length}/${furniture?.length}`)
             }
           </Text>
 
           <View style={defaultStyles.cardSectionContainer}>
-            {favouritesSelected ? favouriteLayouts : layouts}
+            {favouritesSelected ? favouriteFurniture : furniture}
           </View>
         </>
       }
@@ -141,7 +187,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      gap: width * 0.1,
+      gap: width * 0.03,
       width: '100%',
     },
     sectionTitle: {

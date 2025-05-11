@@ -1,13 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from "react-native";
 import Modal from "react-native-modal";
-import * as FileSystem from "expo-file-system";
 import { useTheme } from "@/app/_layout";
-import { Float } from "react-native/Libraries/Types/CodegenTypes";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRoom } from '@/hooks/useRoom';
 import { useAuth } from "@/hooks/useAuth";
-
 
 
 // Defining types for furniture items
@@ -32,18 +28,22 @@ interface FurnitureModalProps {
 const FurnitureModal: React.FC<FurnitureModalProps> = ({ isVisible, onClose, onSelectFurniture }) => {
     const [furnitureData, setFurnitureData] = useState<FurnitureItem[]>([]);
 
-    // dark mode
+    // Hooks and colours
     const { theme } = useTheme();
     const isDarkMode = theme === 'dark';
     const uniqueStyles = createUniqueStyles(isDarkMode);
     const { roomName, jsonData } = useRoom();
     const { user } = useAuth();
 
+
+    // Set visible when pressed
     useEffect(() => {
         if (isVisible) {
             setFurnitureData(jsonData.users[user.username].furniture);
         }
     }, [isVisible]);
+
+
 
     return (
         <Modal isVisible={isVisible} style={uniqueStyles.modal} onBackdropPress={onClose}>
@@ -97,7 +97,6 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             textAlign: 'center',
         },
         itemContainer: {
-            // gap: 100,
             padding: 10,
             borderBottomWidth: 1,
             borderBottomColor: "#ccc",

@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, RefreshControl, Alert } from 'react-native';
 import { useTheme } from "@/app/_layout";
 import { router } from 'expo-router';
 import { createDefaultStyles } from '../../components/defaultStyles';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import SmallLayout from '@/components/libraryComponents/smallLayout';
 import { useAuth } from "@/hooks/useAuth";
 import { useFocusEffect } from '@react-navigation/native';
@@ -21,13 +21,15 @@ export default function ManageLayouts() {
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
   const { user } = useAuth();
-  const { roomName, jsonData } = useRoom();
+  const { roomName, jsonData, updateJsonData } = useRoom();
 
   // Layouts and favourite layouts
   const [layouts, setLayouts] = useState<any | null>(null);
   const [favouriteLayouts, setFavouriteLayouts] = useState<any | null>(null);
   const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [length, setLength] = useState<number>();
+
 
   var roomScan = '';
 
@@ -48,12 +50,13 @@ export default function ManageLayouts() {
       var allLayouts: any = [];
       var favourites: any = [];
 
-      console.log("jsonData:", jsonData)
+      var entries = 0;
 
 
       // Filter layouts by values and push into the correct array
       jsonData.users[user.username]?.layouts?.forEach((layout: { name: string, favourited: boolean }) => {
         allLayouts.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
+        entries++;
         if (layout.favourited) {
           favourites.push(<SmallLayout key={layout.name} LayoutTitle={layout.name} />)
         }
@@ -63,6 +66,8 @@ export default function ManageLayouts() {
       // Set the arrays
       setLayouts(allLayouts);
       setFavouriteLayouts(favourites)
+      setLength(entries)
+
 
     } catch (error) {
       console.error("Failed to load layouts", error);
@@ -77,6 +82,11 @@ export default function ManageLayouts() {
       getLayouts();
     }, [roomName])
   );
+
+  // Refresh page on jsonData change (used for clearing)
+  useEffect(() => {
+    getLayouts()
+  }, [jsonData])
 
 
   return (
@@ -94,25 +104,62 @@ export default function ManageLayouts() {
       {/* Filters */}
       {/* <Text style={uniqueStyles.sectionTitle}>Filters</Text> */}
       <View style={uniqueStyles.filterContainer}>
-        
-        
-        {/* Make twice as big and white */}
+
         <FilterButton
           Option="Add new layout"
+          iconName='pluscircleo'
           flexValue={1}
           onPress={() => router.push('/addPages/addLayout')}
-          />
-
+        />
 
         <FilterButton
           Option="Favourites"
           flexValue={1}
+          iconName='staro'
           onPress={() => {
             setFavouritesSelected(value => !value)
             getLayouts()
           }}
           selected={favouritesSelected}
         />
+
+        <FilterButton
+          Option="Clear layouts"
+          iconName='minuscircleo'
+          flexValue={1}
+          onPress={() => {
+
+            // Prompt the users with a check
+            Alert.alert(
+              'Clear all layouts?',
+              'This will remove all layouts entries for this user in this room. This action cannot be undone.',
+              [
+                {
+                  text: 'Yes', onPress: () => {
+
+
+                    // Clear the layouts array for this user
+                    const updateData = {
+                      ...jsonData,
+                      users: {
+                        ...jsonData?.users,
+                        [user.username]: {
+                          ...jsonData?.users[user.username],
+                          layouts: []
+                        }
+                      }
+                    }
+                    updateJsonData(updateData);
+                    alert(`Cleared ${length} layouts!`);
+                  }
+                },
+                { text: 'No', onPress: () => alert(`Clearing layouts cancelled!`) },
+              ],
+              { cancelable: false },
+            );
+          }}
+        />
+
 
       </View>
 
@@ -143,7 +190,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      gap: width * 0.1,
+      gap: width * 0.03,
       width: '100%',
     },
     sectionTitle: {

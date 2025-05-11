@@ -1,4 +1,4 @@
-import { View, Text, ScrollView, StyleSheet, Dimensions, PanResponder, TextInput } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Dimensions, PanResponder, TextInput, ImageBackground } from 'react-native';
 import * as Icons from '../../components/indexComponents/Icons';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import RobotList from '@/components/indexComponents/robotList';
@@ -273,6 +273,7 @@ export default function systemRunning() {
               borderColor: "red",
             }}
           >
+            <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`) }} resizeMode="cover" style={uniqueStyles.image} />
 
             {/* Display grey squares for end point */}
             {boxDestinations.map((box, index) => (
@@ -443,5 +444,9 @@ const createUniqueStyles = (isDarkMode: boolean, totalProgress: number) =>
       top: 400,
       left: '15%',
       gap: 20, // make consistent
+    },
+    image: {
+      flex: 1,
+      justifyContent: 'center',
     }
   });
