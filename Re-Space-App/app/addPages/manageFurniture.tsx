@@ -67,7 +67,7 @@ export default function ManageFurniture() {
     }
   };
 
-  
+
   // Auto refresh page with saved furniture
   useFocusEffect(
     useCallback(() => {
@@ -100,7 +100,8 @@ export default function ManageFurniture() {
         <FilterButton
           Option="Add new furniture"
           flexValue={1}
-          iconName='pluscircleo'
+          selectedColor='green'
+          outlineIcon='pluscircleo'
           onPress={() =>
             router.push({
               pathname: '/addPages/addFurniture',
@@ -111,7 +112,9 @@ export default function ManageFurniture() {
         <FilterButton
           Option="Favourites"
           flexValue={1}
-          iconName='staro'
+          selectedColor='yellow'
+          outlineIcon='staro'
+          filledIcon='star'
           onPress={() => {
             setFavouritesSelected(value => !value)
             getFurniture()
@@ -122,8 +125,14 @@ export default function ManageFurniture() {
         <FilterButton
           Option="Clear furniture"
           flexValue={1}
-          iconName='minuscircleo'
+          selectedColor='red'
+          outlineIcon='minuscircleo'
           onPress={() => {
+
+            if (length != undefined && length == 0) {
+              alert("No furniture entries to remove!")
+              return;
+            }
 
             // Prompt the users with a check
             Alert.alert(
@@ -131,9 +140,9 @@ export default function ManageFurniture() {
               'This will remove all furniture entries for this user in this room. This action cannot be undone.',
               [
                 {
-                  text: 'Yes', onPress: () => {  
-                    
-                    
+                  text: 'Yes', onPress: () => {
+
+
                     // Clear the furniture array for this user
                     const updateData = {
                       ...jsonData,

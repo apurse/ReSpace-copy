@@ -107,7 +107,8 @@ export default function ManageLayouts() {
 
         <FilterButton
           Option="Add new layout"
-          iconName='pluscircleo'
+          outlineIcon='pluscircleo'
+          selectedColor='green'
           flexValue={1}
           onPress={() => router.push('/addPages/addLayout')}
         />
@@ -115,7 +116,9 @@ export default function ManageLayouts() {
         <FilterButton
           Option="Favourites"
           flexValue={1}
-          iconName='staro'
+          selectedColor='yellow'
+          outlineIcon='staro'
+          filledIcon='star'
           onPress={() => {
             setFavouritesSelected(value => !value)
             getLayouts()
@@ -125,10 +128,15 @@ export default function ManageLayouts() {
 
         <FilterButton
           Option="Clear layouts"
-          iconName='minuscircleo'
+          outlineIcon='minuscircleo'
           flexValue={1}
+          selectedColor='red'
           onPress={() => {
 
+            if (length != undefined && length == 0) {
+              alert("No layouts to remove!")
+              return;
+            }
             // Prompt the users with a check
             Alert.alert(
               'Clear all layouts?',
