@@ -294,7 +294,7 @@ async def handle_robot_message(robot, data):
         marker = Image.open("robot.png").convert("RGBA")
         # Todo: change to size of map height or width divided by a certain value
         marker = marker.resize((32, 32), Image.Resampling.LANCZOS)
-        marker.rotate(-90)
+        marker = marker.rotate(robot.angle * 180/3.14)
         overlay_rgba = overlay.convert("RGBA")
         mx = pixel_x - marker.width // 2
         my = pixel_y - marker.height // 2
