@@ -106,16 +106,14 @@ export default function ManageLayouts() {
       <View style={uniqueStyles.filterContainer}>
 
         <FilterButton
-          Option="Add new layout"
-          outlineIcon='pluscircleo'
+          Option="Add new"
           selectedColor='green'
-          flexValue={1}
+          outlineIcon='pluscircleo'
           onPress={() => router.push('/addPages/addLayout')}
         />
 
         <FilterButton
           Option="Favourites"
-          flexValue={1}
           selectedColor='yellow'
           outlineIcon='staro'
           filledIcon='star'
@@ -127,10 +125,9 @@ export default function ManageLayouts() {
         />
 
         <FilterButton
-          Option="Clear layouts"
-          outlineIcon='minuscircleo'
-          flexValue={1}
+          Option="Clear all"
           selectedColor='red'
+          outlineIcon='minuscircleo'
           onPress={() => {
 
             if (length != undefined && length == 0) {
@@ -198,7 +195,6 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      gap: width * 0.03,
       width: '100%',
     },
     sectionTitle: {

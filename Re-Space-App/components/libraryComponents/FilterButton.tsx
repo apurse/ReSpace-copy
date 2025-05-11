@@ -5,11 +5,11 @@ import { AntDesign } from "@expo/vector-icons";
 const { width, height } = Dimensions.get('window');
 
 
-export default function FilterButton({ Option, flexValue, onPress, selected, outlineIcon, filledIcon, selectedColor }: { Option: string; flexValue: number; onPress: () => void; selected?: boolean; outlineIcon: keyof typeof AntDesign.glyphMap; filledIcon?: keyof typeof AntDesign.glyphMap; selectedColor: string; }) {
+export default function FilterButton({ Option, onPress, selected, outlineIcon, filledIcon, selectedColor }: { Option: string; onPress: () => void; selected?: boolean; outlineIcon: keyof typeof AntDesign.glyphMap; filledIcon?: keyof typeof AntDesign.glyphMap; selectedColor: string; }) {
 
   const { theme } = useTheme();
   const isDarkMode = theme === 'dark';
-  const uniqueStyles = createUniqueStyles(isDarkMode, flexValue, selectedColor);
+  const uniqueStyles = createUniqueStyles(isDarkMode, selectedColor);
 
 
   return (
@@ -23,43 +23,30 @@ export default function FilterButton({ Option, flexValue, onPress, selected, out
         )
         :
         (
-          <TouchableOpacity style={uniqueStyles.activeLayoutCard} onPress={onPress}>
+          <TouchableOpacity style={uniqueStyles.layoutCard} onPress={onPress}>
             <AntDesign name={filledIcon? filledIcon : outlineIcon} style={uniqueStyles.activeIconStyle} />
             <Text style={uniqueStyles.layoutTitle}>{Option}</Text>
           </TouchableOpacity>
         )
       }
-
     </View>
   );
 };
 
-const createUniqueStyles = (isDarkMode: boolean, flexValue: number, selectedColor: string) =>
+const createUniqueStyles = (isDarkMode: boolean, selectedColor: string) =>
   StyleSheet.create({
 
 
-    // Containers
-    activeLayoutCard: {
-      width: width / 3.8,
-      height: width / 3.5,
-      paddingVertical: 6,
-      paddingHorizontal: 0,
-      flex: flexValue,
-      borderColor: selectedColor,
-      borderWidth: 3,
-      borderRadius: 8,
-      alignItems: 'center',
-    },
+    // Container
     layoutCard: {
-      width: width / 3.8,
-      height: width / 3.5,
-      paddingVertical: 6,
-      paddingHorizontal: 0,
-      flex: flexValue,
+      aspectRatio: 1,
+      minWidth: width / 3.5,
+      flexBasis: '20%',
       borderColor: selectedColor,
       borderWidth: 3,
       borderRadius: 8,
       alignItems: 'center',
+      justifyContent: 'center'
     },
 
 

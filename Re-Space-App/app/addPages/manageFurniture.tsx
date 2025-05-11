@@ -98,8 +98,7 @@ export default function ManageFurniture() {
       <View style={uniqueStyles.filterContainer}>
 
         <FilterButton
-          Option="Add new furniture"
-          flexValue={1}
+          Option="Add new"
           selectedColor='green'
           outlineIcon='pluscircleo'
           onPress={() =>
@@ -111,7 +110,6 @@ export default function ManageFurniture() {
 
         <FilterButton
           Option="Favourites"
-          flexValue={1}
           selectedColor='yellow'
           outlineIcon='staro'
           filledIcon='star'
@@ -123,8 +121,7 @@ export default function ManageFurniture() {
         />
 
         <FilterButton
-          Option="Clear furniture"
-          flexValue={1}
+          Option="Clear all"
           selectedColor='red'
           outlineIcon='minuscircleo'
           onPress={() => {
@@ -196,7 +193,6 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
-      gap: width * 0.03,
       width: '100%',
     },
     sectionTitle: {
