@@ -1,11 +1,13 @@
-import { View, ScrollView, StyleSheet, Text, Dimensions, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, Text, Dimensions, Pressable, Alert } from 'react-native';
 import { createDefaultStyles } from '../../components/defaultStyles';
 import { useTheme } from '../_layout';
-import { Link, router, useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import * as FileSystem from 'expo-file-system';
 import { useEffect, useState, useCallback } from 'react';
 import { useRoom } from '@/hooks/useRoom';
 import { useAuth } from '@/hooks/useAuth';
+import FilterButton from '@/components/libraryComponents/FilterButton';
+import SmallRoom from '@/components/libraryComponents/smallRoom';
 
 /**
  * RoomsManager.tsx
@@ -28,12 +30,31 @@ export default function RoomsManager() {
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const { roomName, setRoomName } = useRoom();
+  const { roomName, setRoomName, jsonData, updateJsonData } = useRoom();
   const { user } = useAuth()
+  const [furniture, setFurniture] = useState<any | null>(null);
+  const [favouriteFurniture, setFavouriteFurniture] = useState<any | null>(null);
+  const [favouritesSelected, setFavouritesSelected] = useState<boolean>(false);
+  const [length, setLength] = useState<number>();
 
 
   // Saved rooms
   const [rooms, setRooms] = useState<any[]>([]);
+
+
+  // Auto refresh page with saved furniture
+  useFocusEffect(
+    useCallback(() => {
+      fetchRooms();
+    }, [roomName])
+  );
+
+
+  // Refresh page on jsonData change (used for clearing)
+  useEffect(() => {
+    fetchRooms()
+  }, [jsonData])
+
 
   /**
    * Fetch room files in app's local storage
@@ -51,16 +72,41 @@ export default function RoomsManager() {
       const files = await FileSystem.readDirectoryAsync(roomsPath);
       const jsonFiles = files.filter(file => file.endsWith('.json'));
 
-      // Parse files data
+
+      var allFurniture: any = [];
+      var favourites: any = [];
+
+      var entries = 0;
+
+      // Get each room JSON file
       const roomDataArray = await Promise.all(jsonFiles.map(async file => {
         const filePath = roomsPath + file;
+
+        // Get the JSON content and filter into data and name
         const content = await FileSystem.readAsStringAsync(filePath);
         const data = JSON.parse(content);
+        const name = file.replace('.json', '')
+
+        // Push all entries into an array
+        allFurniture.push(<SmallRoom key={name} RoomTitle={name} Content={content} />)
+        entries++;
+
+        // If favourited add to another array
+        if (data.favourited) {
+          console.log("favourited: ", name)
+          favourites.push(<SmallRoom key={name} RoomTitle={name} Content={content} />)
+        }
+
         return {
-          name: file.replace('.json', ''),
+          name: name,
           data,
         };
       }));
+
+      // Set the arrays
+      setFurniture(allFurniture);
+      setFavouriteFurniture(favourites)
+      setLength(entries)
 
       // Store rooms with parsed data
       setRooms(roomDataArray);
@@ -87,32 +133,99 @@ export default function RoomsManager() {
       {user ?
         (
           <>
-            {/* Create new room button */}
-            <View style={uniqueStyles.buttonContainer}>
-              <Link href="/addPages/newRoom" asChild>
-                <Pressable style={uniqueStyles.button}>
-                  <Text style={uniqueStyles.text}>New Room</Text>
-                </Pressable>
-              </Link>
+            {/* Filters */}
+            <View style={uniqueStyles.filterContainer}>
+
+              <FilterButton
+                Option="Add new"
+                selectedColor='green'
+                outlineIcon='pluscircleo'
+                onPress={() =>
+                  router.push({
+                    pathname: '/addPages/newRoom',
+                  })}
+              />
+
+              <FilterButton
+                Option="Favourites"
+                selectedColor='yellow'
+                outlineIcon='staro'
+                filledIcon='star'
+                onPress={() => {
+                  setFavouritesSelected(value => !value)
+                  fetchRooms()
+                }}
+                selected={favouritesSelected}
+              />
+
+              <FilterButton
+                Option="Clear all"
+                selectedColor='red'
+                outlineIcon='minuscircleo'
+                onPress={() => {
+
+                  if (length != undefined && length == 0) {
+                    alert("No furniture entries to remove!")
+                    return;
+                  }
+
+                  // Prompt the users with a check
+                  Alert.alert(
+                    'Clear all rooms?',
+                    'This will remove all rooms on this device for all users. This action cannot be undone.',
+                    [
+                      {
+                        text: 'Yes', onPress: async () => {
+
+
+                          //  File path
+
+                          rooms.forEach(async(name) => {
+                            const fileUri = `${FileSystem.documentDirectory}rooms/${name}.json`;
+
+
+
+                            try {
+                              //  Read room file
+                              const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+                              //  Delete file if it exists
+                              if (fileInfo.exists) {
+                                await FileSystem.deleteAsync(fileUri);
+                                alert(`Room "${name}" deleted successfully.`);
+                                router.push('/(tabs)/roomsManager');
+                              } else {
+                                alert(`Room "${name}" not found.`);
+                              }
+                            } catch (error) {
+                              console.error("Failed to delete room:", error);
+                              alert("An error occurred while deleting the room.");
+                            }
+                          })
+                        }
+                      },
+                      { text: 'No', onPress: () => alert(`Removing room cancelled!`) },
+                    ],
+                    { cancelable: false },
+                  );
+                }
+                }
+              />
+
             </View>
 
 
             {/* Show saved rooms */}
-            <Text style={[defaultStyles.sectionTitle, { marginBottom: 20 }]}>Existing Rooms</Text><View style={{ gap: 10 }}>
-              {rooms.map((room, index) => (
-                <Pressable
-                  key={index}
-                  style={[uniqueStyles.button, { backgroundColor: '#7aa7ff' }]}
+            <Text style={uniqueStyles.sectionTitle}>
+              {!favouritesSelected ?
+                (`All Rooms: ${furniture?.length}`)
+                :
+                (`Favourites: ${favouriteFurniture?.length}/${furniture?.length}`)
+              }
+            </Text>
 
-                  // Navigate to roomDetails passing room's name and its data
-                  onPress={() => {
-                    setRoomName(room.name);
-                    router.push('/addPages/roomDetails');
-                  }}
-                >
-                  <Text style={uniqueStyles.text}>{room.name}</Text>
-                </Pressable>
-              ))}
+            <View style={defaultStyles.cardSectionContainer}>
+              {favouritesSelected ? favouriteFurniture : furniture}
             </View>
           </>
         )
@@ -120,6 +233,7 @@ export default function RoomsManager() {
         (
           <Text style={[defaultStyles.sectionTitle, { marginBottom: 20 }]}>Please login to view rooms!</Text>
         )
+
       }
     </ScrollView>
   );
@@ -127,6 +241,19 @@ export default function RoomsManager() {
 
 const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
+    filterContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    sectionTitle: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      marginTop: 30,
+      marginBottom: 15,
+      color: isDarkMode ? '#fff' : '#000',
+    },
     buttonContainer: {
       gap: width * 0.1,
       marginBottom: 20,
