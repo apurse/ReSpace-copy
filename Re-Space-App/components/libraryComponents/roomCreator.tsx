@@ -84,16 +84,14 @@ export const createRoomIfNotExists = async (
 
     //  Room's Json file
     const roomData = {
-      favourited: false,
+      roomName: roomName,
       roomFiles: {
         yaml: "",
-        data: "",
-        posegraph: "",
-        pmg: "",
-        roomScan: "",
+        png: "",
       },
       users: {
         [user.username]: {
+          roomFavourited: false,
           furniture: [],
           layouts: []
         }

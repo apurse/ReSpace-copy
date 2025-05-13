@@ -61,6 +61,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
                 users: {
                     ...thisData?.users,
                     [user.username]: {
+                        roomFavourited: false,
                         furniture: [],
                         layouts: []
                     }

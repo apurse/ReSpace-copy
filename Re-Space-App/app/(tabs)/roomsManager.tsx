@@ -30,7 +30,7 @@ export default function RoomsManager() {
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const { roomName, setRoomName, jsonData, updateJsonData } = useRoom();
+  const { roomName, setRoomName, jsonData } = useRoom();
   const { user } = useAuth()
   const [furniture, setFurniture] = useState<any | null>(null);
   const [favouriteFurniture, setFavouriteFurniture] = useState<any | null>(null);
@@ -46,7 +46,7 @@ export default function RoomsManager() {
   useFocusEffect(
     useCallback(() => {
       fetchRooms();
-    }, [roomName])
+    }, [rooms, roomName])
   );
 
 
@@ -88,13 +88,12 @@ export default function RoomsManager() {
         const name = file.replace('.json', '')
 
         // Push all entries into an array
-        allFurniture.push(<SmallRoom key={name} RoomTitle={name} Content={content} />)
+        allFurniture.push(<SmallRoom key={name} RoomTitle={name} FilePath={filePath} />)
         entries++;
 
         // If favourited add to another array
-        if (data.favourited) {
-          console.log("favourited: ", name)
-          favourites.push(<SmallRoom key={name} RoomTitle={name} Content={content} />)
+        if (data?.users?.[user.username]?.roomFavourited) {
+          favourites.push(<SmallRoom key={name} RoomTitle={name} FilePath={filePath} />)
         }
 
         return {
@@ -178,25 +177,23 @@ export default function RoomsManager() {
                         text: 'Yes', onPress: async () => {
 
 
-                          //  File path
-
-                          rooms.forEach(async(name) => {
-                            const fileUri = `${FileSystem.documentDirectory}rooms/${name}.json`;
-
-
+                          // For each room, find the name and uri, deleting each
+                          rooms.forEach(async (room: { name: string }) => {
+                            const fileUri = `${FileSystem.documentDirectory}rooms/${room.name}.json`;
 
                             try {
-                              //  Read room file
+                              // Read room file
                               const fileInfo = await FileSystem.getInfoAsync(fileUri);
 
-                              //  Delete file if it exists
+                              // Delete file if it exists
                               if (fileInfo.exists) {
                                 await FileSystem.deleteAsync(fileUri);
-                                alert(`Room "${name}" deleted successfully.`);
                                 router.push('/(tabs)/roomsManager');
                               } else {
-                                alert(`Room "${name}" not found.`);
+                                alert(`Room "${room.name}" not found.`);
+                                return;
                               }
+                              alert(`Cleared ${length} rooms!`);
                             } catch (error) {
                               console.error("Failed to delete room:", error);
                               alert("An error occurred while deleting the room.");
