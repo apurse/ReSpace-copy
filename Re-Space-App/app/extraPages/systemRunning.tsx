@@ -34,6 +34,8 @@ const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh +
 const initialOffsetX = -(screenWidth - gridWidth * initialZoom) - 350 / 2;
 const initialOffsetY = (screenHeight - gridHeight * initialZoom) - 800 / 2;
 
+const progressBarSize = screenWidth * 0.8
+
 export default function systemRunning() {
 
   // Define 'Box' to store in 'currentPos'  
@@ -110,7 +112,7 @@ export default function systemRunning() {
         if (boxes[boxIndex] == boxDestinations[boxIndex]) {
 
           // Set new progress
-          var newProgress = totalProgress + (1 / boxes.length)
+          var newProgress = totalProgress + (progressBarSize / boxes.length)
           setTotalProgress(newProgress)
         }
       }
@@ -338,8 +340,8 @@ export default function systemRunning() {
 
 
       {/* Progress bar */}
+      <Text style={defaultStyles.sectionTitle}>Progress</Text>
       <View style={[uniqueStyles.progressBarContainer]}>
-        <Text>Progress bar</Text>
         <View style={[uniqueStyles.progressBar]} />
       </View>
 
@@ -384,7 +386,6 @@ const createUniqueStyles = (isDarkMode: boolean, totalProgress: number) =>
     },
     progressBarContainer: {
       borderRadius: 8,
-      alignItems: 'center',
       marginVertical: 10,
       borderColor: isDarkMode ? '#fff' : '#000',
       borderWidth: 0.5,
@@ -395,7 +396,8 @@ const createUniqueStyles = (isDarkMode: boolean, totalProgress: number) =>
     progressBar: {
       height: '100%',
       width: totalProgress,
-      backgroundColor: "blue",
+      backgroundColor: "#00838F",
+      borderRadius: 8,
     },
     grid: {
       width: viewGridWidth, // * scaleX once visuals are done
