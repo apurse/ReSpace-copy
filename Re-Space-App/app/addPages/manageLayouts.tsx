@@ -31,9 +31,6 @@ export default function ManageLayouts() {
   const [length, setLength] = useState<number>();
 
 
-  var roomScan = '';
-
-
   /**
    * Fetch layout data from room file
    */
@@ -42,9 +39,6 @@ export default function ManageLayouts() {
 
     try {
       if (!roomName) return;
-
-      roomScan = jsonData?.roomFiles?.roomScan;
-
 
       // Push all layouts to an array and output as smallLayouts
       var allLayouts: any = [];

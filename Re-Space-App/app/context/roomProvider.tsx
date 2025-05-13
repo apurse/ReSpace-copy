@@ -21,11 +21,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Select the correct room when the room name changes.
     useEffect(() => {
-        // if (!roomName || roomName == undefined || roomName == "") {            
-        //     console.log("roomName invalid:", roomName)
-        //     return;
-        // }
-        getRoomData()
+        if (roomName) getRoomData(roomName)
     }, [roomName])
 
 
@@ -46,7 +42,9 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
     /**
      * Get the room data from the JSON.
      */
-    const getRoomData = async () => {
+    const getRoomData = async (roomName: string) => {
+        const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
+
 
         // Read room file, return if file does not exist
         const fileCheck = await FileSystem.getInfoAsync(roomPath);
@@ -116,7 +114,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     return (
-        <RoomContext.Provider value={{ roomName, jsonData, setupRoomJSON, setRoomName, updateJsonData }}>
+        <RoomContext.Provider value={{ roomName, jsonData, setupRoomJSON, setRoomName, updateJsonData, getRoomData }}>
             {children}
         </RoomContext.Provider>
     );

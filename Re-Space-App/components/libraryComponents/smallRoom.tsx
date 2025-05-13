@@ -37,7 +37,7 @@ export default function SmallLayout({ RoomTitle, FilePath }: { RoomTitle: any; F
   // Settings
   const [isFavourited, setIsFavourited] = useState<boolean>(false);
   const [localJson, setLocalJson] = useState<Room>();
-  const { updateJsonData, setRoomName } = useRoom()
+  const { updateJsonData, setRoomName, getRoomData } = useRoom()
   const { user } = useAuth()
 
 
@@ -103,9 +103,10 @@ export default function SmallLayout({ RoomTitle, FilePath }: { RoomTitle: any; F
   return (
     <Pressable
       style={uniqueStyles.layoutCardContainer}
-      onPress={() => {
+      onPress={async () => {
 
-        // PROBLEM here
+        // Get the data (time issue) and set the title afterwards
+        await getRoomData(RoomTitle)
         setRoomName(RoomTitle);
         router.push('/addPages/roomDetails');
       }}
