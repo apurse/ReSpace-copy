@@ -2,12 +2,10 @@
 #include "hardware/timer.h"
 #include <AccelStepper.h>
 
-int motorSpeed = 100;
-
 #define stepPin 11
 #define dirPin 9
 #define switchPin1 7
-#define switchPin2 8 
+#define switchPin2 8
 #define motorInterfaceType 1
 
 AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
@@ -15,6 +13,7 @@ AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
 
 
 const float r = 0.029;  // Wheel radius (m)
+const float circ = 3.14 * 2 * r;  // Wheel circum (m)
 const float d = 0.155;   // Distance from wheel center to robot center (m)
 const float dt = 0.1;  // Time step (s)
 String transmission;
@@ -22,8 +21,8 @@ String transmission;
 // Initial position of robot
 float x = 0.0, y = 0.0, theta = 0.0, vx = 0.0, vy = 0.0, omega = 0.0;
 
-// Initial rpm of motors
-float rpm1 = 0.0, rpm2 = 0.0, rpm3 = 0.0;
+// Initial HZ of motors
+float HZ1 = 0.0, HZ2 = 0.0, HZ3 = 0.0;
 
 // Motor class with encoder
 class Motor {
@@ -116,84 +115,48 @@ bool repeatingOdomTimerCallback(struct repeating_timer *t) {
   float w2 = motorC.getSpeed() * r;
   float w3 = motorA.getSpeed() * r;
 
-  // Transformation matrix
-  vx = (2.0 / 3.0) * (w1 - 0.5 * (w2 + w3));
-  vy = (sqrt(3) / 3.0) * (w2 - w3);
-  omega = (w1 + w2 + w3) / (3 * d);
+  // Transformation matrix based on derived equations
+  float F[3][3] = {
+    {0, -1.0 / sqrt(3), 1.0 / sqrt(3)},
+    {1.0, -0.5, -0.5},
+    { -1.0 / (3 * d), -1.0 / (3 * d), -1.0 / (3 * d)}
+  };
+
+  // Compute velocity in robot frame
+  vx = F[0][0] * w1 + F[0][1] * w2 + F[0][2] * w3;
+  vy = F[1][0] * w1 + F[1][1] * w2 + F[1][2] * w3;
+  omega = F[2][0] * w1 + F[2][1] * w2 + F[2][2] * w3;
 
   // Transform velocity to global frame
-  x += (vx * sin(theta) + vy * cos(theta)) * dt;
-  y += (vx * cos(theta) - vy * sin(theta)) * dt;
+  x += (vx * cos(theta) - vy * sin(theta)) * dt;
+  y += (vx * sin(theta) + vy * cos(theta)) * dt;
   theta += omega * dt;
 
   return true;  // Keep repeating
 }
 
-void calculateRPM(float VX, float VY, float WZ) {
+void calculateHZ(float VX, float VY, float WZ) {
 
-  float w1 = (VY + d * WZ) / r;
-  float w2 = ((-sqrt(3) / 2.0) * VX - 0.5 * VY + d * WZ) / r;
-  float w3 = ((sqrt(3) / 2.0) * VX - 0.5 * VY + d * WZ) / r;
+  float w1 = (VY + d * WZ);
+  float w2 = ((-sqrt(3) / 2.0) * VX - 0.5 * VY + d * WZ);
+  float w3 = ((sqrt(3) / 2.0) * VX - 0.5 * VY + d * WZ);
+  Serial.println(-w1);
+  Serial.println(-w2);
+  Serial.println(-w3);
 
-  rpm1 = w1 * 60.0 / (2.0 * PI);
-  rpm2 = w2 * 60.0 / (2.0 * PI);
-  rpm3 = w3 * 60.0 / (2.0 * PI);
-
-  Serial.print(-rpm3);
-  Serial.print(-rpm1);
-  Serial.print(-rpm2);
-  Serial.println(' ');
+  HZ1 = w1 / circ;
+  HZ2 = w2 / circ;
+  HZ3 = w3 / circ;
+  //  rpm1 = w1 * 60.0 / (2.0 * PI);
+  //  rpm2 = w2 * 60.0 / (2.0 * PI);
+  //  rpm3 = w3 * 60.0 / (2.0 * PI);
+  //  Serial.println(-rpm1);
+  //  Serial.println(-rpm2);
+  //  Serial.println(-rpm3);
 }
 
 struct repeating_timer motorTimer;
 struct repeating_timer odomTimer;
-
-//void Segment1() {
-//  // Segment 1: Use Motor B and C
-//  analogWrite(AIN1, 0);
-//  analogWrite(AIN2, 0);
-//
-//  analogWrite(BIN1, motorSpeed);
-//  analogWrite(BIN2, 0);
-//
-//  analogWrite(CIN1, 0);
-//  analogWrite(CIN2, motorSpeed);
-//}
-//
-//void Segment2() {
-//  // Segment 2: Use Motor A and C
-//  analogWrite(AIN1, 0);
-//  analogWrite(AIN2, motorSpeed);
-//
-//  analogWrite(BIN1, 0);
-//  analogWrite(BIN2, 0);
-//
-//  analogWrite(CIN1, motorSpeed);
-//  analogWrite(CIN2, 0);
-//}
-//
-//void Segment3() {
-//  // Segment 3: Use Motor A and B
-//  analogWrite(AIN1, motorSpeed);
-//  analogWrite(AIN2, 0);
-//
-//  analogWrite(BIN1, 0);
-//  analogWrite(BIN2, motorSpeed);
-//
-//  analogWrite(CIN1, 0);
-//  analogWrite(CIN2, 0);
-//}
-//
-//void StopMotors() {
-//  analogWrite(AIN1, 0);
-//  analogWrite(AIN2, 0);
-//
-//  analogWrite(BIN1, 0);
-//  analogWrite(BIN2, 0);
-//
-//  analogWrite(CIN1, 0);
-//  analogWrite(CIN2, 0);
-//}
 
 void setup() {
   Serial.begin(115200);
@@ -202,7 +165,7 @@ void setup() {
   motorC.begin();
 
 
-  pinMode(switchPin1, INPUT_PULLUP); 
+  pinMode(switchPin1, INPUT_PULLUP);
   pinMode(switchPin2, INPUT_PULLUP);
 
   stepper.setMaxSpeed(1000);
@@ -216,11 +179,11 @@ void setup() {
 
 void loop() {
   // Print updated position
-  Serial.print(x, 3);
+  Serial.print(x*2.86, 3);
   Serial.print(",");
-  Serial.print(y, 3);
+  Serial.print(y*2.86, 3);
   Serial.print(",");
-  Serial.print(theta, 3);
+  Serial.print(theta*3.1, 3);
   Serial.print(",");
   Serial.print(vx, 3);
   Serial.print(",");
@@ -261,6 +224,22 @@ void loop() {
       motorA.setTargetSpeed(0);
       motorB.setTargetSpeed(0);
       motorC.setTargetSpeed(0);
+    } else if (transmission == "T1") {
+      motorA.setTargetSpeed(1);
+      motorB.setTargetSpeed(1);
+      motorC.setTargetSpeed(1);
+    } else if (transmission == "T2") {
+      motorA.setTargetSpeed(2);
+      motorB.setTargetSpeed(2);
+      motorC.setTargetSpeed(2);
+    } else if (transmission == "T3") {
+      motorA.setTargetSpeed(3);
+      motorB.setTargetSpeed(3);
+      motorC.setTargetSpeed(3);
+    } else if (transmission == "T3.4") {
+      motorA.setTargetSpeed(3.4);
+      motorB.setTargetSpeed(3.4);
+      motorC.setTargetSpeed(3.4);
     } else if (transmission == "ActateUP") {
       homeForward();
 
@@ -278,26 +257,22 @@ void loop() {
       float val2 = transmission.substring(comma1 + 1, comma2).toFloat();
       float val3 = transmission.substring(comma2 + 1).toFloat();
 
-      Serial.println(val1);
-      Serial.println(val2);
-      Serial.println(val3);
-
       // calculate rpm values for wheels
       // add boundaries for the calculation
-      if (val1 <= 1.0 && val1 >= -1.0 &&
-          val2 <= 1.0 && val2 >= -1.0 &&
-          val3 <= 1.0 && val3 >= -1.0) {
-        calculateRPM(val1, val2, val3);
+      if (val1 <= 3.2 && val1 >= -3.2 &&
+          val2 <= 3.2 && val2 >= -3.2 &&
+          val3 <= 3.2 && val3 >= -3.2) {
+        calculateHZ(val1, val2, val3);
         //set wheel rpms
-        rpm1 = map(rpm1, -285.17, 285.17, -1.0, 1.0);
-        rpm2 = map(rpm2, -285.17, 285.17, -1.0, 1.0);
-        rpm3 = map(rpm3, -285.17, 285.17, -1.0, 1.0);
-        Serial.println(rpm1);
-        Serial.println(rpm2);
-        Serial.println(rpm3);
-        motorA.setTargetSpeed(-rpm3);
-        motorB.setTargetSpeed(-rpm1);
-        motorC.setTargetSpeed(-rpm2);
+        //        rpm1 = fmap(rpm1, -360, 360, -1.0, 1.0);
+        //        rpm2 = fmap(rpm2, -360, 360, -1.0, 1.0);
+        //        rpm3 = fmap(rpm3, -360, 360, -1.0, 1.0);
+        Serial.println(HZ1);
+        Serial.println(HZ2);
+        Serial.println(HZ3);
+        motorA.setTargetSpeed(HZ3*1.7);
+        motorB.setTargetSpeed(HZ1*1.7);
+        motorC.setTargetSpeed(HZ2*1.7);
       }
     }
   }
@@ -305,32 +280,34 @@ void loop() {
 
 
 
-
-
+// float mapping function
+float fmap(float x, float in_min, float in_max, float out_min, float out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 
 ///////////////////////////////LIFT//////////////////////
 
 void homeForward() {
   // Command a large forward move
-  stepper.moveTo(100000);       
+  stepper.moveTo(100000);
 
   while (digitalRead(switchPin1) == HIGH) {
-    stepper.run();               
+    stepper.run();
   }
   Serial.println("stopping stepper");
   stepper.stop();
-  stepper.setCurrentPosition(0);                
+  stepper.setCurrentPosition(0);
   Serial.println("Homing forward complete.");
 }
 
 void homeBackward() {
   // Command a large backward move
-  stepper.moveTo(-100000);       
+  stepper.moveTo(-100000);
   // Run until switch 2 is pressed
   while (digitalRead(switchPin2) == HIGH) {
-    stepper.run();               
+    stepper.run();
   }
   stepper.stop();
-  stepper.setCurrentPosition(0);                
+  stepper.setCurrentPosition(0);
   Serial.println("Homing backward complete.");
 }
