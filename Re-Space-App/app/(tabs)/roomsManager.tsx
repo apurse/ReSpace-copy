@@ -45,14 +45,14 @@ export default function RoomsManager() {
   // Auto refresh page with saved furniture
   useFocusEffect(
     useCallback(() => {
-      fetchRooms();
-    }, [rooms, roomName])
+      if (user) fetchRooms();
+    }, [user, rooms, roomName])
   );
 
 
   // Refresh page on jsonData change (used for clearing)
   useEffect(() => {
-    fetchRooms()
+    if (user) fetchRooms()
   }, [jsonData])
 
 
@@ -114,14 +114,6 @@ export default function RoomsManager() {
     }
   };
 
-
-  // Auto refresh the page to show saved rooms
-  useFocusEffect(
-    useCallback(() => {
-      fetchRooms();
-      setRoomName("")
-    }, [])
-  );
 
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>

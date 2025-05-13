@@ -1,10 +1,6 @@
 import { Tabs } from 'expo-router';
-import React from 'react';
-
 import { Dimensions } from 'react-native';
-
-import { TabBarIcon } from '@/components/navigation/TabBarIcon';
-import { Colors } from '@/constants/Colors';
+import { TabBarIonicons, TabBarMaterial } from '@/components/navigation/TabBarIcon';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Get dimensions of the screen
@@ -29,43 +25,34 @@ export default function TabLayout() {
         options={{
           title: 'Home',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+            <TabBarIonicons name={focused ? 'home' : 'home-outline'} color={color} />
           ),
         }}
       />
-      {/* <Tabs.Screen
-        name="add"
-        options={{
-          title: 'Add',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'add-circle' : 'add-circle-outline'} color={color} />
-          ),
-        }}
-      /> */}
       <Tabs.Screen
         name="roomsManager"
         options={{ 
           title: 'Rooms',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'business' : 'business-outline'} color={color} />
+            <TabBarMaterial name={focused ? 'door-open' : 'door'} color={color} />
           ),
         }}
       />
-      {/* <Tabs.Screen
-        name="library"
+      <Tabs.Screen
+        name="controller"
         options={{
-          title: 'Library',
+          title: 'Controller',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'grid' : 'grid-outline'} color={color} />
+            <TabBarMaterial name={focused ? 'gamepad' : 'gamepad-outline'} color={color} />
           ),
         }}
-      /> */}
+      />
       <Tabs.Screen
         name="settings"
         options={{
           title: 'Settings',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'settings' : 'settings-outline'} color={color} />
+            <TabBarIonicons name={focused ? 'settings' : 'settings-outline'} color={color} />
           ),
         }}
       />

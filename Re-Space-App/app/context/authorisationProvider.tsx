@@ -1,4 +1,4 @@
-import React, { createContext, useState} from "react";
+import React, { createContext, useState } from "react";
 import * as SQLite from 'expo-sqlite';
 
 
@@ -14,11 +14,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
      * Setup the authorisation database and check if the table exists
      */
     const setupDB = async () => {
-        const getdb = await SQLite.openDatabaseAsync('usersDB.db');
-        await getdb.runAsync(`
-            CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);
-        `);
-        setdb(getdb)
+        try {
+
+            const getdb = await SQLite.openDatabaseAsync('usersDB.db');
+            await getdb.runAsync(`
+                CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY NOT NULL, username TEXT NOT NULL, password TEXT NOT NULL);
+                `);
+            setdb(getdb)
+
+        } catch (error) {
+            console.error("DB setup error:", error)
+        }
     }
 
     setupDB();

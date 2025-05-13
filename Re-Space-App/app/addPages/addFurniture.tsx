@@ -50,8 +50,10 @@ export default function AddFurniture() {
   const [loadedFurnitureIndex, setLoadedFurnitureIndex] = useState<number>(-1);
   const [duplicateNumber, setDuplicateNumber] = useState<number>(0);
 
+
   // Get the selected furniture
   const { selectedFurniture } = useLocalSearchParams<{ selectedFurniture: string }>();
+
 
   // Refresh furniture on selected furniture change
   useEffect(() => {
@@ -69,6 +71,16 @@ export default function AddFurniture() {
       setFurnitureID(id);
     }
   }, [selectedFurniture]);
+
+
+  // Let users edit the form after saving
+  useEffect(() => {
+    if (isSaved) {
+      setIsSaved(false)
+      loadFurniture(furnitureName)
+
+    }
+  }, [furnitureName, furnitureID, widthF, length, heightF, model, quantity, selectedColour])
 
 
   // Grab the new QR code once it's changed, only once
@@ -105,6 +117,7 @@ export default function AddFurniture() {
 
       // Set the form
       setFurnitureName(thisFurniture.name);
+      setFurnitureID(thisFurniture.furnitureID);
       setModel(thisFurniture.model);
       setHeight(thisFurniture.height);
       setWidth(thisFurniture.width);
@@ -173,17 +186,6 @@ export default function AddFurniture() {
         .then(() => alert('Photo added to camera roll!'))
         .catch(err => console.log('err:', err))
 
-
-      // Reset form
-      setFurnitureName('');
-      setModel('');
-      setHeight(0);
-      setWidth(0);
-      setLength(0);
-      setQuantity(0);
-      setSelectedColour('#aabbcc');
-      setLocalQRCode('');
-
       setIsDownloaded(true);
 
     } catch (error) {
@@ -206,21 +208,17 @@ export default function AddFurniture() {
     setIsSaved(true)
     setUpdatedQR(false)
 
-    console.log(furnitureID)
 
-
+    // Set the filtered furniture
     const filteredFurniture = {
       furnitureID: furnitureID,
       name: furnitureName,
       model: model,
-      width: widthF,
-      length: length,
-      selectedColour: selectedColour,
     }
 
     try {
 
-      // Send furniture across to server
+      // Send furniture across to server to get qr
       if (isConnected) {
         sendMessage({ type: "new_furniture", data: filteredFurniture });
       } else {
@@ -255,8 +253,8 @@ export default function AddFurniture() {
 
     // If this is a new furniture
     if (loadedFurnitureIndex == -1) {
-      
-      
+
+
       // Check that the provided name is unique
       var nameUsed = false;
       jsonData.users[user.username]?.furniture?.forEach((furniture: { name: string }) => {

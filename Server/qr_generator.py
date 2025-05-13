@@ -11,12 +11,6 @@ from PIL import Image, ImageDraw, ImageFont
 
 saving = False
 
-qr = qrcode.QRCode(
-    error_correction=qrcode.constants.ERROR_CORRECT_L,
-    box_size=10,
-    border=1,
-)
-
 
 def generateArrow(qrCode):
     """
@@ -54,6 +48,12 @@ def generateQRCode(data):
     Returns:
         encodedString [base64 string]: The QRCode image encoded into base64.
     """
+    
+    qr = qrcode.QRCode(
+    error_correction=qrcode.constants.ERROR_CORRECT_L,
+    box_size=10,
+    border=1,
+)
 
     # Generate QR code image
     qr.add_data(data)

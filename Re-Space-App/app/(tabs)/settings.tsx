@@ -183,13 +183,13 @@ const SettingsPage = () => {
                     style={uniqueStyles.button}
                 />
 
-                <ActionButton
+                {/* <ActionButton
                     label="Controller"
                     style={uniqueStyles.button}
                     onPress={() => {
                         router.push("/settingsPages/controller")
                     }}
-                />
+                /> */}
 
                 <ActionButton
                     label="Test Connection"
