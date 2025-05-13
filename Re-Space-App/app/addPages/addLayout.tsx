@@ -102,7 +102,7 @@ export default function DragAndDrop() {
     // Refresh layout on selected layout change
     useEffect(() => {
         console.log("useEffect called")
-        if (!hasBeenCalled) {
+        if (!hasBeenCalled && selectedLayout != undefined) {
             loadLayout(selectedLayout);
             console.log("selectedLayout:", selectedLayout)
             setHasBeenCalled(true);

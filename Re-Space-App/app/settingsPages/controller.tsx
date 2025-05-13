@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, StyleSheet, Text, Dimensions, Image, ImageBackground } from "react-native";
+import { View, StyleSheet, Text, Dimensions, Image, ImageBackground, ScrollView } from "react-native";
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import ControllerButton from "@/components/settingsComponents/controllerButton";
@@ -25,7 +25,8 @@ export default function Controller() {
     // Appearance settings
     const [dropDownVisible, setDropDownVisible] = useState(false);
     const [scanningMode, setScanningMode] = useState(false);
-    const [called, setCalled] = useState(false);
+    const [startPressed, setStartPressed] = useState(false);
+    const [savePressed, setSavePressed] = useState(false);
     const uniqueStyles = createUniqueStyles(isDarkMode, scanningMode);
     const [previousImage, setPreviousImage] = useState<string>("")
     const [newImage, setNewImage] = useState<string>("")
@@ -65,7 +66,7 @@ export default function Controller() {
 
 
     return (
-        <View style={defaultStyles.body}>
+        <ScrollView contentContainerStyle={defaultStyles.body}>
 
             {/* Page Title */}
             {!scanningMode &&
@@ -96,13 +97,13 @@ export default function Controller() {
 
                     {/* Display the previous image while rendering new image */}
                     <ImageBackground
-                    source={{ uri: (`data:image/png;base64,${previousImage}`) }}
+                        source={{ uri: (`data:image/png;base64,${previousImage}`) }}
                     >
                         {/* Render the new image */}
                         <Image
                             style={uniqueStyles.imageBody}
-                            source={{ uri: (`data:image/png;base64,${newImage}`) }} 
-                            onLoad={() => setPreviousImage(newImage)}/>
+                            source={{ uri: (`data:image/png;base64,${newImage}`) }}
+                            onLoad={() => setPreviousImage(newImage)} />
                     </ImageBackground>
                 </View>
             }
@@ -112,15 +113,28 @@ export default function Controller() {
                 <View>
                     {scanningMode ?
                         (
-                            <><ControllerButton text="Start" buttonStyle={{ backgroundColor: '#2E7D32', color: 'white' }} targetRobot={selectedRobot} />
+                            <>
+
+                                {!startPressed ?
+                                    <ControllerButton text="Start" buttonStyle={{ backgroundColor: '#2E7D32', color: 'white' }} targetRobot={selectedRobot} />
+                                    :
+                                    <ControllerButton text="Running!" />
+                                }
                                 <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot} />
-                                <ControllerButton text="Save" buttonStyle={{ backgroundColor: '#00838F' }} targetRobot={selectedRobot} /></>
+                                {!savePressed ?
+                                    <ControllerButton text="Save" buttonStyle={{ backgroundColor: '#00838F' }} targetRobot={selectedRobot} />
+                                    :
+                                    <ControllerButton text="Saved!" />
+                                }
+                            </>
                         )
                         :
                         (
-                            <><View style={uniqueStyles.button} />
+                            <>
+                                <View style={uniqueStyles.button} />
                                 <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot} />
-                                <View style={uniqueStyles.button} /></>
+                                <View style={uniqueStyles.button} />
+                            </>
                         )
                     }
                 </View>
@@ -136,7 +150,7 @@ export default function Controller() {
                 </View>
             </View>
 
-        </View >
+        </ScrollView >
     );
 }
 

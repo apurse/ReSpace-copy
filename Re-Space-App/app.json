@@ -13,12 +13,13 @@
       "resizeMode": "contain",
       "backgroundColor": "#000000"
     },
+    "backgroundColor": "#000000",
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/splash-icon-light.png", 
+        "foregroundImage": "./assets/images/splash-icon-light.png",
         "backgroundColor": "#000000"
       }
     },

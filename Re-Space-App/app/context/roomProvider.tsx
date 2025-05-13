@@ -21,6 +21,10 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Select the correct room when the room name changes.
     useEffect(() => {
+        // if (!roomName || roomName == undefined || roomName == "") {            
+        //     console.log("roomName invalid:", roomName)
+        //     return;
+        // }
         getRoomData()
     }, [roomName])
 

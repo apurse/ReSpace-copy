@@ -165,7 +165,7 @@ export default function Controller() {
 
 
                     {/* Account Management */}
-                    <Text style={defaultStyles.sectionTitle}>Management</Text>
+                    <Text style={defaultStyles.sectionTitle}>Account Management</Text>
 
                     <ActionButton
                         label="Delete account"
@@ -201,9 +201,19 @@ export default function Controller() {
 
 
                     {/* Admin settings */}
-                    <Text style={defaultStyles.sectionTitle}>Admin</Text>
+                    <Text style={defaultStyles.sectionTitle}>Admin Settings</Text>
                     <ActionButton
                         label="Delete all layouts for ALL accounts"
+                        style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#fff' : '#000', borderWidth: 3 }}
+                        onPress={() => clearLayoutJson(true)}
+                    />
+                    <ActionButton
+                        label="Delete all furniture for ALL accounts"
+                        style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#fff' : '#000', borderWidth: 3 }}
+                        onPress={() => clearLayoutJson(true)}
+                    />
+                    <ActionButton
+                        label="Delete ALL rooms"
                         style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#fff' : '#000', borderWidth: 3 }}
                         onPress={() => clearLayoutJson(true)}
                     />

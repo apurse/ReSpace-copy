@@ -46,9 +46,8 @@ export default function ManageFurniture() {
 
       var entries = 0;
 
-
       // Filter furniture by values and push into the correct array
-      jsonData.users[user.username]?.furniture?.forEach((furniture: { name: string, favourited: boolean }) => {
+      jsonData?.users?.[user.username]?.furniture?.forEach((furniture: { name: string, favourited: boolean }) => {
         allFurniture.push(<SmallFurniture key={furniture.name} FurnitureTitle={furniture.name} />)
         entries++;
         if (furniture.favourited) {

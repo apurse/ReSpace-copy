@@ -155,14 +155,12 @@ const createUniqueStyles = (isDarkMode: boolean) =>
     greeting: {
       fontSize: 28,
       marginBottom: 5,
-      marginTop: 5,
+      // marginTop: 20,
       textAlign: 'center',
       color: isDarkMode ? '#fff' : '#000',
     },
     loginButton: {
-      position: 'absolute',
-      top: 10,
-      left: 10,
+      marginTop: 0,
       backgroundColor: isDarkMode ? '#e6e6e6' : '#4a4a4a',
       padding: 10,
       alignItems: 'center',
