@@ -66,10 +66,7 @@ export default function RoomDetails() {
             Option="Scanning"
             outlineIcon='scan1'
             selectedColor='#00838F'
-            onPress={() => router.push({
-              pathname: "/settingsPages/controller",
-              params: { scanning: "true", roomName }
-            })}
+            onPress={() => router.push("/addPages/scanning")}
           />
 
           <FilterButton

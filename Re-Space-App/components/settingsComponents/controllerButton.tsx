@@ -13,6 +13,7 @@ const ControlButton = ({
     message,
     targetRobot,
     text,
+    onPress,
 }: {
     iconName?: keyof typeof AntDesign.glyphMap;
     iconSize?: number;
@@ -21,6 +22,7 @@ const ControlButton = ({
     message?: string;
     targetRobot?: string;
     text?: string
+    onPress?: () => void
 }) => {
     const { sendMessage, isConnected } = useSocket();
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -57,27 +59,14 @@ const ControlButton = ({
         sendMessage({ type: "control", target: targetRobot, direction: "stop" });
     };
 
-    /**
-     * Scanning-unique buttons, start the robot and save the layout
-     */
-    const scanningFunctions = () => {
-        //if (text == "Start") sendMessage({ type: "control", target: targetRobot, direction: "stop" });
-        if (text == "Save") sendMessage({ type: "get_map", target: targetRobot });
-
-        setCalled(false)
-    }
-
     return (
         <View>
             {text ?
                 // Scanning unique buttons
                 (
                     <Pressable
-                        onPressIn={() => {
-                            if (!called) {
-                                setCalled(true)
-                                scanningFunctions()
-                            }
+                        onPress={() => {
+                            if (onPress) onPress()
                         }}
                         style={({ pressed }) => [
                             { backgroundColor: pressed ? "lightgrey" : "green" },

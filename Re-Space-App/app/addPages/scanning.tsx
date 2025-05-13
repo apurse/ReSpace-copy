@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { View, StyleSheet, Text, Dimensions, ScrollView } from "react-native";
+import { View, StyleSheet, Text, Dimensions, Image, ImageBackground, ScrollView } from "react-native";
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import ControllerButton from "@/components/settingsComponents/controllerButton";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSocket } from "@/hooks/useSocket";
 import { Robot } from "@/components/models/Robot";
+import { useRoom } from "@/hooks/useRoom";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -13,9 +14,10 @@ export default function Controller() {
 
     // Hooks and colours
     const { theme } = useTheme();
-    const { robotData } = useSocket();
+    const { robotData, roomScanFiles, scanningMap, sendMessage } = useSocket();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
+    const { roomName, updateJsonData, jsonData } = useRoom()
 
     // Robot settings
     const [selectedRobot, setSelectedRobot] = useState(robotData.length > 0 ? robotData[0].robot_id : "");
@@ -23,7 +25,11 @@ export default function Controller() {
 
     // Appearance settings
     const [dropDownVisible, setDropDownVisible] = useState(false);
+    const [startPressed, setStartPressed] = useState(false);
+    const [savePressed, setSavePressed] = useState(false);
     const uniqueStyles = createUniqueStyles(isDarkMode);
+    const [previousImage, setPreviousImage] = useState<string>("")
+    const [newImage, setNewImage] = useState<string>("")
 
 
     // Update the robot list on robotData change
@@ -42,14 +48,49 @@ export default function Controller() {
     }, [robotData]);
 
 
+    // Set the new scan as the new image
+    useEffect(() => {
+        setNewImage(scanningMap)
+    }, [scanningMap])
+
+
+    /**
+     * Scanning-unique buttons, start the robot and save the layout
+     */
+    const scanningFunctions = (title: string) => {
+        if (title == "Start") {
+            console.log("start pressed")
+            setStartPressed(true)
+            sendMessage({ type: "control", target: selectedRobot, direction: "stop" });
+        }
+
+        if (title == "Save") {
+            console.log("save pressed")
+            setSavePressed(true)
+
+            // Testing
+            var neww = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII"
+            setPreviousImage(neww)
+
+
+            const updateData = {
+                ...jsonData,
+                roomFiles: {
+                    ...jsonData.roomFiles,
+                    png: neww
+                }
+            }
+            updateJsonData(updateData)
+
+
+
+            sendMessage({ type: "get_map", target: selectedRobot });
+        }
+    }
+
+
     return (
         <ScrollView contentContainerStyle={defaultStyles.body}>
-
-            {/* Page Title */}
-            < View style={defaultStyles.pageTitleSection}>
-                <Text style={defaultStyles.pageTitle}>Controller</Text>
-            </View>
-
 
             {/* Dropdown Box */}
             <View style={uniqueStyles.dropdownContainer}>
@@ -68,12 +109,35 @@ export default function Controller() {
             </View>
 
 
+            {/* Map */}
+            <View style={uniqueStyles.mapContainer}>
+
+                {/* Display the previous image while rendering new image */}
+                <ImageBackground
+                    source={{ uri: (`data:image/png;base64,${previousImage}`) }}
+                >
+                    <Image
+                        style={uniqueStyles.imageBody}
+                        source={{ uri: (`data:image/png;base64,${newImage}`) }}
+                        onLoad={() => setPreviousImage(newImage)} />
+                </ImageBackground>
+            </View>
+
+
             {/* Controller Buttons */}
             <View style={uniqueStyles.controller}>
                 <View>
-                    <View style={uniqueStyles.button} />
+                    {!startPressed ?
+                        <ControllerButton text="Start" buttonStyle={{ backgroundColor: '#2E7D32', color: 'white' }} targetRobot={selectedRobot} onPress={() => scanningFunctions("Start")} />
+                        :
+                        <ControllerButton text="Running!" />
+                    }
                     <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot} />
-                    <View style={uniqueStyles.button} />
+                    {!savePressed ?
+                        <ControllerButton text="Save" buttonStyle={{ backgroundColor: '#00838F' }} targetRobot={selectedRobot} onPress={() => scanningFunctions("Save")} />
+                        :
+                        <ControllerButton text="Saved!" />
+                    }
                 </View>
                 <View>
                     <ControllerButton iconName={"caretup"} message='forward' targetRobot={selectedRobot}></ControllerButton>
@@ -96,7 +160,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         dropdownContainer: {
             width: "95%",
             alignSelf: "center",
-            top: 0,
+            top: -20,
         },
         label: {
             fontSize: 18,
@@ -117,17 +181,19 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             zIndex: 100,
         },
         controller: {
-            top: 0,
+            top: 10,
             flexDirection: 'row',
             flex: 1,
             justifyContent: 'center',
             alignItems: 'center',
         },
-        button: {
-            borderRadius: 20,
-            width: screenWidth * 0.2,
-            height: screenWidth * 0.2,
-            marginBottom: 10,
-            marginLeft: 10,
+        imageBody: {
+            width: '100%',
+            height: '100%',
+        },
+        mapContainer: {
+            width: '100%',
+            height: 300,
+            backgroundColor: 'grey'
         }
     });
