@@ -81,9 +81,10 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
     /**
      * Update the room JSON data.
      * @param dataChange The data that is being added.
+     * @param filePath Optional, the file path that needs updating (useful for direct updates)
      */
-    const updateJsonData = async (dataChange: any) => {
-        await FileSystem.writeAsStringAsync(roomPath, JSON.stringify(dataChange));
+    const updateJsonData = async (dataChange: any, filePath?: string) => {
+        await FileSystem.writeAsStringAsync(filePath ? filePath : roomPath, JSON.stringify(dataChange));
         console.log(`${roomName} JSON updated:`, dataChange);
         setJsonData(dataChange);
     }
