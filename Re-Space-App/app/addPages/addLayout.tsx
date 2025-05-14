@@ -818,7 +818,7 @@ export default function DragAndDrop() {
                             {!isSaved ?
                                 <ActionButton
                                     label={(loadedLayoutIndex == -1) ? "Save Layout" : "Update Layout"}
-                                    onPress={() => setLayout(true)}
+                                    onPress={() => layoutName ? setLayout(true) : alert("Please add a title to this layout!")}
                                     style={{ backgroundColor: '#00838F' }}
                                 />
                                 :

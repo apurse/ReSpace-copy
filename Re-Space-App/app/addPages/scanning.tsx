@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { View, StyleSheet, Text, Dimensions, Image, ImageBackground, ScrollView } from "react-native";
+import { View, StyleSheet, Text, Dimensions, Image, ImageBackground } from "react-native";
 import { createDefaultStyles } from '@/components/defaultStyles';
 import { useTheme } from '../_layout';
 import ControllerButton from "@/components/settingsComponents/controllerButton";
 import DropDownPicker from "react-native-dropdown-picker";
 import { useSocket } from "@/hooks/useSocket";
 import { Robot } from "@/components/models/Robot";
-import { useRoom } from "@/hooks/useRoom";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
@@ -14,10 +13,9 @@ export default function Controller() {
 
     // Hooks and colours
     const { theme } = useTheme();
-    const { robotData, roomScanFiles, scanningMap, sendMessage } = useSocket();
+    const { robotData, scanningMap, sendMessage } = useSocket();
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
-    const { roomName, updateJsonData, jsonData } = useRoom()
 
     // Robot settings
     const [selectedRobot, setSelectedRobot] = useState(robotData.length > 0 ? robotData[0].robot_id : "");
@@ -99,7 +97,8 @@ export default function Controller() {
                 <ImageBackground
                     source={{ uri: (`data:image/png;base64,${previousImage}`) }}
                     resizeMode="contain"
-                    >
+                >
+                    <Text style={uniqueStyles.text}>To begin scanning, press Start below!</Text>
                     <Image
                         style={uniqueStyles.imageBody}
                         source={{ uri: (`data:image/png;base64,${newImage}`) }}
@@ -176,6 +175,16 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         mapContainer: {
             width: '100%',
             height: 300,
-            backgroundColor: 'grey'
-        }
+            borderRadius: 8,
+            borderColor: 'grey',
+            borderWidth: 4
+        },
+        text: {
+            textAlign: 'center',
+            alignSelf: 'center',
+            fontSize: 24,
+            color: isDarkMode ? '#fff' : '#000',
+            top: 3,
+            width: 0.8 * screenWidth
+        },
     });

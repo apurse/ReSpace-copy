@@ -39,7 +39,7 @@ export default function RoomDetails() {
               resizeMode="contain"
             />
           ) : (
-            <Text>Please scan the room using the scanning option below.</Text>
+            <Text style={uniqueStyles.text}>Please scan the room using the scanning option below.</Text>
           )
         }
       </View>
@@ -139,14 +139,16 @@ const createUniqueStyles = (isDarkMode: boolean, screenWidth: number) =>
     text: {
       textAlign: 'center',
       fontSize: 24,
-      color: isDarkMode ? '#000' : '#fff',
+      color: isDarkMode ? '#fff' : '#000',
       top: 3,
-      fontWeight: '300',
+      // fontWeight: '300',
     },
     mapContainer: {
       width: screenWidth * 0.75,
       aspectRatio: 1,
-      backgroundColor: 'lightgrey',
+      borderRadius: 8,
+      borderColor: 'grey',
+      borderWidth: 4
     },
     imageBody: {
       width: '100%',

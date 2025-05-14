@@ -134,6 +134,8 @@ export default function Controller() {
                     <ActionButton
                         label="Change password"
                         onPress={async () => {
+                            
+                            // Check if the db is working
                             if (!db) {
                                 alert("DB not working")
                                 return null;
@@ -151,10 +153,13 @@ export default function Controller() {
                                     sqlChangePassword,
                                     [hashedNew, user.username, hashedCurrent]
                                 )
+
+                                // If the new password does not match the recorded password, success 
                                 if (user.password !== hashedCurrent) {
                                     setUser(false);
                                     alert("Password successfully changed!")
                                 }
+
 
                             } catch (error) {
                                 alert("Failed to change password!")
@@ -266,7 +271,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             alignItems: 'center',
             height: 40,
             backgroundColor: isDarkMode ? 'white' : '#EFEFEF',
-            color: isDarkMode ? '#fff' : '#000',
+            color: isDarkMode ? '#000' : '#fff',
             fontSize: 14,
             fontWeight: 'bold',
             fontFamily: 'arial',
