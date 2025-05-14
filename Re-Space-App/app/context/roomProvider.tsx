@@ -11,7 +11,7 @@ export const RoomContext = createContext<any>(null);
 
 
 export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
-    const [roomName, setRoomName] = useState<string>();
+    const [roomName, setRoomName] = useState<string | null>(null);
     const [jsonData, setJsonData] = useState<object>();
     const { user } = useAuth();
     const { roomScanFiles } = useSocket();
@@ -19,14 +19,20 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
     const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
 
 
+    // PROBLEMS: creates undefined/null, tries to get rooms after clearing
     // Select the correct room when the room name changes.
     useEffect(() => {
         if (roomName) getRoomData(roomName)
     }, [roomName])
 
 
+    // PROBLEMS: creates undefined/null, tries to get rooms after clearing
     // Update the room files when updated in the socket provider.
     useEffect(() => {
+
+        // Check the roomName is valid
+        if (!roomName) return;
+
         console.log(roomScanFiles)
         const updateData = {
             ...jsonData,
@@ -43,6 +49,7 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
      * Get the room data from the JSON.
      */
     const getRoomData = async (roomName: string) => {
+        if (!roomName) return;
         const roomPath = `${FileSystem.documentDirectory}rooms/${roomName}.json`;
 
 
