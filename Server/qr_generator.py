@@ -4,10 +4,16 @@ from io import BytesIO
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+import os
 
 # https://stackoverflow.com/questions/75152880/cannot-convert-np-array-from-bool-to-uint8-and-save-image-properly-with-opencv
 # https://stackoverflow.com/questions/4902198/pil-how-to-scale-text-size-in-relation-to-the-size-of-the-image
 
+# At top‐level of module, define paths
+BASE_DIR   = os.path.dirname(__file__)
+FONTS_DIR  = os.path.join(BASE_DIR, "fonts")
+REGULAR_TTF= os.path.join(FONTS_DIR, "Roboto-VariableFont_wdth,wght.ttf")
+ITALIC_TTF = os.path.join(FONTS_DIR, "Roboto-Italic-VariableFont_wdth,wght.ttf")
 
 saving = False
 
@@ -75,19 +81,29 @@ def generateQRCode(data):
     combined = Image.fromarray(combined)
     
     
-    fontSize = 50
+
     name = (data["name"] + "_" + data["furnitureID"])
-    
-    
+
+    # Set initial font size
+    fontSize = 1
+
     # size relative to image
     img_fraction = 0.95
-    font = ImageFont.truetype("arial.ttf", fontSize)
-    
-    
-    # Decrease font size until the text fits
-    while (font.getbbox(name)[2]) > (img_fraction * combined.width):
-        fontSize -= 1
-        font = ImageFont.truetype("arial.ttf", fontSize)
+
+    # Load Roboto font
+    try:
+        font = ImageFont.truetype(REGULAR_TTF, fontSize)
+        using_default = False
+    except OSError:
+        # fallback
+        font = ImageFont.load_default()
+        using_default = True
+
+    # Grow text until it fits to 95% of width
+    if not using_default:
+        while font.getbbox(name)[2] < img_fraction * combined.width:
+            fontSize += 1
+            font = ImageFont.truetype(REGULAR_TTF, fontSize)
 
 
     # Create a background and add the combined image with text
