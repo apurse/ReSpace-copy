@@ -2,16 +2,15 @@
 #include "hardware/timer.h"
 #include <AccelStepper.h>
 
-#define stepPin 11
-#define dirPin 9
-#define switchPin1 7
-#define switchPin2 8
+#define stepPin 12
+#define dirPin 13
+#define limitSwitchPin 21
 #define motorInterfaceType 1
 
 AccelStepper stepper(motorInterfaceType, stepPin, dirPin);
 
-
-
+int switchState;
+int ms = 16;
 const float r = 0.029;  // Wheel radius (m)
 const float circ = 3.14 * 2 * r;  // Wheel circum (m)
 const float d = 0.155;   // Distance from wheel center to robot center (m)
@@ -147,12 +146,6 @@ void calculateHZ(float VX, float VY, float WZ) {
   HZ1 = w1 / circ;
   HZ2 = w2 / circ;
   HZ3 = w3 / circ;
-  //  rpm1 = w1 * 60.0 / (2.0 * PI);
-  //  rpm2 = w2 * 60.0 / (2.0 * PI);
-  //  rpm3 = w3 * 60.0 / (2.0 * PI);
-  //  Serial.println(-rpm1);
-  //  Serial.println(-rpm2);
-  //  Serial.println(-rpm3);
 }
 
 struct repeating_timer motorTimer;
@@ -164,13 +157,12 @@ void setup() {
   motorB.begin();
   motorC.begin();
 
+  pinMode(limitSwitchPin, INPUT_PULLUP);
+  stepper.setMaxSpeed(500*ms);
+  stepper.setAcceleration(4000*ms);
 
-  pinMode(switchPin1, INPUT_PULLUP);
-  pinMode(switchPin2, INPUT_PULLUP);
-
-  stepper.setMaxSpeed(1000);
-  stepper.setAcceleration(5000);
-
+  homing();
+  
   // Start hardware timer with 20ms interval
   add_repeating_timer_ms(-20, repeatingTimerCallback, NULL, &motorTimer);
 
@@ -224,25 +216,10 @@ void loop() {
       motorA.setTargetSpeed(0);
       motorB.setTargetSpeed(0);
       motorC.setTargetSpeed(0);
-    } else if (transmission == "T1") {
-      motorA.setTargetSpeed(1);
-      motorB.setTargetSpeed(1);
-      motorC.setTargetSpeed(1);
-    } else if (transmission == "T2") {
-      motorA.setTargetSpeed(2);
-      motorB.setTargetSpeed(2);
-      motorC.setTargetSpeed(2);
-    } else if (transmission == "T3") {
-      motorA.setTargetSpeed(3);
-      motorB.setTargetSpeed(3);
-      motorC.setTargetSpeed(3);
-    } else if (transmission == "T3.4") {
-      motorA.setTargetSpeed(3.4);
-      motorB.setTargetSpeed(3.4);
-      motorC.setTargetSpeed(3.4);
-    } else if (transmission == "ActateUP") {
-      homeForward();
-
+    } else if (transmission == "UP") {
+      stepper.runToNewPosition(5500*ms);
+    } else if (transmission == "DOWN") {
+      stepper.runToNewPosition(600*ms);
     } else  {
       // Format data
       // Remove brackets
@@ -263,10 +240,6 @@ void loop() {
           val2 <= 3.2 && val2 >= -3.2 &&
           val3 <= 3.2 && val3 >= -3.2) {
         calculateHZ(val1, val2, val3);
-        //set wheel rpms
-        //        rpm1 = fmap(rpm1, -360, 360, -1.0, 1.0);
-        //        rpm2 = fmap(rpm2, -360, 360, -1.0, 1.0);
-        //        rpm3 = fmap(rpm3, -360, 360, -1.0, 1.0);
         Serial.println(HZ1);
         Serial.println(HZ2);
         Serial.println(HZ3);
@@ -278,36 +251,20 @@ void loop() {
   }
 }
 
-
-
-// float mapping function
-float fmap(float x, float in_min, float in_max, float out_min, float out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
-
 ///////////////////////////////LIFT//////////////////////
 
-void homeForward() {
-  // Command a large forward move
-  stepper.moveTo(100000);
-
-  while (digitalRead(switchPin1) == HIGH) {
+void homing() {
+  switchState = digitalRead(limitSwitchPin);
+  while (switchState != 1) {
+    switchState = digitalRead(limitSwitchPin);
+    Serial.println("homing");
+    stepper.moveTo(-100000000);
     stepper.run();
   }
-  Serial.println("stopping stepper");
-  stepper.stop();
+  Serial.println("homed");
   stepper.setCurrentPosition(0);
-  Serial.println("Homing forward complete.");
-}
-
-void homeBackward() {
-  // Command a large backward move
-  stepper.moveTo(-100000);
-  // Run until switch 2 is pressed
-  while (digitalRead(switchPin2) == HIGH) {
-    stepper.run();
-  }
-  stepper.stop();
-  stepper.setCurrentPosition(0);
-  Serial.println("Homing backward complete.");
+  stepper.runToNewPosition(200*ms);
+  stepper.runToNewPosition(0);
+  stepper.runToNewPosition(200*ms);
+  stepper.runToNewPosition(0);
 }
