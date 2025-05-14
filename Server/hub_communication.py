@@ -201,8 +201,15 @@ async def handle_app_message(data):
         await send_to_robot(target_robot_id, data)
 
     elif data["type"] == "set_mode":
-        target_robot_id = data["target"]
-        await send_to_robot(target_robot_id, data)
+        for robot in connected_robots.keys():
+            print(robot)
+            await send_to_robot(robot, data)
+
+    elif data["type"] == "load_map":
+        # target_robot_id = data["target"]
+        for robot in connected_robots.keys():
+            print(robot)
+            await send_to_robot(robot, data)
 
     else:
         print("Received unknown command!")
@@ -211,7 +218,7 @@ async def handle_app_message(data):
 
 async def handle_robot_message(robot, data):
     if data["type"] == "status_update":
-        print("Received status update: ", data)
+        # print("Received status update: ", data)
         # Forward status to the app
         # robot.battery = data["battery"] # Todo: add battery (probably read from arduino using ros status_update node)
         robot.battery = 69
@@ -219,10 +226,10 @@ async def handle_robot_message(robot, data):
         robot.locationY = data["locationY"]
         # robot.current_activity = data["current_activity"]
         robot.carrying = data["carrying"]
-        print("carrying", data["carrying"])
+        # print("carrying", data["carrying"])
         robot.angle = data["angle"]
         # connected_robots[robot.id] = robot
-        print("Updating robot status: ", robot.to_dict())
+        # print("Updating robot status: ", robot.to_dict())
         await update_apps_robot_list()
         # await robot.send_status_to_app()
 
@@ -347,7 +354,7 @@ async def send_to_app(message):
     Args:
         message (dict): The message payload to send, which will be serialised to json.
     """
-    print(f"Sending message to app:\n {message}")
+    # print(f"Sending message to app:\n {message}")
     if connected_app is not None:
         await connected_app.send(json.dumps(message))
     else:
@@ -361,7 +368,7 @@ async def update_apps_robot_list():
                 "type": "robot_list",
                 "robots": [robot.to_dict() for robot in connected_robots.values()]
             })
-            print(f"Sending message to app: {message}")
+            # print(f"Sending message to app: {message}")
             await connected_app.send(message)
         except Exception as e:
             print(f"Failed to update app with robot list: {e}")
@@ -371,7 +378,7 @@ async def update_apps_robot_list():
                 "type": "robot_list",
                 "robot_ids": "None"
             })
-            print(f"Sending message to app: {message}")
+            # print(f"Sending message to app: {message}")
             await connected_app.send(message)
         except Exception as e:
             print(f"Failed to update app with robot list: {e}")
