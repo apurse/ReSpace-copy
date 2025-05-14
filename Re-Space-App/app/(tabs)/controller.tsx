@@ -43,7 +43,7 @@ export default function Controller() {
 
 
     return (
-        <ScrollView contentContainerStyle={defaultStyles.body}>
+        <View style={defaultStyles.body}>
 
             {/* Page Title */}
             < View style={defaultStyles.pageTitleSection}>
@@ -87,7 +87,7 @@ export default function Controller() {
                 </View>
             </View>
 
-        </ScrollView >
+        </View >
     );
 }
 

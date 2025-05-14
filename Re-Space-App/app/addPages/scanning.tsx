@@ -73,7 +73,7 @@ export default function Controller() {
 
 
     return (
-        <ScrollView contentContainerStyle={defaultStyles.body}>
+        <View style={defaultStyles.body}>
 
             {/* Dropdown Box */}
             <View style={uniqueStyles.dropdownContainer}>
@@ -115,7 +115,7 @@ export default function Controller() {
                         :
                         <ControllerButton text="Running!" />
                     }
-                    <ControllerButton iconName={"caretleft"} message='left' targetRobot={selectedRobot} />
+                    <ControllerButton iconName={"rotate-left"} message='left' targetRobot={selectedRobot} />
                     {!savePressed ?
                         <ControllerButton text="Save" buttonStyle={{ backgroundColor: '#00838F' }} targetRobot={selectedRobot} onPress={() => scanningFunctions("Save")} />
                         :
@@ -123,18 +123,17 @@ export default function Controller() {
                     }
                 </View>
                 <View>
-                    <ControllerButton iconName={"caretup"} message='forward' targetRobot={selectedRobot}></ControllerButton>
-                    <ControllerButton iconName={"closecircleo"} message='stop' targetRobot={selectedRobot}></ControllerButton>
-                    <ControllerButton iconName={"caretdown"} message='backward' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"chevron-up"} message='forward' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"stop"} message='stop' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"chevron-down"} message='backward' targetRobot={selectedRobot}></ControllerButton>
                 </View>
                 <View>
-                    <ControllerButton iconName={"arrowup"} message='raise' targetRobot={selectedRobot}></ControllerButton>
-                    <ControllerButton iconName={"caretright"} message='right' targetRobot={selectedRobot}></ControllerButton>
-                    <ControllerButton iconName={"arrowdown"} message='lower' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"arrow-up"} message='raise' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"rotate-right"} message='right' targetRobot={selectedRobot}></ControllerButton>
+                    <ControllerButton iconName={"arrow-down"} message='lower' targetRobot={selectedRobot}></ControllerButton>
                 </View>
             </View>
-
-        </ScrollView >
+        </View >
     );
 }
 

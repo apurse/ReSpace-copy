@@ -2,6 +2,7 @@
 import MaterialIcons from '@react-native-vector-icons/material-icons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type IconProps } from '@expo/vector-icons/build/createIconSet';
 import { type ComponentProps } from 'react';
 
@@ -11,4 +12,8 @@ export function TabBarIonicons({ style, ...rest }: IconProps<ComponentProps<type
 
 export function TabBarMaterial({ style, ...rest }: IconProps<ComponentProps<typeof MaterialCommunityIcons>['name']>) {
   return <MaterialCommunityIcons size={28} style={[{ marginBottom: -3 }, style]} {...rest} />;
+}
+
+export function TabBarFontAwesome({ style, ...rest }: IconProps<ComponentProps<typeof FontAwesome>['name']>) {
+  return <FontAwesome size={28} style={[{ marginBottom: -3 }, style]} {...rest} />;
 }

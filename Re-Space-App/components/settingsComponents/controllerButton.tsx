@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
+import { TabBarIonicons, TabBarMaterial, TabBarFontAwesome } from '@/components/navigation/TabBarIcon';
 import { useSocket } from "@/hooks/useSocket";
 
 const { width } = Dimensions.get("window");
@@ -15,7 +16,7 @@ const ControlButton = ({
     text,
     onPress,
 }: {
-    iconName?: keyof typeof AntDesign.glyphMap;
+    iconName?: string;
     iconSize?: number;
     iconColor?: string;
     buttonStyle?: object;
@@ -89,7 +90,9 @@ const ControlButton = ({
                         buttonStyle,
                     ]}
                 >
-                    <AntDesign name={iconName} size={iconSize} color={iconColor} />
+                    {iconName &&
+                        <TabBarFontAwesome name={iconName as any} size={iconSize} color={iconColor} />
+                    }
                 </Pressable>
             }
         </View >

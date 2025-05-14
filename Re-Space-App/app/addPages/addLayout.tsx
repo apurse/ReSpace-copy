@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { View, Text, PanResponder, StyleSheet, Dimensions, TouchableOpacity, TextInput, ScrollView, KeyboardAvoidingView, Platform, ImageBackground } from "react-native";
 import { useTheme } from "@/app/_layout";
 import { createDefaultStyles } from "@/components/defaultStyles";
@@ -9,7 +9,7 @@ import FurnitureModal from "@/components/LayoutComponents/furnitureModal";
 import { FurnitureItem } from "@/components/LayoutComponents/furnitureModal";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useAuth } from "@/hooks/useAuth";
 import { useRoom } from '@/hooks/useRoom';
 
@@ -60,7 +60,7 @@ export default function DragAndDrop() {
     const isDarkMode = theme === 'dark';
     const defaultStyles = createDefaultStyles(isDarkMode);
     const uniqueStyles = createUniqueStyles(isDarkMode);
-    var { isConnected } = useSocket();
+    var { isConnected, sendMessage } = useSocket();
     const { user } = useAuth();
     const { roomName, jsonData, updateJsonData } = useRoom();
 
@@ -107,6 +107,15 @@ export default function DragAndDrop() {
     }, [selectedLayout]);
 
 
+    // Send room files to the hub on load
+    useFocusEffect(
+        useCallback(() => {
+            console.log("focus called")
+            sendMessage({ type: "load_map", data: jsonData.roomFiles });
+        }, [])
+    );
+
+
     /**
      * Load the layout from the selected layout in the library.
      * @param selectedLayout String - The selected layout title in the library
@@ -122,7 +131,7 @@ export default function DragAndDrop() {
                 .findIndex((layout: any) => layout.name === selectedLayout
                 );
 
-                
+
             // If no index is found
             if (layoutIndex === -1) {
                 console.warn("Layout not found.");
@@ -376,30 +385,42 @@ export default function DragAndDrop() {
 
 
     // Set boxes to current layout
-    let setOldLayout = false;
-    const setLayout = (newLayout: boolean) => {
+    let setCurrentLayout = false;
 
-        // If new layout
-        setIsCurrentLayoutSet(true); // Disable button function
-        setnotifications('Current layout has been set');
-        setTimeout(() => setnotifications(null), 3000); // Show notification for 3 sec
-        setPlacedBoxes((prev) => [...prev, ...boxes]); // Save boxes to new array
-        // sendMessage({ type: "current_layout", locations: boxesFormatted })
+    /**
+     * Set the corresponding layout
+     * @param desiredLayout boolean - The layout that needs setting (false = current, true = desired)
+     */
+    const setLayout = async (desiredLayout: boolean) => {
 
-        console.log("layoutName: ", layoutName)
-        console.log("layoutIndex: ", loadedLayoutIndex)
-        console.log("roomName: ", roomName)
+        setIsCurrentLayoutSet(true);
 
-        let oldLayoutBoxes: Box[] = [];
-        if (!setOldLayout) {
-            oldLayoutBoxes = [...placedBoxes];
-            setOldLayout = true;
+        // Save new boxes
+        setPlacedBoxes((prev) => [...prev, ...boxes]);
+
+        // Send current layout to the hub 
+        if (isConnected) {
+            sendMessage({ type: "current_layout", locations: boxes })
+        } else {
+            alert("No connection to the WebSocket.");
         }
 
-        // Save the designed layout to the json file
-        if (newLayout) {
+        let currentLayoutBoxes: Box[] = [];
+
+        // If the current layout hasnt been set, set the current boxes
+        if (!setCurrentLayout) {
+            currentLayoutBoxes = [...placedBoxes];
+            setCurrentLayout = true;
+
+            // Show notification for 3 sec
+            setnotifications('Current layout has been set');
+            setTimeout(() => setnotifications(null), 3000);
+        }
+
+        // If desired layout, set new boxes and save
+        if (desiredLayout) {
             const newLayoutBoxes = [...boxes]
-            saveLayout(oldLayoutBoxes, newLayoutBoxes);
+            saveLayout(currentLayoutBoxes, newLayoutBoxes);
         }
     };
 
@@ -751,11 +772,15 @@ export default function DragAndDrop() {
                                                 onPress={() => {
                                                     console.log("link layoutName", layoutName)
                                                     console.log("link roomName", roomName)
+                                                    if (isConnected) {
+                                                        sendMessage({ type: "desired_layout", locations: boxes })
+                                                    } else {
+                                                        alert("No connection to the WebSocket.");
+                                                    }
                                                     router.push({
                                                         pathname: "/extraPages/systemRunning",
                                                         params: { layoutRunning: layoutName, roomName },
                                                     })
-                                                    // sendMessage({ type: "desired_layout", locations: boxesFormatted })
                                                 }}
                                             />
                                         )
