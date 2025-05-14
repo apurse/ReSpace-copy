@@ -61,29 +61,12 @@ export default function Controller() {
         if (title == "Start") {
             console.log("start pressed")
             setStartPressed(true)
-            sendMessage({ type: "control", target: selectedRobot, direction: "stop" });
+            sendMessage({ type: "set_mode", config: "remap", target: selectedRobot });
         }
 
         if (title == "Save") {
             console.log("save pressed")
             setSavePressed(true)
-
-            // Testing
-            var neww = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII"
-            setPreviousImage(neww)
-
-
-            const updateData = {
-                ...jsonData,
-                roomFiles: {
-                    ...jsonData.roomFiles,
-                    png: neww
-                }
-            }
-            updateJsonData(updateData)
-
-
-
             sendMessage({ type: "get_map", target: selectedRobot });
         }
     }
