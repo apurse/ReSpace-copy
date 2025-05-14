@@ -200,6 +200,10 @@ async def handle_app_message(data):
         target_robot_id = data["target"]
         await send_to_robot(target_robot_id, data)
 
+    elif data["type"] == "set_mode":
+        target_robot_id = data["target"]
+        await send_to_robot(target_robot_id, data)
+
     else:
         print("Received unknown command!")
         print("Unknown data: ", data)
