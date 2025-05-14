@@ -1,6 +1,8 @@
 """SETUP: pip install asyncio websockets --break-system-packages"""
 
 import asyncio
+from os.path import expanduser
+import ssl
 
 import numpy as np
 import websockets.asyncio
@@ -385,13 +387,24 @@ async def update_apps_robot_list():
     else:
         print(f"Error: App not connected!")
 
-
+# SSL TURORIAL
+# https://rob-blackbourn.medium.com/secure-communication-with-python-ssl-certificate-and-asyncio-939ae53ccd35
 
 async def main():
     hostname = socket.gethostname()
-    print(f"Server running at ws://{hostname}:{port}")
+    # print(f"Server running at ws://{hostname}:{port}")
+    print(f"Server running at wss://respace-hub.duckdns.org:8002")
+    
+    
+    # Setup SSL context info
+    context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    context.load_cert_chain(
+        expanduser("keys/fullchain.pem"),
+        expanduser("keys/server.key"),
+    )
 
-    async with serve(handle_connection, host, port):
+    # Run server with connection details
+    async with serve(handle_connection, host, port, ssl=context):
         try:
             await asyncio.Future()  # Keeps the server running
         except asyncio.CancelledError:

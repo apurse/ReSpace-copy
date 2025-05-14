@@ -5,7 +5,7 @@ import { Robot } from "@/components/models/Robot";
 // Create the WebSocket Context
 export const WebSocketContext = createContext<any>(null);
 
-const WS_URL = "ws://respace-hub.local:8002/app";
+const WS_URL = "wss://respace-hub.duckdns.org:8002/app";
 
 interface Room {
     yaml?: string;
