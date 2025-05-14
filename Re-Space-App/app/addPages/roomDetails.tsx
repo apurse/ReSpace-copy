@@ -31,11 +31,12 @@ export default function RoomDetails() {
 
       {/* Room scan */}
       <View style={uniqueStyles.mapContainer}>
-        {jsonData.roomFiles.png ?
+        {jsonData?.roomFiles?.png ?
           (
             <Image
               style={uniqueStyles.imageBody}
               source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`) }}
+              resizeMode="contain"
             />
           ) : (
             <Text>Please scan the room using the scanning option below.</Text>

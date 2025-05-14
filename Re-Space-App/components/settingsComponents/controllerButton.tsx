@@ -27,7 +27,6 @@ const ControlButton = ({
 }) => {
     const { sendMessage, isConnected } = useSocket();
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
-    const [called, setCalled] = useState(false);
 
     /**
      * Send control messages to the target robot with a direction
@@ -85,7 +84,7 @@ const ControlButton = ({
                     onPressIn={startSending}
                     onPressOut={stopSending}
                     style={({ pressed }) => [
-                        { backgroundColor: pressed ? "lightgrey" : "grey" },
+                        { backgroundColor: pressed ? "lightgrey" : "#d3dbd5" },
                         styles.button,
                         buttonStyle,
                     ]}

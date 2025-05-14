@@ -132,6 +132,7 @@ export default function SmallLayout({ RoomTitle, FilePath }: { RoomTitle: any; F
         {localJson?.roomFiles?.png &&
           <Image
             style={uniqueStyles.imageBody}
+            // resizeMode="contain"
             source={{ uri: (`data:image/png;base64,${localJson?.roomFiles?.png}`) }} />
         }
       </View>

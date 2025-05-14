@@ -98,10 +98,12 @@ export default function Controller() {
                 {/* Display the previous image while rendering new image */}
                 <ImageBackground
                     source={{ uri: (`data:image/png;base64,${previousImage}`) }}
-                >
+                    resizeMode="contain"
+                    >
                     <Image
                         style={uniqueStyles.imageBody}
                         source={{ uri: (`data:image/png;base64,${newImage}`) }}
+                        resizeMode="contain"
                         onLoad={() => setPreviousImage(newImage)} />
                 </ImageBackground>
             </View>

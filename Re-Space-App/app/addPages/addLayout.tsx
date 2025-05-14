@@ -636,7 +636,7 @@ export default function DragAndDrop() {
                                     borderColor: "red",
                                 }}
                             >
-                                <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`) }} resizeMode="cover" style={uniqueStyles.image} />
+                                <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`),  }} resizeMode="contain" style={uniqueStyles.image} />
                                 {/* Display non-movable objects */}
                                 {placedBoxes.map((box, index) => (
                                     <View
