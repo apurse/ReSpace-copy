@@ -2,13 +2,13 @@ import { View, Text, ScrollView, StyleSheet, Dimensions, PanResponder, TextInput
 import * as Icons from '../../components/indexComponents/Icons';
 import { createDefaultStyles } from '@/components/defaultStyles';
 import RobotList from '@/components/indexComponents/robotList';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Float } from "react-native/Libraries/Types/CodegenTypes";
 import { useTheme } from '../_layout';
 import { useSocket } from "@/hooks/useSocket";
 import ActionButton from "@/components/settingsComponents/actionButton";
 import { ReactNativeZoomableView } from '@openspacelabs/react-native-zoomable-view';
-import { useLocalSearchParams } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useAuth } from "@/hooks/useAuth";
 import { Robot } from "@/components/models/Robot";
 import { useRoom } from '@/hooks/useRoom';
@@ -82,12 +82,27 @@ export default function systemRunning() {
 
   // Local room json file
   const { layoutRunning } = useLocalSearchParams<{ layoutRunning: string }>();
-
-
+  
   if (!isConnected) {
     console.warn("WebSocket not connected!");
     return;
   }
+
+
+  // Auto refresh page with saved furniture
+  useFocusEffect(
+    useCallback(() => {
+
+      // Startup the robot
+      if (isConnected) {
+        sendMessage({ type: "set_mode", config: "localisation" })
+      } else {
+        alert("No connection to the WebSocket.");
+      }
+    }, [])
+  );
+
+
 
   // Update the box coordinates based on robot position
   useEffect(() => {
@@ -195,6 +210,7 @@ export default function systemRunning() {
         setSelectedBox(id); // Selected box to highlighted
         var thisBox = boxes.find((box) => box.id === id)
         setInputX(Number(thisBox?.x))
+        setTotalProgress(totalProgress + (progressBarSize / boxes.length))
         setInputY(Number(thisBox?.y))
         setInputAngle(Number(thisBox?.rotation))
         console.log(`Box ${id} updated position: `, thisBox);
@@ -275,7 +291,7 @@ export default function systemRunning() {
               borderColor: "red",
             }}
           >
-            <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`) }} resizeMode="cover" style={uniqueStyles.image} />
+            <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`) }} resizeMode="contain" style={uniqueStyles.image} />
 
             {/* Display grey squares for end point */}
             {boxDestinations.map((box, index) => (
@@ -353,7 +369,7 @@ export default function systemRunning() {
         style={uniqueStyles.stopContainer}
         onPress={() => {
           sendMessage({ type: "emergency_stop", direction: "stop" });
-          alert("stop called");
+          // alert("stop called");
         }}
       />
 

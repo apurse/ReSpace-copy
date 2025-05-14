@@ -164,12 +164,12 @@ const SettingsPage = () => {
                     Robot Settings
                 </Text>
 
-                <SliderSetting label="Movement Speed"
+                {/* <SliderSetting label="Movement Speed"
                     min={1}
                     max={3}
                     value={movementSpeed}
                     onValueChange={(value) => onChangeFunction(setMovementSpeed, "movementSpeed", value)}
-                />
+                /> */}
 
                 <ToggleSetting
                     label="Stop when humans present"
@@ -177,11 +177,11 @@ const SettingsPage = () => {
                     value={stopWhenHumansPresent}
                 />
 
-                <ActionButton
+                {/* <ActionButton
                     label="Re-map room"
                     onPress={() => alert("Re-mapping room")}
                     style={uniqueStyles.button}
-                />
+                /> */}
 
                 {/* <ActionButton
                     label="Controller"
@@ -210,7 +210,7 @@ const SettingsPage = () => {
                 <Text style={uniqueStyles.subSectionTitle}>
                     App Settings
                 </Text>
-                <ToggleSetting
+                {/* <ToggleSetting
                     label="Completed Tasks"
                     value={completedTasks}
                     onValueChange={(value) => onChangeFunction(setCompletedTasks, "completedTasks", value)}
@@ -219,7 +219,7 @@ const SettingsPage = () => {
                     label="Collisions"
                     value={collisions}
                     onValueChange={(value) => onChangeFunction(setCollisions, "collisions", value)}
-                />
+                /> */}
                 <ToggleSetting
                     label="Battery Levels"
                     value={batteryLevels}
@@ -232,10 +232,10 @@ const SettingsPage = () => {
                     value={batteryNotificationThreshold}
                     onValueChange={(value) => onChangeFunction(setBatteryNotificationThreshold, "batteryNotification", value)}
                 />
-                <ActionButton
+                {/* <ActionButton
                     label="Task History Logs"
                     onPress={() => alert("Todo...")}
-                />
+                /> */}
 
                 <Text style={uniqueStyles.subSectionTitle}>
                     Theme

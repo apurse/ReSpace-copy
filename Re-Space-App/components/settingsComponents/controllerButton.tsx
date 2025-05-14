@@ -1,15 +1,14 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
 import { TabBarIonicons, TabBarMaterial, TabBarFontAwesome } from '@/components/navigation/TabBarIcon';
 import { useSocket } from "@/hooks/useSocket";
+import { useTheme } from '@/app/_layout';
 
 const { width } = Dimensions.get("window");
 
 const ControlButton = ({
     iconName,
     iconSize = 24,
-    iconColor = "black",
     buttonStyle,
     message,
     targetRobot,
@@ -18,7 +17,6 @@ const ControlButton = ({
 }: {
     iconName?: string;
     iconSize?: number;
-    iconColor?: string;
     buttonStyle?: object;
     message?: string;
     targetRobot?: string;
@@ -27,6 +25,10 @@ const ControlButton = ({
 }) => {
     const { sendMessage, isConnected } = useSocket();
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const { theme } = useTheme();
+    const isDarkMode = theme === 'dark';
+    const uniqueStyles = createUniqueStyles(isDarkMode);
+
 
     /**
      * Send control messages to the target robot with a direction
@@ -70,11 +72,11 @@ const ControlButton = ({
                         }}
                         style={({ pressed }) => [
                             { backgroundColor: pressed ? "lightgrey" : "green" },
-                            styles.button,
+                            uniqueStyles.button,
                             buttonStyle,
                         ]}
                     >
-                        <Text style={styles.text}>{text}</Text>
+                        <Text style={uniqueStyles.text}>{text}</Text>
                     </Pressable>
                 )
                 :
@@ -84,13 +86,13 @@ const ControlButton = ({
                     onPressIn={startSending}
                     onPressOut={stopSending}
                     style={({ pressed }) => [
-                        { backgroundColor: pressed ? "lightgrey" : "#d3dbd5" },
-                        styles.button,
+                        { backgroundColor: pressed ? (isDarkMode ? "grey" : "grey") : (isDarkMode ? "#000" : "#fff") },
+                        uniqueStyles.button,
                         buttonStyle,
                     ]}
                 >
                     {iconName &&
-                        <TabBarFontAwesome name={iconName as any} size={iconSize} color={iconColor} />
+                        <TabBarFontAwesome name={iconName as any} size={iconSize} style={uniqueStyles.buttonIcon} />
                     }
                 </Pressable>
             }
@@ -98,20 +100,28 @@ const ControlButton = ({
     );
 };
 
-const styles = StyleSheet.create({
-    button: {
-        borderRadius: 10,
-        width: width * 0.2,
-        height: width * 0.2,
-        marginBottom: 10,
-        marginLeft: 10,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    text: {
-        fontSize: 18,
-        fontWeight: 'bold'
-    }
-});
+const createUniqueStyles = (isDarkMode: boolean) =>
+    StyleSheet.create({
+        button: {
+            width: width * 0.2,
+            height: width * 0.2,
+            marginBottom: 10,
+            marginLeft: 10,
+            alignItems: "center",
+            justifyContent: "center",
+            color: "green",
+            borderRadius: 10,
+            borderColor: isDarkMode ? "#fff" : "#000",
+            borderWidth: 2.5
+        },
+        buttonIcon: {
+            color: isDarkMode ? "#fff" : "#000"
+        },
+        text: {
+            color: isDarkMode ? '#fff' : '#000',
+            fontSize: 18,
+            fontWeight: 'bold'
+        }
+    });
 
 export default ControlButton;

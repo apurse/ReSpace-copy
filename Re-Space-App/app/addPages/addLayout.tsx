@@ -398,19 +398,19 @@ export default function DragAndDrop() {
         // Save new boxes
         setPlacedBoxes((prev) => [...prev, ...boxes]);
 
-        // Send current layout to the hub 
-        if (isConnected) {
-            sendMessage({ type: "current_layout", locations: boxes })
-        } else {
-            alert("No connection to the WebSocket.");
-        }
-
         let currentLayoutBoxes: Box[] = [];
 
         // If the current layout hasnt been set, set the current boxes
         if (!setCurrentLayout) {
             currentLayoutBoxes = [...placedBoxes];
             setCurrentLayout = true;
+
+            // Send current layout to the hub 
+            if (isConnected) {
+                sendMessage({ type: "current_layout", locations: currentLayoutBoxes })
+            } else {
+                alert("No connection to the WebSocket.");
+            }
 
             // Show notification for 3 sec
             setnotifications('Current layout has been set');
@@ -420,6 +420,16 @@ export default function DragAndDrop() {
         // If desired layout, set new boxes and save
         if (desiredLayout) {
             const newLayoutBoxes = [...boxes]
+
+
+            // Send desired layout to the hub 
+            if (isConnected) {
+                sendMessage({ type: "desired_layout", locations: newLayoutBoxes })
+            } else {
+                alert("No connection to the WebSocket.");
+            }
+
+
             saveLayout(currentLayoutBoxes, newLayoutBoxes);
         }
     };
@@ -540,294 +550,289 @@ export default function DragAndDrop() {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             style={{ flex: 1 }}
         >
-            <ScrollView
+            {/* <ScrollView
                 contentContainerStyle={{ flexGrow: 1 }}
                 keyboardShouldPersistTaps="handled"
-            >
-                <View style={defaultStyles.body}>
+            > */}
+            <View style={defaultStyles.body}>
 
-                    {/* Title */}
-                    <TextInput
-                        value={layoutName}
-                        onChangeText={setlayoutHeading}
-                        style={uniqueStyles.title}
-                        placeholder='*New Layout ...'
-                        placeholderTextColor={isDarkMode ? '#fff' : '#000'}
-                    />
+                {/* Title */}
+                <TextInput
+                    value={layoutName}
+                    onChangeText={setlayoutHeading}
+                    style={uniqueStyles.title}
+                    placeholder='*New Layout ...'
+                    placeholderTextColor={isDarkMode ? '#fff' : '#000'}
+                />
 
-                    {/* Show zoom value */}
-                    <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
+                {/* Show zoom value */}
+                <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
 
-                    {/* Rotation buttons */}
-                    {/* Rotation to right */}
-                    <TouchableOpacity
-                        style={uniqueStyles.rotationRight}
-                        onPressIn={() => selectedBox && rotateBoxRight(selectedBox)}
-                        onPressOut={stopRotation}
-                    >
-                        <View>
-                            <Icon name="undo" size={25} style={{ transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000', }} />
-                        </View>
-                    </TouchableOpacity>
+                {/* Rotation buttons */}
+                {/* Rotation to right */}
+                <TouchableOpacity
+                    style={uniqueStyles.rotationRight}
+                    onPressIn={() => selectedBox && rotateBoxRight(selectedBox)}
+                    onPressOut={stopRotation}
+                >
+                    <View>
+                        <Icon name="undo" size={25} style={{ transform: [{ scaleX: -1 }], color: isDarkMode ? '#fff' : '#000', }} />
+                    </View>
+                </TouchableOpacity>
 
-                    {/* Rotation to left */}
-                    <TouchableOpacity
-                        style={uniqueStyles.rotationLeft}
-                        onPressIn={() => selectedBox && rotateBoxLeft(selectedBox)}
-                        onPressOut={stopRotation}
-                    >
-                        <View>
-                            <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000', }} />
-                        </View>
-                    </TouchableOpacity>
+                {/* Rotation to left */}
+                <TouchableOpacity
+                    style={uniqueStyles.rotationLeft}
+                    onPressIn={() => selectedBox && rotateBoxLeft(selectedBox)}
+                    onPressOut={stopRotation}
+                >
+                    <View>
+                        <Icon name="undo" size={25} style={{ color: isDarkMode ? '#fff' : '#000', }} />
+                    </View>
+                </TouchableOpacity>
 
-                    {/* Grid */}
-                    <View
-                        ref={squareRef}
-                        style={uniqueStyles.grid}
-                        onLayout={(e) => {
-                            const { x, y, width, height } = e.nativeEvent.layout;
-                            console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
+                {/* Grid */}
+                <View
+                    ref={squareRef}
+                    style={uniqueStyles.grid}
+                    onLayout={(e) => {
+                        const { x, y, width, height } = e.nativeEvent.layout;
+                        console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
+                    }}
+                >
+                    {/* Zoom function settings */}
+                    <ReactNativeZoomableView
+                        initialOffsetX={initialOffsetX}
+                        initialOffsetY={initialOffsetY}
+                        maxZoom={10}
+                        minZoom={0.1}
+                        initialZoom={initialZoom}
+                        bindToBorders={false}
+                        pinchToZoomInSensitivity={6}
+                        pinchToZoomOutSensitivity={4}
+                        panEnabled={true}
+                        movementSensibility={1}
+
+                        // Set zoom center to user's gesture position (not resetting to center)
+                        onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
+                            setZoomLevel(zoomableViewEventObject.zoomLevel);
+
+                            // Calculate the new offsets based on the zoom level
+                            const zoomLevel = zoomableViewEventObject.zoomLevel;
+
+                            // Get the current zoom position 
+                            const gestureCenterX = zoomableViewEventObject.offsetX;
+                            const gestureCenterY = zoomableViewEventObject.offsetY;
+
+                            // Adjust the offsets 
+                            const newOffsetX = gestureCenterX - (gestureCenterX - offsetX) * zoomLevel;
+                            const newOffsetY = gestureCenterY - (gestureCenterY - offsetY) * zoomLevel;
+
+                            // Apply the new offsets 
+                            setOffsetX(newOffsetX);
+                            setOffsetY(newOffsetY);
                         }}
                     >
-                        {/* Zoom function settings */}
-                        <ReactNativeZoomableView
-                            initialOffsetX={initialOffsetX}
-                            initialOffsetY={initialOffsetY}
-                            maxZoom={10}
-                            minZoom={0.1}
-                            initialZoom={initialZoom}
-                            bindToBorders={false}
-                            pinchToZoomInSensitivity={6}
-                            pinchToZoomOutSensitivity={4}
-                            panEnabled={true}
-                            movementSensibility={1}
-
-                            // Set zoom center to user's gesture position (not resetting to center)
-                            onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
-                                setZoomLevel(zoomableViewEventObject.zoomLevel);
-
-                                // Calculate the new offsets based on the zoom level
-                                const zoomLevel = zoomableViewEventObject.zoomLevel;
-
-                                // Get the current zoom position 
-                                const gestureCenterX = zoomableViewEventObject.offsetX;
-                                const gestureCenterY = zoomableViewEventObject.offsetY;
-
-                                // Adjust the offsets 
-                                const newOffsetX = gestureCenterX - (gestureCenterX - offsetX) * zoomLevel;
-                                const newOffsetY = gestureCenterY - (gestureCenterY - offsetY) * zoomLevel;
-
-                                // Apply the new offsets 
-                                setOffsetX(newOffsetX);
-                                setOffsetY(newOffsetY);
+                        {/* Internal room container */}
+                        <View
+                            style={{
+                                position: "absolute",
+                                left: offsetX,
+                                top: offsetY,
+                                width: roomDimensionsMM[0] * zoomLevel,
+                                height: roomDimensionsMM[1] * zoomLevel,
+                                backgroundColor: "rgba(255,255,255,0.5)",
+                                borderWidth: 3,
+                                borderColor: "red",
                             }}
                         >
-                            {/* Internal room container */}
-                            <View
-                                style={{
-                                    position: "absolute",
-                                    left: offsetX,
-                                    top: offsetY,
-                                    width: roomDimensionsMM[0] * zoomLevel,
-                                    height: roomDimensionsMM[1] * zoomLevel,
-                                    backgroundColor: "rgba(255,255,255,0.5)",
-                                    borderWidth: 3,
-                                    borderColor: "red",
-                                }}
-                            >
-                                <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`),  }} resizeMode="contain" style={uniqueStyles.image} />
-                                {/* Display non-movable objects */}
-                                {placedBoxes.map((box, index) => (
+                            <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`), }} resizeMode="contain" style={uniqueStyles.image} />
+                            {/* Display non-movable objects */}
+                            {placedBoxes.map((box, index) => (
+                                <View
+                                    key={`placed-${box.id}-${index}`}
+                                    style={[
+                                        uniqueStyles.robot,
+                                        {
+                                            left: box.x * zoomLevel,
+                                            top: box.y * zoomLevel,
+                                            backgroundColor: "transparent",
+                                            borderWidth: 1,
+                                            width: box.width * zoomLevel,
+                                            height: box.length * zoomLevel,
+                                            transform: [{ rotate: `${box.rotation}deg` }],
+                                        },
+                                    ]}
+                                >
+                                    <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.furnitureID}</Text>
+                                </View>
+                            ))}
+
+                            {/* Display movable objects */}
+                            {boxes.map((box, index) => {
+                                const panResponder = createPanResponder(box.id);
+                                const isSelected = selectedBox === box.id;
+
+                                return (
                                     <View
-                                        key={`placed-${box.id}-${index}`}
+                                        key={`${box.id}-${index}`}
                                         style={[
                                             uniqueStyles.robot,
                                             {
                                                 left: box.x * zoomLevel,
                                                 top: box.y * zoomLevel,
-                                                backgroundColor: "transparent",
-                                                borderWidth: 1,
+                                                backgroundColor: box.color,
+                                                borderWidth: isSelected ? 2 : 0,
+                                                borderColor: isSelected ? "yellow" : "transparent",
                                                 width: box.width * zoomLevel,
                                                 height: box.length * zoomLevel,
                                                 transform: [{ rotate: `${box.rotation}deg` }],
                                             },
                                         ]}
+                                        {...panResponder.panHandlers}
                                     >
-                                        <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.furnitureID}</Text>
+                                        <Text style={uniqueStyles.boxText}>{box.furnitureID}</Text>
                                     </View>
-                                ))}
+                                );
+                            })}
+                        </View>
+                    </ReactNativeZoomableView>
+                </View>
+                {/* Need scale measurement */}
+                <View style={uniqueStyles.buttonContainer}>
 
-                                {/* Display movable objects */}
-                                {boxes.map((box, index) => {
-                                    const panResponder = createPanResponder(box.id);
-                                    const isSelected = selectedBox === box.id;
+                    {/* Show notifications */}
+                    {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
 
-                                    return (
-                                        <View
-                                            key={`${box.id}-${index}`}
-                                            style={[
-                                                uniqueStyles.robot,
-                                                {
-                                                    left: box.x * zoomLevel,
-                                                    top: box.y * zoomLevel,
-                                                    backgroundColor: box.color,
-                                                    borderWidth: isSelected ? 2 : 0,
-                                                    borderColor: isSelected ? "yellow" : "transparent",
-                                                    width: box.width * zoomLevel,
-                                                    height: box.length * zoomLevel,
-                                                    transform: [{ rotate: `${box.rotation}deg` }],
-                                                },
-                                            ]}
-                                            {...panResponder.panHandlers}
-                                        >
-                                            <Text style={uniqueStyles.boxText}>{box.furnitureID}</Text>
-                                        </View>
-                                    );
-                                })}
-                            </View>
-                        </ReactNativeZoomableView>
-                    </View>
-                    {/* Need scale measurement */}
-                    <View style={uniqueStyles.buttonContainer}>
+                    {/* Show coordinates */}
+                    {selectedBox !== null &&
 
-                        {/* Show notifications */}
-                        {notifications && <Text style={uniqueStyles.notificationText}>{notifications}</Text>}
+                        <View style={uniqueStyles.coordinatesContainer}>
+                            <Text style={uniqueStyles.coordinates}>X =</Text>
+                            <TextInput
+                                value={inputX}
+                                onChangeText={(e) => setInputX(e)}
+                                onBlur={() => updateX(inputX)}
+                                style={uniqueStyles.textInput}
+                                keyboardType="numeric"
+                                placeholder={String(coordinateX)}
+                            />
+                            <Text style={uniqueStyles.coordinates}>Y =</Text>
+                            <TextInput
+                                value={inputY}
+                                onChangeText={(e) => setInputY(e)}
+                                onBlur={() => updateY(inputY)}
+                                style={uniqueStyles.textInput}
+                                keyboardType="numeric"
+                                placeholder={String(coordinateY)}
+                            />
+                            <Text style={uniqueStyles.coordinates}>Angle =</Text>
+                            <TextInput
+                                value={inputAngle}
+                                onChangeText={(e) => setInputAngle(e)}
+                                onBlur={() => updateAngle(inputAngle)}
+                                style={uniqueStyles.textInput}
+                                keyboardType="numeric"
+                                placeholder={String(rotationAngle)}
+                            />
+                        </View>
+                    }
 
-                        {/* Show coordinates */}
-                        {selectedBox !== null &&
-
-                            <View style={uniqueStyles.coordinatesContainer}>
-                                <Text style={uniqueStyles.coordinates}>X =</Text>
-                                <TextInput
-                                    value={inputX}
-                                    onChangeText={(e) => setInputX(e)}
-                                    onBlur={() => updateX(inputX)}
-                                    style={uniqueStyles.textInput}
-                                    keyboardType="numeric"
-                                    placeholder={String(coordinateX)}
-                                />
-                                <Text style={uniqueStyles.coordinates}>Y =</Text>
-                                <TextInput
-                                    value={inputY}
-                                    onChangeText={(e) => setInputY(e)}
-                                    onBlur={() => updateY(inputY)}
-                                    style={uniqueStyles.textInput}
-                                    keyboardType="numeric"
-                                    placeholder={String(coordinateY)}
-                                />
-                                <Text style={uniqueStyles.coordinates}>Angle =</Text>
-                                <TextInput
-                                    value={inputAngle}
-                                    onChangeText={(e) => setInputAngle(e)}
-                                    onBlur={() => updateAngle(inputAngle)}
-                                    style={uniqueStyles.textInput}
-                                    keyboardType="numeric"
-                                    placeholder={String(rotationAngle)}
-                                />
-                            </View>
-                        }
-
-                        {/* Buttons */}
-                        {/* Show different buttons depending in current location is set or not */}
-                        {!isCurrentLayoutSet ? (
-                            <>
+                    {/* Buttons */}
+                    {/* Show different buttons depending in current location is set or not */}
+                    {!isCurrentLayoutSet ? (
+                        <>
+                            <ActionButton
+                                label="Set Current Location"
+                                onPress={() => { setLayout(false) }}
+                            />
+                            <ActionButton
+                                label="Delete Furniture"
+                                onPress={deleteFurniture}
+                                style={{ backgroundColor: '#fa440c' }}
+                            />
+                            <ActionButton
+                                label="Add Furniture"
+                                onPress={() => setModalVisible(true)}
+                                style={{ backgroundColor: '#1565C0' }}
+                            />
+                            <FurnitureModal
+                                isVisible={isModalVisible}
+                                onClose={() => setModalVisible(false)}
+                                onSelectFurniture={addFurniture}
+                            />
+                            {(loadedLayoutIndex != -1) &&
                                 <ActionButton
-                                    label="Set Current Location"
-                                    onPress={() => { setLayout(false) }}
+                                    label="Delete this layout"
+                                    onPress={async () => {
+                                        await deleteLayout()
+                                        router.back();
+                                    }}
+                                    style={{ backgroundColor: '#C62828' }}
                                 />
-                                <ActionButton
-                                    label="Delete Furniture"
-                                    onPress={deleteFurniture}
-                                    style={{ backgroundColor: '#fa440c' }}
-                                />
-                                <ActionButton
-                                    label="Add Furniture"
-                                    onPress={() => setModalVisible(true)}
-                                    style={{ backgroundColor: '#1565C0' }}
-                                />
-                                <FurnitureModal
-                                    isVisible={isModalVisible}
-                                    onClose={() => setModalVisible(false)}
-                                    onSelectFurniture={addFurniture}
-                                />
-                                {(loadedLayoutIndex != -1) &&
-                                    <ActionButton
-                                        label="Delete this layout"
-                                        onPress={async () => {
-                                            await deleteLayout()
-                                            router.back();
-                                        }}
-                                        style={{ backgroundColor: '#C62828' }}
-                                    />
-                                }
-                            </>
-                        ) : (
-                            <>
-                                {isConnected ?
-                                    (isSaved ?
-                                        (
-                                            <ActionButton
-                                                label="Ready To Go!"
-                                                onPress={() => {
-                                                    console.log("link layoutName", layoutName)
-                                                    console.log("link roomName", roomName)
-                                                    if (isConnected) {
-                                                        sendMessage({ type: "desired_layout", locations: boxes })
-                                                    } else {
-                                                        alert("No connection to the WebSocket.");
-                                                    }
-                                                    router.push({
-                                                        pathname: "/extraPages/systemRunning",
-                                                        params: { layoutRunning: layoutName, roomName },
-                                                    })
-                                                }}
-                                            />
-                                        )
-                                        :
-                                        (
-                                            <ActionButton
-                                                label={(loadedLayoutIndex == -1) ? "Save the layout first!" : "Update the layout first!"}
-                                                onPress={() => {
-                                                    alert("Save the layout first!")
-                                                }}
-                                            />
-                                        )
+                            }
+                        </>
+                    ) : (
+                        <>
+                            {isConnected ?
+                                (isSaved ?
+                                    (
+                                        <ActionButton
+                                            label="Ready To Go!"
+                                            onPress={() => {
+
+                                                // Go to systemRunning
+                                                router.replace({
+                                                    pathname: "/extraPages/systemRunning",
+                                                    params: { layoutRunning: layoutName, roomName },
+                                                })
+                                            }}
+                                        />
                                     )
                                     :
                                     (
                                         <ActionButton
-                                            label="Connect to WebSocket!"
+                                            label={(loadedLayoutIndex == -1) ? "Save the layout first!" : "Update the layout first!"}
                                             onPress={() => {
-                                                alert("WebSocket Not Connected!")
+                                                alert("Save the layout first!")
                                             }}
                                         />
                                     )
-                                }
+                                )
+                                :
+                                (
+                                    <ActionButton
+                                        label="Connect to WebSocket!"
+                                        onPress={() => {
+                                            alert("WebSocket Not Connected!")
+                                        }}
+                                    />
+                                )
+                            }
 
+                            <ActionButton
+                                label="Reset Layout"
+                                onPress={resetLayout}
+                                style={{ backgroundColor: '#455A64' }}
+                            />
+                            {!isSaved ?
                                 <ActionButton
-                                    label="Reset Layout"
-                                    onPress={resetLayout}
-                                    style={{ backgroundColor: '#455A64' }}
+                                    label={(loadedLayoutIndex == -1) ? "Save Layout" : "Update Layout"}
+                                    onPress={() => setLayout(true)}
+                                    style={{ backgroundColor: '#00838F' }}
                                 />
-                                {!isSaved ?
-                                    <ActionButton
-                                        label={(loadedLayoutIndex == -1) ? "Save Layout" : "Update Layout"}
-                                        onPress={() => setLayout(true)}
-                                        style={{ backgroundColor: '#00838F' }}
-                                    />
-                                    :
-                                    <ActionButton
-                                        label={(loadedLayoutIndex == -1) ? "Layout Saved!" : "Layout Updated!"}
-                                        onPress={() => console.log("filler")}
-                                        style={{ backgroundColor: '#00838F' }}
-                                    />
-                                }
-                            </>
-                        )}
-                    </View>
+                                :
+                                <ActionButton
+                                    label={(loadedLayoutIndex == -1) ? "Layout Saved!" : "Layout Updated!"}
+                                    onPress={() => console.log("filler")}
+                                    style={{ backgroundColor: '#00838F' }}
+                                />
+                            }
+                        </>
+                    )}
                 </View>
-            </ScrollView>
+            </View>
+            {/* </ScrollView> */}
         </KeyboardAvoidingView>
     );
 };

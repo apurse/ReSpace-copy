@@ -193,16 +193,16 @@ export default function Controller() {
                         }}
                     />
 
-                    <ActionButton
+                    {/* <ActionButton
                         label="Delete all layouts for this account"
                         style={{ backgroundColor: '#C62828' }}
                         onPress={() => clearLayoutJson(false)}
-                    />
+                    /> */}
 
 
                     {/* Admin settings */}
                     <Text style={defaultStyles.sectionTitle}>Admin Settings</Text>
-                    <ActionButton
+                    {/* <ActionButton
                         label="Delete all layouts for ALL accounts"
                         style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#fff' : '#000', borderWidth: 3 }}
                         onPress={() => clearLayoutJson(true)}
@@ -211,12 +211,7 @@ export default function Controller() {
                         label="Delete all furniture for ALL accounts"
                         style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#fff' : '#000', borderWidth: 3 }}
                         onPress={() => clearLayoutJson(true)}
-                    />
-                    <ActionButton
-                        label="Delete ALL rooms"
-                        style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#fff' : '#000', borderWidth: 3 }}
-                        onPress={() => clearLayoutJson(true)}
-                    />
+                    /> */}
                     <ActionButton
                         label="Delete ALL accounts on this device"
                         style={{ backgroundColor: '#C62828', borderColor: isDarkMode ? '#fff' : '#000', borderWidth: 3 }}
@@ -270,11 +265,13 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             justifyContent: 'space-between',
             alignItems: 'center',
             height: 40,
-            backgroundColor: isDarkMode ? 'white' : 'black',
-            color: isDarkMode ? '#000' : '#fff',
+            backgroundColor: isDarkMode ? 'white' : '#EFEFEF',
+            color: isDarkMode ? '#fff' : '#000',
             fontSize: 14,
             fontWeight: 'bold',
             fontFamily: 'arial',
+            borderColor: "#DADADA",
+            borderWidth: 2
         },
         segmentContainer: {
             width: '100%',

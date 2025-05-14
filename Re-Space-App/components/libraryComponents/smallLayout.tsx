@@ -121,8 +121,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
     layoutCardContainer: {
       width: '45%',
-      borderColor: isDarkMode ? '#fff' : '#ddd',
-      borderWidth: 1,
+      borderColor: '#a7a8a7',
+      borderWidth: 2,
       borderRadius: 8,
       height: 200,
       padding: 8,

@@ -276,7 +276,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             justifyContent: 'space-between',
             alignItems: 'center',
             height: 40,
-            backgroundColor: isDarkMode ? 'white' : '#242424',
+            backgroundColor: isDarkMode ? 'white' : 'grey',
             color: isDarkMode ? '#000' : '#fff',
             fontSize: 14,
             fontWeight: 'bold',

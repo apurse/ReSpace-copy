@@ -12,7 +12,7 @@ import { useRoom } from '@/hooks/useRoom';
  * @param FurnitureTitle String - The title of the furniture. 
  * @param roomName String - The name of the room the furniture is for. 
  */
-export default function SmallFurniture({ FurnitureTitle }: { FurnitureTitle: any;}) {
+export default function SmallFurniture({ FurnitureTitle }: { FurnitureTitle: any; }) {
 
   // Box class
   type Box = {
@@ -148,8 +148,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
   StyleSheet.create({
     furnitureCardContainer: {
       width: '45%',
-      borderColor: isDarkMode ? '#fff' : '#ddd',
-      borderWidth: 1,
+      borderColor: '#a7a8a7',
+      borderWidth: 2,
       borderRadius: 8,
       height: 200,
       padding: 8,

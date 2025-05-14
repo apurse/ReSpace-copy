@@ -130,9 +130,7 @@ export default function Controller() {
                     <ControllerButton iconName={"chevron-down"} message='backward' targetRobot={selectedRobot}></ControllerButton>
                 </View>
                 <View>
-                    <ControllerButton iconName={"arrow-up"} message='raise' targetRobot={selectedRobot}></ControllerButton>
                     <ControllerButton iconName={"rotate-right"} message='right' targetRobot={selectedRobot}></ControllerButton>
-                    <ControllerButton iconName={"arrow-down"} message='lower' targetRobot={selectedRobot}></ControllerButton>
                 </View>
             </View>
         </View >
