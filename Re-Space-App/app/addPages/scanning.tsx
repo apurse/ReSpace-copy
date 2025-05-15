@@ -116,7 +116,7 @@ export default function Controller() {
                     {!startPressed ?
                         <ControllerButton text="Start" buttonStyle={{ backgroundColor: '#2E7D32', color: 'white' }} targetRobot={selectedRobot} onPress={() => scanningFunctions("Start")} />
                         :
-                        <ControllerButton text="Running!" />
+                        <ControllerButton text="Started" />
                     }
                     <ControllerButton iconName={"rotate-left"} message='left' targetRobot={selectedRobot} />
                     {!savePressed ?

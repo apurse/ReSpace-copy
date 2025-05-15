@@ -7,6 +7,7 @@ import { useTheme } from '../_layout';
 import { useSocket } from "@/hooks/useSocket";
 import { LoginModal } from '@/components/indexComponents/loginModal';
 import { useAuth } from "@/hooks/useAuth";
+import ActionButton from '@/components/settingsComponents/actionButton';
 
 
 // Get dimensions of the screen
@@ -57,13 +58,13 @@ export default function HomeScreen() {
   const isDarkMode = theme === 'dark';
   const defaultStyles = createDefaultStyles(isDarkMode);
   const uniqueStyles = createUniqueStyles(isDarkMode);
-  const { robotData } = useSocket();
+  const { isConnected, robotData } = useSocket();
   const { user } = useAuth();
 
   // Login states
   const [isModalVisible, setModalVisible] = useState(false);
   const [hasSeenModal, setHasSeenModal] = useState(true); // set to true while developing
-  
+
   const [greeting, setGreeting] = useState<string | null>();
 
 
@@ -104,6 +105,8 @@ export default function HomeScreen() {
   return (
     <ScrollView contentContainerStyle={defaultStyles.body}>
 
+      {/* Greeting */}
+      <Text style={uniqueStyles.greeting}>{greeting}</Text>
 
       {/* Login button */}
       {!user &&
@@ -115,21 +118,33 @@ export default function HomeScreen() {
         </TouchableOpacity>
       }
 
-
-      {/* Greeting */}
-      <Text style={uniqueStyles.greeting}>{greeting}</Text>
-
-
-      {/* ReSpace monitoring status section */}
-      <View style={[uniqueStyles.statusCard, { backgroundColor: colorW || color }]}>
-        <Text style={uniqueStyles.statusTitle}>Re-Space Monitoring</Text>
-        <View style={uniqueStyles.statusIcons}>
-          {React.createElement(battery)}
-          {React.createElement(warningI || warning)}
-        </View>
-        <Text style={uniqueStyles.statusText}>{messageW || message}</Text>
-        <Text style={uniqueStyles.statusText}>{currentBatteryPerc}%</Text>
-      </View>
+      {isConnected ?
+        (
+          <View style={[uniqueStyles.statusCard, { backgroundColor: colorW || color }]}>
+            <Text style={uniqueStyles.statusTitle}>Re-Space Monitoring</Text>
+            <View style={uniqueStyles.statusIcons}>
+              {React.createElement(battery)}
+              {React.createElement(warningI || warning)}
+            </View>
+            <Text style={uniqueStyles.statusText}>{currentBatteryPerc}%</Text>
+            <Text style={uniqueStyles.statusText}>Connected!</Text>
+            <Text style={uniqueStyles.statusText}>{messageW || message}</Text>
+          </View>
+        )
+        :
+        (
+          <View style={[uniqueStyles.statusCard, { backgroundColor: '#00838F'}]}>
+            <Text style={uniqueStyles.statusTitle}>Re-Space Monitoring</Text>
+            <View style={uniqueStyles.statusIcons}>
+              {React.createElement(battery)}
+              {React.createElement(warningI || warning)}
+            </View>
+            <Text style={uniqueStyles.statusText}>{currentBatteryPerc}%</Text>
+            <Text style={uniqueStyles.statusText}>Not connected!</Text>
+            <Text style={uniqueStyles.statusText}>{messageW || message}</Text>
+          </View>
+        )
+      }
 
 
       {/* Robots section */}
@@ -142,7 +157,7 @@ export default function HomeScreen() {
         isVisible={isModalVisible}
         onClose={() => setModalVisible(false)}
       />
-    </ScrollView>
+    </ScrollView >
   );
 }
 
@@ -163,7 +178,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       marginTop: 0,
       backgroundColor: isDarkMode ? '#e6e6e6' : '#4a4a4a',
       padding: 10,
-      alignItems: 'center',
+      // alignItems: 'flex-start',
+      width: screenWidth * 0.35,
       borderRadius: 5,
     },
     loginButtonContent: {
@@ -175,6 +191,9 @@ const createUniqueStyles = (isDarkMode: boolean) =>
       textAlignVertical: 'center',
       color: isDarkMode ? '#000' : '#fff',
       fontSize: 18,
+    },
+    buttonContainer: {
+      width: screenWidth * 0.8,
     },
 
     // Status card section
