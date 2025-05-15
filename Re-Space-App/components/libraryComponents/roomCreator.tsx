@@ -89,6 +89,10 @@ export const createRoomIfNotExists = async (
         yaml: "",
         png: "",
       },
+      roomDimensions: {
+        roomX: 0,
+        roomY: 0
+      },
       users: {
         [user.username]: {
           roomFavourited: false,

@@ -1,9 +1,15 @@
 import React, { createContext, useEffect, useState } from "react";
+import { Image } from 'react-native';
+
 import * as FileSystem from 'expo-file-system';
+import YAML, { parse, stringify } from 'yaml'
 import { createRoomIfNotExists } from '@/components/libraryComponents/roomCreator';
 import { router } from "expo-router";
 import { useAuth } from '@/hooks/useAuth';
 import { useSocket } from "@/hooks/useSocket";
+import { useImage } from "expo-image";
+import base64 from 'react-native-base64'
+
 
 
 // Create the authorisation Context
@@ -30,18 +36,56 @@ export const RoomProvider = ({ children }: { children: React.ReactNode }) => {
     // Update the room files when updated in the socket provider.
     useEffect(() => {
 
-        // Check the roomName is valid
-        if (!roomName) return;
+        const getDimensions = async () => {
 
-        console.log(roomScanFiles)
-        const updateData = {
-            ...jsonData,
-            roomFiles: {
-                yaml: roomScanFiles?.yaml,
-                png: roomScanFiles?.png,
+            // Check the roomName is valid
+            if (!roomName) return;
+
+
+            // Check they are valid
+            if (roomScanFiles.yaml && roomScanFiles.png) {
+
+
+                // Decode the yaml and extract the resolution
+                const decodedYaml = base64.decode(roomScanFiles.yaml)
+                const data = YAML.parse(decodedYaml)
+                const resolution = parseFloat(data.resolution)
+                console.log("NEW!!! yaml-Resolution:", resolution)
+
+
+                // Get the image dimensions
+                // const image = useImage(`data:image/png;base64,${roomScanFiles.png}`);
+
+
+                Image.getSize(`data:image/png;base64,${roomScanFiles.png}`, (width, height) => {
+
+                    // console.log("NEW!!! image:", image)
+                    const roomX = width * resolution
+                    const roomY = height * resolution
+                    console.log("NEW!!! image-width:", width)
+                    console.log("NEW!!! image-height:", height)
+                    console.log("NEW!!! image-X:", roomX)
+                    console.log("NEW!!! image-Y:", roomY)
+
+
+                    const updateData = {
+                        ...jsonData,
+                        roomFiles: {
+                            yaml: roomScanFiles?.yaml,
+                            png: roomScanFiles?.png,
+                        },
+                        roomDimensions: {
+                            roomX: roomX,
+                            roomY: roomY
+                        }
+                    }
+                    updateJsonData(updateData)
+                });
+
+
             }
         }
-        updateJsonData(updateData)
+        getDimensions()
     }, [roomScanFiles])
 
 
