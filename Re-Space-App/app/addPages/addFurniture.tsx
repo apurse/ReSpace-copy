@@ -351,7 +351,7 @@ export default function AddFurniture() {
 
       <View style={uniqueStyles.inputRow}>
         <View style={uniqueStyles.inputField}>
-          <Text style={uniqueStyles.inputHeader}>Height</Text>
+          <Text style={uniqueStyles.inputHeader}>Height (mm)</Text>
           <TextInput
             // If there is nothing ('0') then show empty string (to keep placeholder)
             value={heightF ? heightF.toString() : ''}
@@ -364,7 +364,7 @@ export default function AddFurniture() {
           />
         </View>
         <View style={uniqueStyles.inputField}>
-          <Text style={uniqueStyles.inputHeader}>Width</Text>
+          <Text style={uniqueStyles.inputHeader}>Width (mm)</Text>
           <TextInput
             // If there is nothing ('0') then show empty string (to keep placeholder) 
             value={widthF ? widthF.toString() : ''}
@@ -380,7 +380,7 @@ export default function AddFurniture() {
 
       <View style={uniqueStyles.inputRow}>
         <View style={uniqueStyles.inputField}>
-          <Text style={uniqueStyles.inputHeader}>Length</Text>
+          <Text style={uniqueStyles.inputHeader}>Length (mm)</Text>
           <TextInput
             // If there is nothing ('0') then show empty string (to keep placeholder)
             value={length ? length.toString() : ''}

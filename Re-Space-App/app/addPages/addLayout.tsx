@@ -18,22 +18,6 @@ import { useRoom } from '@/hooks/useRoom';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
-// -------- Grid Visuals --------
-const roomDimensionsMM = [1200, 1200];
-const gridWidth = roomDimensionsMM[0];
-const gridHeight = roomDimensionsMM[1];
-
-// const initialZoom = 0.5;
-const viewGridWidth = 350;
-const viewGridHeigh = 350;
-
-// Dynamically calculate the initial zoom level based on the room size and screen size
-const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh + 150) / gridHeight);
-
-// Calculate the initial offsets to center the room in the grid
-const initialOffsetX = -(screenWidth - gridWidth * initialZoom) - 350 / 2;
-const initialOffsetY = (screenHeight - gridHeight * initialZoom) - 800 / 2;
-
 // Boxes in the grid
 const allBoxes = [
     { furnitureID: '111', id: 1, x: 0, y: 0, width: 70, length: 30, color: 'red', rotation: 0.0 },
@@ -86,11 +70,30 @@ export default function DragAndDrop() {
     const [rotationInterval, setRotationInterval] = useState<NodeJS.Timeout | null>(null); // Track rotation interval
     const [currentSpeed, setCurrentSpeed] = useState<number>(50); // Initial rotation speed
     const [layoutName, setlayoutHeading] = useState<string | undefined>();
-    const [zoomLevel, setZoomLevel] = useState(initialZoom); // Check zoom level
 
     const squareRef = useRef(null);
     const [offsetX, setOffsetX] = useState(0);
     const [offsetY, setOffsetY] = useState(0);
+
+    // -------- Grid Visuals --------
+    const roomDimensionsMetres = [
+        jsonData?.roomDimensions?.roomX ? jsonData?.roomDimensions?.roomX * 1000 : 1200,
+        jsonData?.roomDimensions?.roomY ? jsonData?.roomDimensions?.roomY * 1000 : 1200,
+    ];
+    const gridWidth = roomDimensionsMetres[0];
+    const gridHeight = roomDimensionsMetres[1];
+
+    // const initialZoom = 0.5;
+    const viewGridWidth = 350;
+    const viewGridHeigh = 350;
+
+    // Dynamically calculate the initial zoom level based on the room size and screen size
+    const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh + 150) / gridHeight);
+
+    // Calculate the initial offsets to center the room in the grid
+    const initialOffsetX = -(screenWidth - gridWidth * initialZoom) - 350 / 2;
+    const initialOffsetY = (screenHeight - gridHeight * initialZoom) - 800 / 2;
+    const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
 
 
     // Local room json file
@@ -455,8 +458,8 @@ export default function DragAndDrop() {
         const newBox = {
             furnitureID: furniture.furnitureID,
             id: newId, // change to "index"
-            x: roomDimensionsMM[0] / 2,
-            y: roomDimensionsMM[1] / 2,
+            x: roomDimensionsMetres[0] / 2,
+            y: roomDimensionsMetres[1] / 2,
             width: furniture.width,
             length: furniture.length,
             color: furniture.selectedColour,
@@ -639,8 +642,8 @@ export default function DragAndDrop() {
                                 position: "absolute",
                                 left: offsetX,
                                 top: offsetY,
-                                width: roomDimensionsMM[0] * zoomLevel,
-                                height: roomDimensionsMM[1] * zoomLevel,
+                                width: roomDimensionsMetres[0] * zoomLevel,
+                                height: roomDimensionsMetres[1] * zoomLevel,
                                 backgroundColor: "rgba(255,255,255,0.5)",
                                 borderWidth: 3,
                                 borderColor: "red",
@@ -846,8 +849,8 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             top: -30,
         },
         grid: {
-            width: viewGridWidth, // * scaleX once visuals are done
-            height: viewGridHeigh, // * scaleY once visuals are done
+            width: 350, // * scaleX once visuals are done
+            height: 350, // * scaleY once visuals are done
             backgroundColor: '#D3D3D3',
             position: "relative",
             borderWidth: 2,

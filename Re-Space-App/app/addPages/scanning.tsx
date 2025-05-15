@@ -98,7 +98,9 @@ export default function Controller() {
                     source={{ uri: (`data:image/png;base64,${previousImage}`) }}
                     resizeMode="contain"
                 >
-                    <Text style={uniqueStyles.text}>To begin scanning, press Start below!</Text>
+                    {!previousImage &&
+                        <Text style={uniqueStyles.text}>To begin scanning, press Start below!</Text>
+                    }
                     <Image
                         style={uniqueStyles.imageBody}
                         source={{ uri: (`data:image/png;base64,${newImage}`) }}
