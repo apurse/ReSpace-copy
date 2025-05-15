@@ -90,11 +90,10 @@ export default function DragAndDrop() {
     // Dynamically calculate the initial zoom level based on the room size and screen size
     const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh + 150) / gridHeight);
 
-    // Calculate the initial offsets to center the room in the grid
-    const initialOffsetX = -(screenWidth - gridWidth * initialZoom) - 350 / 2;
-    const initialOffsetY = (screenHeight - gridHeight * initialZoom) - 800 / 2;
     const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
 
+    // Zoom able/disable function
+    const [zoomEnabled, setZoomEnabled] = useState(true);
 
     // Local room json file
     var { selectedLayout } = useLocalSearchParams<{ selectedLayout: string }>();
@@ -571,6 +570,21 @@ export default function DragAndDrop() {
                 {/* Show zoom value */}
                 <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
 
+                <ActionButton
+                    label={zoomEnabled ? "Disable Zoom" : "Enable Zoom"}
+                    onPress={() => setZoomEnabled((prev) => !prev)}
+                    style={{
+                        paddingHorizontal: 8,
+                        paddingVertical: 3,
+                        top: 45,
+                        alignSelf: "center",
+                        backgroundColor: zoomEnabled ? "#f66" : "#2E7D32",
+                        borderRadius: 6,
+                        minWidth: 100,
+                        position: 'absolute', 
+                    }}
+                />
+
                 {/* Rotation buttons */}
                 {/* Rotation to right */}
                 <TouchableOpacity
@@ -605,16 +619,17 @@ export default function DragAndDrop() {
                 >
                     {/* Zoom function settings */}
                     <ReactNativeZoomableView
-                        initialOffsetX={initialOffsetX}
-                        initialOffsetY={initialOffsetY}
-                        maxZoom={10}
-                        minZoom={0.1}
+                        maxZoom={1}
+                        minZoom={0.5}
+                        contentWidth={gridWidth}
+                        contentHeight={gridHeight}
                         initialZoom={initialZoom}
-                        bindToBorders={false}
-                        pinchToZoomInSensitivity={6}
-                        pinchToZoomOutSensitivity={4}
-                        panEnabled={true}
-                        movementSensibility={1}
+                        bindToBorders={true}
+                        pinchToZoomInSensitivity={5}
+                        pinchToZoomOutSensitivity={5}
+                        movementSensibility={0.8}
+                        panEnabled={zoomEnabled}
+                        zoomEnabled={zoomEnabled}
 
                         // Set zoom center to user's gesture position (not resetting to center)
                         onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
