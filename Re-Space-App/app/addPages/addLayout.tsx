@@ -77,18 +77,18 @@ export default function DragAndDrop() {
 
     // -------- Grid Visuals --------
     const roomDimensionsMetres = [
-        jsonData?.roomDimensions?.roomX ? jsonData?.roomDimensions?.roomX * 1000 : 1200,
-        jsonData?.roomDimensions?.roomY ? jsonData?.roomDimensions?.roomY * 1000 : 1200,
+        jsonData?.roomDimensions?.roomX ? jsonData?.roomDimensions?.roomX : 5000,
+        jsonData?.roomDimensions?.roomY ? jsonData?.roomDimensions?.roomY : 5000,
     ];
     const gridWidth = roomDimensionsMetres[0];
     const gridHeight = roomDimensionsMetres[1];
 
-    // const initialZoom = 0.5;
-    const viewGridWidth = 350;
-    const viewGridHeigh = 350;
+    const roomSize = Math.max(gridWidth, gridHeight);
+    const minZoom = Math.max(0.1, Math.min(1, 1.05 - 0.22 * Math.log10(roomSize)));
+
 
     // Dynamically calculate the initial zoom level based on the room size and screen size
-    const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh + 150) / gridHeight);
+    const initialZoom = minZoom
 
     const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
 
@@ -620,14 +620,14 @@ export default function DragAndDrop() {
                     {/* Zoom function settings */}
                     <ReactNativeZoomableView
                         maxZoom={1}
-                        minZoom={0.5}
-                        contentWidth={gridWidth}
-                        contentHeight={gridHeight}
-                        initialZoom={initialZoom}
+                        minZoom={initialZoom}
+                        contentWidth={gridWidth / 3.5}
+                        contentHeight={gridHeight / 3.5}
+                        initialZoom={initialZoom * 2}
                         bindToBorders={true}
                         pinchToZoomInSensitivity={5}
-                        pinchToZoomOutSensitivity={5}
-                        movementSensibility={0.8}
+                        pinchToZoomOutSensitivity={5}   
+                        movementSensibility={1}
                         panEnabled={zoomEnabled}
                         zoomEnabled={zoomEnabled}
 
@@ -654,9 +654,9 @@ export default function DragAndDrop() {
                         {/* Internal room container */}
                         <View
                             style={{
-                                position: "absolute",
-                                left: offsetX,
-                                top: offsetY,
+                                //position: "absolute",
+                                // left: offsetX,
+                                // top: offsetY,
                                 width: roomDimensionsMetres[0] * zoomLevel,
                                 height: roomDimensionsMetres[1] * zoomLevel,
                                 backgroundColor: "rgba(255,255,255,0.5)",
