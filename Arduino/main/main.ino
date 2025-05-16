@@ -1,6 +1,19 @@
 #include "pio_encoder.h"
+#include "pico/multicore.h"
 #include "hardware/timer.h"
 #include <AccelStepper.h>
+#include <FastLED.h>
+
+#define NUMPIXELS_PER_STRIP 28
+#define NUM_STRIPS 3
+
+#define LED_PIN_1 14
+#define LED_PIN_2 15
+#define LED_PIN_3 16
+
+CRGB strip1[NUMPIXELS_PER_STRIP];
+CRGB strip2[NUMPIXELS_PER_STRIP];
+CRGB strip3[NUMPIXELS_PER_STRIP];
 
 #define stepPin 12
 #define dirPin 13
@@ -94,10 +107,131 @@ class Motor {
     }
 };
 
+//////////////////LIGHTS////////////
+void greenChase() {
+  const int delayTime = 30;       // Delay between steps
+  const int cycles = 10;          // Number of complete cycles
+  const int trailLength = 9;      // Number of trailing green pixels
+
+  int totalPixels = NUMPIXELS_PER_STRIP * NUM_STRIPS;
+
+  while (true) {
+    for (int c = 0; c < cycles; c++) {
+      for (int head = 0; head < totalPixels; head++) {
+        // Clear all strips
+        fill_solid(strip1, NUMPIXELS_PER_STRIP, CRGB::Black);
+        fill_solid(strip2, NUMPIXELS_PER_STRIP, CRGB::Black);
+        fill_solid(strip3, NUMPIXELS_PER_STRIP, CRGB::Black);
+
+        for (int t = 0; t < trailLength; t++) {
+          int pos = (head - t + totalPixels) % totalPixels;
+          int strip = pos / NUMPIXELS_PER_STRIP;
+          int index = pos % NUMPIXELS_PER_STRIP;
+
+          if (strip == 0) strip1[index] = CRGB::Green;
+          else if (strip == 1) strip2[index] = CRGB::Green;
+          else if (strip == 2) strip3[index] = CRGB::Green;
+        }
+
+        FastLED.show();
+        sleep_ms(delayTime);
+      }
+    }
+  }
+}
+
+void redYellowChase() {
+  const int delayTime = 50;
+  const int cycles = 10;
+  const int totalPixels = NUMPIXELS_PER_STRIP * NUM_STRIPS;
+
+  while (true) {
+    for (int offset = 0; offset < NUMPIXELS_PER_STRIP + cycles; offset++) {
+      for (int i = 0; i < NUMPIXELS_PER_STRIP; i++) {
+        CRGB color = ((i + offset) % 2 == 0) ? CRGB::Red : CRGB::Yellow;
+        strip1[i] = color;
+        strip2[i] = color;
+        strip3[i] = color;
+      }
+
+      FastLED.show();
+      sleep_ms(delayTime);
+    }
+  }
+}
+
+
+void pulsatingGreen() {
+  const int delayTime = 10;
+  const int cycles = 3;
+
+  while (true) {
+    for (int c = 0; c < cycles; c++) {
+      // Fade in
+      for (int brightness = 0; brightness <= 255; brightness++) {
+        fill_solid(strip1, NUMPIXELS_PER_STRIP, CRGB(0, brightness, 0));
+        fill_solid(strip2, NUMPIXELS_PER_STRIP, CRGB(0, brightness, 0));
+        fill_solid(strip3, NUMPIXELS_PER_STRIP, CRGB(0, brightness, 0));
+        FastLED.show();
+        sleep_ms(delayTime);
+      }
+
+      // Fade out
+      for (int brightness = 255; brightness >= 0; brightness--) {
+        fill_solid(strip1, NUMPIXELS_PER_STRIP, CRGB(0, brightness, 0));
+        fill_solid(strip2, NUMPIXELS_PER_STRIP, CRGB(0, brightness, 0));
+        fill_solid(strip3, NUMPIXELS_PER_STRIP, CRGB(0, brightness, 0));
+        FastLED.show();
+        sleep_ms(delayTime);
+      }
+    }
+  }
+}
+
+void blueWhiteChase() {
+  const int delayTime = 50;
+  const int cycles = 10;
+
+  while (true) {
+    for (int offset = 0; offset < cycles; offset++) {
+      for (int i = 0; i < NUMPIXELS_PER_STRIP; i++) {
+        CRGB color = ((i + offset) % 2 == 0) ? CRGB::Blue : CRGB::White;
+        strip1[i] = color;
+        strip2[i] = color;
+        strip3[i] = color;
+      }
+
+      FastLED.show();
+      sleep_ms(delayTime);
+    }
+  }
+}
+
+void flashAllRed() {
+  const int flashes = 3;
+  const int delayTime = 300;
+
+  while (true) {
+    for (int i = 0; i < flashes; i++) {
+      fill_solid(strip1, NUMPIXELS_PER_STRIP, CRGB::Red);
+      fill_solid(strip2, NUMPIXELS_PER_STRIP, CRGB::Red);
+      fill_solid(strip3, NUMPIXELS_PER_STRIP, CRGB::Red);
+      FastLED.show();
+      sleep_ms(delayTime);
+
+      fill_solid(strip1, NUMPIXELS_PER_STRIP, CRGB::Black);
+      fill_solid(strip2, NUMPIXELS_PER_STRIP, CRGB::Black);
+      fill_solid(strip3, NUMPIXELS_PER_STRIP, CRGB::Black);
+      FastLED.show();
+      sleep_ms(delayTime);
+    }
+  }
+}
+
 // Instantiate motor objects
-Motor motorA(0, 1, 10, 1.0, 0.05, 0.00);
-Motor motorB(2, 3, 12, 1.0, 0.05, 0.00);
-Motor motorC(6, 7, 14, 1.0, 0.05, 0.00);
+Motor motorA(0, 1, 6, 1.0, 0.05, 0.00);
+Motor motorB(2, 3, 8, 1.0, 0.05, 0.00);
+Motor motorC(4, 5, 10, 1.0, 0.05, 0.00);
 
 // Timer callback function
 bool repeatingTimerCallback(struct repeating_timer *t) {
@@ -127,8 +261,8 @@ bool repeatingOdomTimerCallback(struct repeating_timer *t) {
   omega = F[2][0] * w1 + F[2][1] * w2 + F[2][2] * w3;
 
   // Transform velocity to global frame
-  x += (vx * cos(theta) - vy * sin(theta)) * dt;
-  y += (vx * sin(theta) + vy * cos(theta)) * dt;
+  x += -(vx * sin(theta) + vy * cos(theta)) * dt-(vx * cos(theta) - vy * sin(theta)) * dt;
+  y += -(vx * sin(theta) + vy * cos(theta)) * dt;
   theta += omega * dt;
 
   return true;  // Keep repeating
@@ -157,12 +291,19 @@ void setup() {
   motorB.begin();
   motorC.begin();
 
-  pinMode(limitSwitchPin, INPUT_PULLUP);
-  stepper.setMaxSpeed(500*ms);
-  stepper.setAcceleration(4000*ms);
+  FastLED.addLeds<NEOPIXEL, LED_PIN_1>(strip1, NUMPIXELS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, LED_PIN_2>(strip2, NUMPIXELS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, LED_PIN_3>(strip3, NUMPIXELS_PER_STRIP);
 
+  FastLED.clear();
+  FastLED.show();
+
+  pinMode(limitSwitchPin, INPUT_PULLUP);
+  stepper.setMaxSpeed(500 * ms);
+  stepper.setAcceleration(4000 * ms);
+  multicore_launch_core1(greenChase);
   homing();
-  
+
   // Start hardware timer with 20ms interval
   add_repeating_timer_ms(-20, repeatingTimerCallback, NULL, &motorTimer);
 
@@ -171,11 +312,11 @@ void setup() {
 
 void loop() {
   // Print updated position
-  Serial.print(x*2.86, 3);
+  Serial.print(x * 2.86, 3);
   Serial.print(",");
-  Serial.print(y*2.86, 3);
+  Serial.print(y * 2.86, 3);
   Serial.print(",");
-  Serial.print(theta*3.1, 3);
+  Serial.print(theta * 3.1, 3);
   Serial.print(",");
   Serial.print(vx, 3);
   Serial.print(",");
@@ -197,6 +338,8 @@ void loop() {
       motorA.setTargetSpeed(0);
       motorB.setTargetSpeed(0);
       motorC.setTargetSpeed(0);
+      // re-home scissor lift
+      homing();
     } else if (transmission == "S1") {
       // Segment 1: Use Motor B and C
       motorA.setTargetSpeed(0);
@@ -204,22 +347,22 @@ void loop() {
       motorC.setTargetSpeed(-0.5);
     } else if (transmission == "S2") {
       // Segment 2: Use Motor A and C
-      motorA.setTargetSpeed(0.2);
+      motorA.setTargetSpeed(0.5);
       motorB.setTargetSpeed(0);
       motorC.setTargetSpeed(0.5);
     } else if (transmission == "S3") {
       // Segment 3: Use Motor A and B
-      motorA.setTargetSpeed(0.2);
+      motorA.setTargetSpeed(0.5);
       motorB.setTargetSpeed(-0.5);
       motorC.setTargetSpeed(0);
     } else if (transmission == "S4") {
       motorA.setTargetSpeed(0);
       motorB.setTargetSpeed(0);
       motorC.setTargetSpeed(0);
-    } else if (transmission == "UP") {
-      stepper.runToNewPosition(5500*ms);
-    } else if (transmission == "DOWN") {
-      stepper.runToNewPosition(600*ms);
+    } else if (transmission == "U") {
+      stepper.runToNewPosition(5500 * ms);
+    } else if (transmission == "D") {
+      stepper.runToNewPosition(600 * ms);
     } else  {
       // Format data
       // Remove brackets
@@ -243,9 +386,9 @@ void loop() {
         Serial.println(HZ1);
         Serial.println(HZ2);
         Serial.println(HZ3);
-        motorA.setTargetSpeed(HZ3*1.7);
-        motorB.setTargetSpeed(HZ1*1.7);
-        motorC.setTargetSpeed(HZ2*1.7);
+        motorA.setTargetSpeed(HZ3 * 1.7);
+        motorB.setTargetSpeed(HZ1 * 1.7);
+        motorC.setTargetSpeed(HZ2 * 1.7);
       }
     }
   }
@@ -257,14 +400,12 @@ void homing() {
   switchState = digitalRead(limitSwitchPin);
   while (switchState != 1) {
     switchState = digitalRead(limitSwitchPin);
-    Serial.println("homing");
     stepper.moveTo(-100000000);
     stepper.run();
   }
-  Serial.println("homed");
   stepper.setCurrentPosition(0);
-  stepper.runToNewPosition(200*ms);
+  stepper.runToNewPosition(200 * ms);
   stepper.runToNewPosition(0);
-  stepper.runToNewPosition(200*ms);
+  stepper.runToNewPosition(200 * ms);
   stepper.runToNewPosition(0);
 }
