@@ -221,7 +221,6 @@ export default function systemRunning() {
         setSelectedBox(id); // Selected box to highlighted
         var thisBox = boxes.find((box) => box.id === id)
         setInputX(Number(thisBox?.x))
-        setTotalProgress(totalProgress + (progressBarSize / boxes.length))
         setInputY(Number(thisBox?.y))
         setInputAngle(Number(thisBox?.rotation))
         console.log(`Box ${id} updated position: `, thisBox);

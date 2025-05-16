@@ -470,14 +470,21 @@ export default function DragAndDrop() {
         // New furniture id = previous id + 1 or set to 1 if there is nothing else
         const newId = boxes.length > 0 ? Math.max(...boxes.map((box) => box.id)) + 1 : 1;
 
+        const centreX = furniture.width / 1000;
+        const centreY = furniture.length / 1000;
+
         // New box (furniture) in the grid
         const newBox = {
-            furnitureID: furniture.furnitureID,
-            id: newId, // change to "index"
+
+            // Start position
             x: roomDimensionsM[0] / 2,
             y: roomDimensionsM[1] / 2,
-            width: furniture.width / 1000,
-            length: furniture.length / 1000,
+
+            // Box details
+            furnitureID: furniture.furnitureID,
+            id: newId,
+            width: centreX,
+            length: centreY,
             color: furniture.selectedColour,
             rotation: 0.0,
         };
@@ -507,8 +514,9 @@ export default function DragAndDrop() {
         if (selectedBox !== null) {
             const box = boxes.find((box) => box.id === selectedBox);
             if (box) {
-                setInputX(box.x.toFixed(2));
-                setInputY(box.y.toFixed(2));
+
+                setInputX((box.x + (box.width / 2)).toFixed(2));
+                setInputY((box.y + (box.length / 2)).toFixed(2));
                 setInputAngle(box.rotation.toFixed(0));
             }
         }
