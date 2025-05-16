@@ -6,7 +6,7 @@ import time
 
 # Set up serial communication
 try:
-    ser = serial.Serial('COM6', 115200, timeout=1)
+    ser = serial.Serial('COM11', 115200, timeout=1)
     time.sleep(2)  # Allow time to initialize
 except serial.SerialException as e:
     print(f"Serial connection failed: {e}")

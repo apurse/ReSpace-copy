@@ -44,39 +44,39 @@ void setup() {
 
 void loop() {
     // Wait for serial input
-  if (Serial.available() > 0) {
-    char command = Serial.read();  // Read the serial command
+//   if (Serial.available() > 0) {
+//     char command = Serial.read();  // Read the serial command
 
-    if (command == '4') {  // Move forward until switch 1 is pressed
-      homeForward();
-      delay(3000);
-      homeBackward();
+//     if (command == '4') {  // Move forward until switch 1 is pressed
+//       homeForward();
+//       delay(3000);
+//       homeBackward();
 
-    } 
-    else if (command == '2') {  // Move backward until switch 2 is pressed
-      homeBackward();
-    }
+//     } 
+//     else if (command == '2') {  // Move backward until switch 2 is pressed
+//       homeBackward();
+//     }
   
+//   }
+// }
+  if (Serial.available() > 0) {
+    String msg = Serial.readStringUntil('\n');
+    StopMotors();  // Stop motors before any new action
+
+    // Process the incoming message (segment number)
+    if (msg == "1") {
+      Segment1();
+    } else if (msg == "2") {
+      Segment2();
+    } else if (msg == "3") {
+      Segment3();
+    } else if (msg == "4") {
+      // StopMotors();  // Stop all motors for segment 4
+      homeForward();
+
+    }
   }
 }
-  // if (Serial.available() > 0) {
-  //   String msg = Serial.readStringUntil('\n');
-  //   StopMotors();  // Stop motors before any new action
-
-  //   // Process the incoming message (segment number)
-  //   if (msg == "1") {
-  //     Segment1();
-  //   } else if (msg == "2") {
-  //     Segment2();
-  //   } else if (msg == "3") {
-  //     Segment3();
-  //   } else if (msg == "4") {
-  //     // StopMotors();  // Stop all motors for segment 4
-  //     homeForward();
-
-  //   }
-  // }
-//}
 
 void Segment1() {
   // Segment 1: Use Motor B and C

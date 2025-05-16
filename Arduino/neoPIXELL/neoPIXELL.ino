@@ -1,13 +1,13 @@
 #include <Adafruit_NeoPixel.h>
 
-#define PIN1 5
+#define PIN1 14
 #define NUMPIXELS1 28
 
-#define PIN2 6
+#define PIN2 15
 #define NUMPIXELS2 28
 
-#define PIN3 4
-#define NUMPIXELS3 30
+#define PIN3 16
+#define NUMPIXELS3 27
 
 Adafruit_NeoPixel strip1(NUMPIXELS1, PIN1, NEO_GRB + NEO_KHZ800);
 Adafruit_NeoPixel strip2(NUMPIXELS2, PIN2, NEO_GRB + NEO_KHZ800);
@@ -172,9 +172,14 @@ void setup() {
 
 void loop() {
  
-  redYellowChase(60, 100);
-  delay(1000);
-  blueWhiteChase(60, 100);
-  delay(1000);
-  turnOffAllStrips(1000);
+  //redYellowChase(60, 100);
+  //flashAllRed(3,250);
+  //delay(1000);
+  //blueWhiteChase(60, 100);
+  //delay(1000);
+  //pulsatingGreen(3,15);
+  //delay(1000);
+  //turnOffAllStrips(1000);
+  //blueWhiteChase(10,10);
+  greenCircularChaseMultiple(25,10,10);
 }
