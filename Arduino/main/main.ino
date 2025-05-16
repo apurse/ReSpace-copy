@@ -362,7 +362,7 @@ void loop() {
     } else if (transmission == "U") {
       stepper.runToNewPosition(5500 * ms);
     } else if (transmission == "D") {
-      stepper.runToNewPosition(600 * ms);
+      stepper.runToNewPosition(650 * ms);
     } else  {
       // Format data
       // Remove brackets
