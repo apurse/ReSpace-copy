@@ -18,26 +18,34 @@ import { useRoom } from '@/hooks/useRoom';
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 
-// Boxes in the grid
-const allBoxes = [
-    { furnitureID: '111', id: 1, x: 0, y: 0, width: 70, length: 30, color: 'red', rotation: 0.0 },
-    { furnitureID: '222', id: 2, x: 150, y: 150, width: 50, length: 150, color: 'green', rotation: 0.0 },
-    { furnitureID: '333', id: 3, x: 100, y: 100, width: 50, length: 30, color: 'blue', rotation: 0.0 },
-];
+/**
+ * Example of furniture below commented
+ * 1 > Two-seater sofa: 1600mm x 850mm
+ * 2 > Single bed: 900mm x 1900mm
+ * 3 > Dining chair: 450mm x 500mm
+ */
+// const allBoxes = [
+//     { furnitureID: '111', id: 1, x: 0, y: 0, width: 1600, length: 850, color: 'red', rotation: 0.0 },
+//     { furnitureID: '222', id: 2, x: 150, y: 150, width: 900, length: 1900, color: 'green', rotation: 0.0 },
+//     { furnitureID: '333', id: 3, x: 100, y: 100, width: 450, length: 500, color: 'blue', rotation: 0.0 },
+// ];
+
+// Define 'Box' (furniture)
+type Box = {
+    furnitureID: string;
+    id: number;
+    x: Float;
+    y: Float;
+    width: number;
+    length: number;
+    color: string;
+    rotation: Float;
+};
+
+// Furniture list
+const allBoxes: Box[] = [];
 
 export default function DragAndDrop() {
-
-    // Define 'Box' to store in 'currentPos'  
-    type Box = {
-        furnitureID: string;
-        id: number;
-        x: Float;
-        y: Float;
-        width: number;
-        length: number;
-        color: string;
-        rotation: Float;
-    };
 
     // Hooks and colours
     const { theme } = useTheme();
@@ -72,28 +80,25 @@ export default function DragAndDrop() {
     const [layoutName, setlayoutHeading] = useState<string | undefined>();
 
     const squareRef = useRef(null);
-    const [offsetX, setOffsetX] = useState(0);
-    const [offsetY, setOffsetY] = useState(0);
 
     // -------- Grid Visuals --------
-    const roomDimensionsMetres = [
+    const roomDimensionsMM = [
         jsonData?.roomDimensions?.roomX ? jsonData?.roomDimensions?.roomX : 5000,
         jsonData?.roomDimensions?.roomY ? jsonData?.roomDimensions?.roomY : 5000,
     ];
-    const gridWidth = roomDimensionsMetres[0];
-    const gridHeight = roomDimensionsMetres[1];
+    const gridWidth = roomDimensionsMM[0];
+    const gridHeight = roomDimensionsMM[1];
 
-    const roomSize = Math.max(gridWidth, gridHeight);
-    const minZoom = Math.max(0.1, Math.min(1, 1.05 - 0.22 * Math.log10(roomSize)));
+    // Square metres of room
+    const squareMetres = (gridWidth / 1000) * (gridHeight / 1000);
 
+    const scale = Math.min(
+    345 / roomDimensionsMM[0],
+    345 / roomDimensionsMM[1]
+    );
 
-    // Dynamically calculate the initial zoom level based on the room size and screen size
-    const initialZoom = minZoom
-
-    const [zoomLevel, setZoomLevel] = useState(1); // Check zoom level
-
-    // Zoom able/disable function
-    const [zoomEnabled, setZoomEnabled] = useState(true);
+    const scaledRoomWidth = gridWidth * scale;
+    const scaledRoomHeight = gridHeight * scale;
 
     // Local room json file
     var { selectedLayout } = useLocalSearchParams<{ selectedLayout: string }>();
@@ -288,8 +293,8 @@ export default function DragAndDrop() {
                     const rotatedHeight = Math.abs(Math.sin(radians) * box.width) + Math.abs(Math.cos(radians) * box.length);
 
                     // Adjust movement by zoom level
-                    const adjustedDx = dx / zoomLevel;
-                    const adjustedDy = dy / zoomLevel;
+                    const adjustedDx = dx / scale;
+                    const adjustedDy = dy / scale;
 
                     const centerX = box.x + box.width / 2 + adjustedDx;
                     const centerY = box.y + box.length / 2 + adjustedDy;
@@ -457,8 +462,8 @@ export default function DragAndDrop() {
         const newBox = {
             furnitureID: furniture.furnitureID,
             id: newId, // change to "index"
-            x: roomDimensionsMetres[0] / 2,
-            y: roomDimensionsMetres[1] / 2,
+            x: roomDimensionsMM[0] / 2,
+            y: roomDimensionsMM[1] / 2,
             width: furniture.width,
             length: furniture.length,
             color: furniture.selectedColour,
@@ -566,24 +571,9 @@ export default function DragAndDrop() {
                     placeholder='*New Layout ...'
                     placeholderTextColor={isDarkMode ? '#fff' : '#000'}
                 />
-
-                {/* Show zoom value */}
-                <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
-
-                <ActionButton
-                    label={zoomEnabled ? "Disable Zoom" : "Enable Zoom"}
-                    onPress={() => setZoomEnabled((prev) => !prev)}
-                    style={{
-                        paddingHorizontal: 8,
-                        paddingVertical: 3,
-                        top: 45,
-                        alignSelf: "center",
-                        backgroundColor: zoomEnabled ? "#f66" : "#2E7D32",
-                        borderRadius: 6,
-                        minWidth: 100,
-                        position: 'absolute', 
-                    }}
-                />
+                
+                {/* Show room square metres */}
+                <Text style={uniqueStyles.squareMetresStyle}>{squareMetres.toFixed(2)} m²</Text>
 
                 {/* Rotation buttons */}
                 {/* Rotation to right */}
@@ -617,104 +607,67 @@ export default function DragAndDrop() {
                         console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
                     }}
                 >
-                    {/* Zoom function settings */}
-                    <ReactNativeZoomableView
-                        maxZoom={1}
-                        minZoom={initialZoom}
-                        contentWidth={gridWidth / 3.5}
-                        contentHeight={gridHeight / 3.5}
-                        initialZoom={initialZoom * 2}
-                        bindToBorders={true}
-                        pinchToZoomInSensitivity={5}
-                        pinchToZoomOutSensitivity={5}   
-                        movementSensibility={1}
-                        panEnabled={zoomEnabled}
-                        zoomEnabled={zoomEnabled}
+                    {/* Internal room container */}
+                    <View
+                        style={{
+                            width: scaledRoomWidth,
+                            height: scaledRoomHeight,
+                            backgroundColor: "rgba(255,255,255,0.5)",
+                            borderWidth: 2,
+                            borderColor: "#FF6347",
 
-                        // Set zoom center to user's gesture position (not resetting to center)
-                        onZoomAfter={(event, setGestureState, zoomableViewEventObject) => {
-                            setZoomLevel(zoomableViewEventObject.zoomLevel);
-
-                            // Calculate the new offsets based on the zoom level
-                            const zoomLevel = zoomableViewEventObject.zoomLevel;
-
-                            // Get the current zoom position 
-                            const gestureCenterX = zoomableViewEventObject.offsetX;
-                            const gestureCenterY = zoomableViewEventObject.offsetY;
-
-                            // Adjust the offsets 
-                            const newOffsetX = gestureCenterX - (gestureCenterX - offsetX) * zoomLevel;
-                            const newOffsetY = gestureCenterY - (gestureCenterY - offsetY) * zoomLevel;
-
-                            // Apply the new offsets 
-                            setOffsetX(newOffsetX);
-                            setOffsetY(newOffsetY);
                         }}
                     >
-                        {/* Internal room container */}
-                        <View
-                            style={{
-                                //position: "absolute",
-                                // left: offsetX,
-                                // top: offsetY,
-                                width: roomDimensionsMetres[0] * zoomLevel,
-                                height: roomDimensionsMetres[1] * zoomLevel,
-                                backgroundColor: "rgba(255,255,255,0.5)",
-                                borderWidth: 3,
-                                borderColor: "red",
-                            }}
-                        >
-                            <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`), }} resizeMode="contain" style={uniqueStyles.image} />
-                            {/* Display non-movable objects */}
-                            {placedBoxes.map((box, index) => (
+                        <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`), }} resizeMode="contain" style={uniqueStyles.image} />
+                        {/* Display non-movable objects */}
+                        {placedBoxes.map((box, index) => (
+                            <View
+                                key={`placed-${box.id}-${index}`}
+                                style={[
+                                    uniqueStyles.robot,
+                                    {
+                                        left: box.x * scale,
+                                        top: box.y * scale,
+                                        backgroundColor: "transparent",
+                                        borderWidth: 1,
+                                        width: box.width * scale,
+                                        height: box.length * scale,
+                                        transform: [{ rotate: `${box.rotation}deg` }],
+                                    },
+                                ]}
+                            >
+                                <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.furnitureID}</Text>
+                            </View>
+                        ))}
+
+                        {/* Display movable objects */}
+                        {boxes.map((box, index) => {
+                            const panResponder = createPanResponder(box.id);
+                            const isSelected = selectedBox === box.id;
+
+                            return (
                                 <View
-                                    key={`placed-${box.id}-${index}`}
+                                    key={`${box.id}-${index}`}
                                     style={[
                                         uniqueStyles.robot,
                                         {
-                                            left: box.x * zoomLevel,
-                                            top: box.y * zoomLevel,
-                                            backgroundColor: "transparent",
-                                            borderWidth: 1,
-                                            width: box.width * zoomLevel,
-                                            height: box.length * zoomLevel,
+                                            left: box.x * scale,
+                                            top: box.y * scale,
+                                            backgroundColor: box.color,
+                                            borderWidth: isSelected ? 2 : 0,
+                                            borderColor: isSelected ? "yellow" : "transparent",
+                                            width: box.width * scale,
+                                            height: box.length * scale,
                                             transform: [{ rotate: `${box.rotation}deg` }],
                                         },
                                     ]}
+                                    {...panResponder.panHandlers}
                                 >
-                                    <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.furnitureID}</Text>
+                                    <Text style={uniqueStyles.boxText}>{box.furnitureID}</Text>
                                 </View>
-                            ))}
-
-                            {/* Display movable objects */}
-                            {boxes.map((box, index) => {
-                                const panResponder = createPanResponder(box.id);
-                                const isSelected = selectedBox === box.id;
-
-                                return (
-                                    <View
-                                        key={`${box.id}-${index}`}
-                                        style={[
-                                            uniqueStyles.robot,
-                                            {
-                                                left: box.x * zoomLevel,
-                                                top: box.y * zoomLevel,
-                                                backgroundColor: box.color,
-                                                borderWidth: isSelected ? 2 : 0,
-                                                borderColor: isSelected ? "yellow" : "transparent",
-                                                width: box.width * zoomLevel,
-                                                height: box.length * zoomLevel,
-                                                transform: [{ rotate: `${box.rotation}deg` }],
-                                            },
-                                        ]}
-                                        {...panResponder.panHandlers}
-                                    >
-                                        <Text style={uniqueStyles.boxText}>{box.furnitureID}</Text>
-                                    </View>
-                                );
-                            })}
-                        </View>
-                    </ReactNativeZoomableView>
+                            );
+                        })}
+                    </View>
                 </View>
                 {/* Need scale measurement */}
                 <View style={uniqueStyles.buttonContainer}>
@@ -931,7 +884,7 @@ const createUniqueStyles = (isDarkMode: boolean) =>
             borderWidth: 1,
             borderColor: 'transparent',
         },
-        zoomStyle: {
+        squareMetresStyle: {
             position: 'absolute',
             fontSize: 12,
             color: isDarkMode ? '#fff' : '#000',
