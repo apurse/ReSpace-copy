@@ -93,8 +93,8 @@ export default function DragAndDrop() {
     const squareMetres = (gridWidth) * (gridHeight);
 
     const scale = Math.min(
-    345 / roomDimensionsM[0],
-    345 / roomDimensionsM[1]
+        345 / roomDimensionsM[0],
+        345 / roomDimensionsM[1]
     );
 
     const scaledRoomWidth = gridWidth * scale;
@@ -112,8 +112,8 @@ export default function DragAndDrop() {
             setHasBeenCalled(true);
         }
     }, [selectedLayout]);
-    
-    
+
+
     useEffect(() => {
         // console.log(squareMetres)
         // if (!hasBeenCalled && selectedLayout != undefined) {
@@ -583,7 +583,7 @@ export default function DragAndDrop() {
                     placeholder='*New Layout ...'
                     placeholderTextColor={isDarkMode ? '#fff' : '#000'}
                 />
-                
+
                 {/* Show room square metres */}
                 <Text style={uniqueStyles.squareMetresStyle}>{squareMetres.toFixed(2)} m²</Text>
 
@@ -624,10 +624,7 @@ export default function DragAndDrop() {
                         style={{
                             width: scaledRoomWidth,
                             height: scaledRoomHeight,
-                            backgroundColor: "rgba(255,255,255,0.5)",
-                            borderWidth: 2,
-                            borderColor: "#FF6347",
-
+                            alignSelf: 'center',
                         }}
                     >
                         <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`), }} resizeMode="contain" style={uniqueStyles.image} />
@@ -831,11 +828,12 @@ const createUniqueStyles = (isDarkMode: boolean) =>
         grid: {
             width: 350, // * scaleX once visuals are done
             height: 350, // * scaleY once visuals are done
-            backgroundColor: '#D3D3D3',
             position: "relative",
-            borderWidth: 2,
-            borderColor: "#aaa",
             top: -50,
+            justifyContent: 'center',
+            borderRadius: 8,
+            borderColor: 'grey',
+            borderWidth: 4
         },
         robot: {
             position: "absolute",

@@ -259,9 +259,7 @@ export default function systemRunning() {
           style={{
             width: scaledRoomWidth,
             height: scaledRoomHeight,
-            backgroundColor: "rgba(255,255,255,0.5)",
-            borderWidth: 2,
-            borderColor: "#FF6347",
+            alignSelf: 'center',
           }}
         >
           <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`) }} resizeMode="contain" style={uniqueStyles.image} />
@@ -316,37 +314,37 @@ export default function systemRunning() {
             );
           })}
         </View>
-    </View>
+      </View>
 
 
-      {/* Show coordinates */ }
-  <View style={uniqueStyles.coordinatesContainer}>
-    <Text style={uniqueStyles.coordinates}>X = {Math.round(inputX * 100) / 100}</Text>
-    <Text style={uniqueStyles.coordinates}>Y = {Math.round(inputY * 100) / 100}</Text>
-    <Text style={uniqueStyles.coordinates}>Angle = {Math.round(inputAngle * 100) / 100}</Text>
-  </View>
+      {/* Show coordinates */}
+      <View style={uniqueStyles.coordinatesContainer}>
+        <Text style={uniqueStyles.coordinates}>X = {Math.round(inputX * 100) / 100}</Text>
+        <Text style={uniqueStyles.coordinates}>Y = {Math.round(inputY * 100) / 100}</Text>
+        <Text style={uniqueStyles.coordinates}>Angle = {Math.round(inputAngle * 100) / 100}</Text>
+      </View>
 
 
-  {/* Progress bar */ }
+      {/* Progress bar */}
       <Text style={[defaultStyles.sectionTitle, { top: -35 }]}>Progress</Text>
       <View style={[uniqueStyles.progressBarContainer]}>
         <View style={[uniqueStyles.progressBar]} />
       </View>
 
 
-  {/* Could have as permanent on the screen */ }
-  <ActionButton
-    label="Emergency Stop"
-    icon={React.createElement(Icons.StopCircle)}
-    style={uniqueStyles.stopContainer}
-    onPress={() => {
-      sendMessage({ type: "emergency_stop", direction: "stop" });
-      // alert("stop called");
-    }}
-  />
+      {/* Could have as permanent on the screen */}
+      <ActionButton
+        label="Emergency Stop"
+        icon={React.createElement(Icons.StopCircle)}
+        style={uniqueStyles.stopContainer}
+        onPress={() => {
+          sendMessage({ type: "emergency_stop", direction: "stop" });
+          // alert("stop called");
+        }}
+      />
 
 
-  {/* Robots section */ }
+      {/* Robots section */}
       <Text style={defaultStyles.sectionTitle}>Connected Robots: {robotData.length}</Text>
       <RobotList />
     </ScrollView >
@@ -393,11 +391,12 @@ const createUniqueStyles = (isDarkMode: boolean, totalProgress: number) =>
     grid: {
       width: 350, // * scaleX once visuals are done
       height: 350, // * scaleY once visuals are done
-      backgroundColor: '#D3D3D3',
       position: "relative",
-      borderWidth: 2,
-      borderColor: "#aaa",
-      top: -40,
+      top: -50,
+      justifyContent: 'center',
+      borderRadius: 8,
+      borderColor: 'grey',
+      borderWidth: 4
     },
     robot: {
       position: "absolute",
