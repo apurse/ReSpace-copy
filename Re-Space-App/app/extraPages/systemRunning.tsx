@@ -17,23 +17,6 @@ import { useRoom } from '@/hooks/useRoom';
 // Get dimensions of the screen
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
-
-// -------- Grid Visuals --------
-const roomDimensionsMM = [1200, 1200];
-const gridWidth = roomDimensionsMM[0];
-const gridHeight = roomDimensionsMM[1];
-
-// const initialZoom = 0.5;
-const viewGridWidth = 350;
-const viewGridHeigh = 350;
-
-// Dynamically calculate the initial zoom level based on the room size and screen size
-const initialZoom = Math.min((viewGridWidth + 150) / gridWidth, (viewGridHeigh + 150) / gridHeight);
-
-// Calculate the initial offsets to center the room in the grid
-const initialOffsetX = -(screenWidth - gridWidth * initialZoom) - 350 / 2;
-const initialOffsetY = (screenHeight - gridHeight * initialZoom) - 800 / 2;
-
 const progressBarSize = screenWidth * 0.8
 
 export default function systemRunning() {
@@ -77,16 +60,29 @@ export default function systemRunning() {
 
   // User settings
   const [layoutName, setlayoutName] = useState<string | undefined>();
-  const [zoomLevel, setZoomLevel] = useState(initialZoom);
+
+  // -------- Grid Visuals --------
+  const roomDimensionsM = [
+    jsonData?.roomDimensions?.roomX ? jsonData?.roomDimensions?.roomX : 5,
+    jsonData?.roomDimensions?.roomY ? jsonData?.roomDimensions?.roomY : 5,
+  ];
+  const gridWidth = roomDimensionsM[0];
+  const gridHeight = roomDimensionsM[1];
+
+  // Square metres of room
+  const squareMetres = (gridWidth) * (gridHeight);
+
+  const scale = Math.min(
+    345 / roomDimensionsM[0],
+    345 / roomDimensionsM[1]
+  );
+
+  const scaledRoomWidth = gridWidth * scale;
+  const scaledRoomHeight = gridHeight * scale;
 
 
   // Local room json file
   const { layoutRunning } = useLocalSearchParams<{ layoutRunning: string }>();
-  
-  if (!isConnected) {
-    console.warn("WebSocket not connected!");
-    return;
-  }
 
 
   // Auto refresh page with saved furniture
@@ -95,17 +91,47 @@ export default function systemRunning() {
 
       // Startup the robot
       if (isConnected) {
-        sendMessage({ type: "set_mode", config: "localisation" })
+        // sendMessage({ type: "set_mode", config: "localisation" })
       } else {
         alert("No connection to the WebSocket.");
       }
     }, [])
   );
 
+  useEffect(() => {
+
+    /**
+     * Check the progress of the box positions
+     * @param boxes The array of current boxes
+     * @param boxDestinations The array of box destinations
+    */
+    const checkProgress = (boxes: Box[], boxDestinations: Box[]) => {
+
+      // For each box
+      boxes.forEach((box: Box) => {
+
+        // Get the end position
+        const endPos = boxDestinations.find(end => end.id === box.id)
+
+        // If the box has reached its destination, set the total progress
+        if (box.x == endPos?.x && box.y == endPos?.y) {
+
+          setTotalProgress(prev => prev + (progressBarSize / boxes.length))
+
+
+          // Tick off the boxes ...
+        }
+      })
+    }
+    checkProgress(boxes, boxDestinations)
+  }, [boxes, boxDestinations])
+
 
 
   // Update the box coordinates based on robot position
   useEffect(() => {
+
+    console.log("robotData called yippeeeeeeee")
 
     // Get the old boxes 
     robotData.forEach((robot: Robot) => {
@@ -119,20 +145,8 @@ export default function systemRunning() {
         boxes[boxIndex].x = robot?.locationX;
         boxes[boxIndex].y = robot?.locationY;
         boxes[boxIndex].rotation = robot?.angle;
-
-
-        // calculate error margin
-        // if within 2cm eg
-
-        if (boxes[boxIndex] == boxDestinations[boxIndex]) {
-
-          // Set new progress
-          var newProgress = totalProgress + (progressBarSize / boxes.length)
-          setTotalProgress(newProgress)
-        }
       }
-    }
-    )
+    })
 
     setBoxes(boxes)
   }, [robotData])
@@ -174,9 +188,6 @@ export default function systemRunning() {
     setBoxes(newBoxes)
     setBoxDestinations(destinations)
   };
-
-  // for each box, destination - current pos, could save into array?
-  // overall progress - if position = destination, progress (bar width) = (boxes done) / total boxes
 
 
   // Refresh layout on selected layout change
@@ -220,10 +231,7 @@ export default function systemRunning() {
   return (
     <ScrollView
       contentContainerStyle={defaultStyles.body}
-    // stickyHeaderIndices={[0]}
-    // showsVerticalScrollIndicator={false}
     >
-
 
       {/* Title */}
       <TextInput
@@ -236,7 +244,7 @@ export default function systemRunning() {
 
 
       {/* Grid */}
-      <Text style={uniqueStyles.zoomStyle}>Zoom: {zoomLevel.toFixed(2)}</Text>
+
       <View
         ref={squareRef}
         style={uniqueStyles.grid}
@@ -245,139 +253,103 @@ export default function systemRunning() {
           console.log(`Square dimensions: ${width}x${height} at (${x}, ${y})`);
         }}
       >
-        <ReactNativeZoomableView
-          initialOffsetX={initialOffsetX}
-          initialOffsetY={initialOffsetY}
-          maxZoom={10}
-          minZoom={0.1}
-          initialZoom={initialZoom}
-          bindToBorders={false}
-          pinchToZoomInSensitivity={6}
-          pinchToZoomOutSensitivity={4}
-          panEnabled={true}
-          movementSensibility={1}
 
-          // Set zoom center to user's gesture position (not resetting to center)
-          onZoomAfter={(event: any, setGestureState: any, zoomableViewEventObject: any) => {
-            setZoomLevel(zoomableViewEventObject.zoomLevel);
-
-            // Calculate the new offsets based on the zoom level
-            const zoomLevel = zoomableViewEventObject.zoomLevel;
-
-            // Get the current zoom position 
-            const gestureCenterX = zoomableViewEventObject.offsetX;
-            const gestureCenterY = zoomableViewEventObject.offsetY;
-
-            // Adjust the offsets 
-            const newOffsetX = gestureCenterX - (gestureCenterX - offsetX) * zoomLevel;
-            const newOffsetY = gestureCenterY - (gestureCenterY - offsetY) * zoomLevel;
-
-            // Apply the new offsets 
-            setOffsetX(newOffsetX);
-            setOffsetY(newOffsetY);
+        {/* Internal room container */}
+        <View
+          style={{
+            width: scaledRoomWidth,
+            height: scaledRoomHeight,
+            backgroundColor: "rgba(255,255,255,0.5)",
+            borderWidth: 2,
+            borderColor: "#FF6347",
           }}
         >
+          <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`) }} resizeMode="contain" style={uniqueStyles.image} />
 
-          {/* Internal room container */}
-          <View
-            style={{
-              position: "absolute",
-              left: offsetX,
-              top: offsetY,
-              width: roomDimensionsMM[0] * zoomLevel,
-              height: roomDimensionsMM[1] * zoomLevel,
-              backgroundColor: "rgba(255,255,255,0.5)",
-              borderWidth: 3,
-              borderColor: "red",
-            }}
-          >
-            <ImageBackground source={{ uri: (`data:image/png;base64,${jsonData?.roomFiles?.png}`) }} resizeMode="contain" style={uniqueStyles.image} />
+          {/* Display grey squares for end point */}
+          {boxDestinations.map((box, index) => (
+            <View
+              key={`placed-${box.id}-${index}`}
+              style={[
+                uniqueStyles.robot,
+                {
+                  left: box.x * scale,
+                  top: box.y * scale,
+                  backgroundColor: "transparent",
+                  borderWidth: 1,
+                  width: box.width * scale,
+                  height: box.length * scale,
+                  transform: [{ rotate: `${box.rotation}deg` }],
+                },
+              ]}
+            >
+              <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.furnitureID}</Text>
+            </View>
+          ))}
 
-            {/* Display grey squares for end point */}
-            {boxDestinations.map((box, index) => (
+
+          {/* Display furniture */}
+          {boxes.map((box, index) => {
+            const panResponder = createPanResponder(box.id);
+            const isSelected = selectedBox === box.id;
+
+            return (
               <View
-                key={`placed-${box.id}-${index}`}
+                key={`${box.id}-${index}`}
                 style={[
                   uniqueStyles.robot,
                   {
-                    left: box.x * zoomLevel,
-                    top: box.y * zoomLevel,
-                    backgroundColor: "transparent",
-                    borderWidth: 1,
-                    width: box.width * zoomLevel,
-                    height: box.length * zoomLevel,
+                    left: box.x * scale,
+                    top: box.y * scale,
+                    backgroundColor: box.color,
+                    borderWidth: isSelected ? 2 : 0,
+                    borderColor: isSelected ? "yellow" : "transparent",
+                    width: box.width * scale,
+                    height: box.length * scale,
                     transform: [{ rotate: `${box.rotation}deg` }],
                   },
                 ]}
+                {...panResponder.panHandlers}
               >
-                <Text style={[uniqueStyles.boxText, { color: "gray" }]}>{box.furnitureID}</Text>
+                <Text style={uniqueStyles.boxText}>{box.furnitureID}</Text>
               </View>
-            ))}
+            );
+          })}
+        </View>
+    </View>
 
 
-            {/* Display furniture */}
-            {boxes.map((box, index) => {
-              const panResponder = createPanResponder(box.id);
-              const isSelected = selectedBox === box.id;
-
-              return (
-                <View
-                  key={`${box.id}-${index}`}
-                  style={[
-                    uniqueStyles.robot,
-                    {
-                      left: box.x * zoomLevel,
-                      top: box.y * zoomLevel,
-                      backgroundColor: box.color,
-                      borderWidth: isSelected ? 2 : 0,
-                      borderColor: isSelected ? "yellow" : "transparent",
-                      width: box.width * zoomLevel,
-                      height: box.length * zoomLevel,
-                      transform: [{ rotate: `${box.rotation}deg` }],
-                    },
-                  ]}
-                  {...panResponder.panHandlers}
-                >
-                  <Text style={uniqueStyles.boxText}>{box.furnitureID}</Text>
-                </View>
-              );
-            })}
-          </View>
-        </ReactNativeZoomableView>
-      </View>
+      {/* Show coordinates */ }
+  <View style={uniqueStyles.coordinatesContainer}>
+    <Text style={uniqueStyles.coordinates}>X = {Math.round(inputX * 100) / 100}</Text>
+    <Text style={uniqueStyles.coordinates}>Y = {Math.round(inputY * 100) / 100}</Text>
+    <Text style={uniqueStyles.coordinates}>Angle = {Math.round(inputAngle * 100) / 100}</Text>
+  </View>
 
 
-      {/* Show coordinates */}
-      <View style={uniqueStyles.coordinatesContainer}>
-        <Text style={uniqueStyles.coordinates}>X = {Math.round(inputX * 100) / 100}</Text>
-        <Text style={uniqueStyles.coordinates}>Y = {Math.round(inputY * 100) / 100}</Text>
-        <Text style={uniqueStyles.coordinates}>Angle = {Math.round(inputAngle * 100) / 100}</Text>
-      </View>
-
-
-      {/* Progress bar */}
-      <Text style={defaultStyles.sectionTitle}>Progress</Text>
+  {/* Progress bar */ }
+      <Text style={[defaultStyles.sectionTitle, { top: -35 }]}>Progress</Text>
       <View style={[uniqueStyles.progressBarContainer]}>
         <View style={[uniqueStyles.progressBar]} />
       </View>
 
 
-      {/* Could have as permanent on the screen */}
-      <ActionButton
-        label="Emergency Stop"
-        icon={React.createElement(Icons.StopCircle)}
-        style={uniqueStyles.stopContainer}
-        onPress={() => {
-          sendMessage({ type: "emergency_stop", direction: "stop" });
-          // alert("stop called");
-        }}
-      />
+  {/* Could have as permanent on the screen */ }
+  <ActionButton
+    label="Emergency Stop"
+    icon={React.createElement(Icons.StopCircle)}
+    style={uniqueStyles.stopContainer}
+    onPress={() => {
+      sendMessage({ type: "emergency_stop", direction: "stop" });
+      // alert("stop called");
+    }}
+  />
 
 
-      {/* Robots section */}
+  {/* Robots section */ }
       <Text style={defaultStyles.sectionTitle}>Connected Robots: {robotData.length}</Text>
       <RobotList />
-    </ScrollView>
+    </ScrollView >
   );
 }
 
@@ -391,6 +363,7 @@ const createUniqueStyles = (isDarkMode: boolean, totalProgress: number) =>
       top: -45,
     },
     stopContainer: {
+      top: -30,
       backgroundColor: "red",
       borderRadius: 8,
       alignItems: 'center',
@@ -401,10 +374,11 @@ const createUniqueStyles = (isDarkMode: boolean, totalProgress: number) =>
       fontSize: 200,
     },
     progressBarContainer: {
+      top: -40,
       borderRadius: 8,
       marginVertical: 10,
       borderColor: isDarkMode ? '#fff' : '#000',
-      borderWidth: 0.5,
+      borderWidth: 2,
       width: 0.8 * screenWidth,
       height: 20,
       alignSelf: 'center',
@@ -412,17 +386,18 @@ const createUniqueStyles = (isDarkMode: boolean, totalProgress: number) =>
     progressBar: {
       height: '100%',
       width: totalProgress,
+      maxWidth: 0.79 * screenWidth,
       backgroundColor: "#00838F",
       borderRadius: 8,
     },
     grid: {
-      width: viewGridWidth, // * scaleX once visuals are done
-      height: viewGridHeigh, // * scaleY once visuals are done
+      width: 350, // * scaleX once visuals are done
+      height: 350, // * scaleY once visuals are done
       backgroundColor: '#D3D3D3',
       position: "relative",
       borderWidth: 2,
       borderColor: "#aaa",
-      top: -50,
+      top: -40,
     },
     robot: {
       position: "absolute",
@@ -439,7 +414,7 @@ const createUniqueStyles = (isDarkMode: boolean, totalProgress: number) =>
       fontSize: 12,
       color: isDarkMode ? '#fff' : '#000',
       textAlign: 'center',
-      top: 10,
+      top: 20,
       letterSpacing: 2,
     },
     zoomStyle: {

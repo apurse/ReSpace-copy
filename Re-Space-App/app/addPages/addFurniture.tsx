@@ -201,7 +201,11 @@ export default function AddFurniture() {
 
 
     // Prepare the furniture Data
-    await prepFurniture()
+    const prepped = await prepFurniture()
+
+    if (!prepped) {
+      return
+    }
 
 
     // Ensure the button changes and allow for updating the qrcode
@@ -247,7 +251,7 @@ export default function AddFurniture() {
       setnotifications('Please fill the necessary fields (Marked with \'*\')');
       setTimeout(() => setnotifications(null), 3000);
 
-      return;
+      return false;
     }
 
 
@@ -268,6 +272,7 @@ export default function AddFurniture() {
         setFurnitureName(`${furnitureName}_(${duplicateNumber})`)
       }
     }
+    return true;
   }
 
 

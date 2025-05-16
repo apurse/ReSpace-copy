@@ -82,19 +82,19 @@ export default function DragAndDrop() {
     const squareRef = useRef(null);
 
     // -------- Grid Visuals --------
-    const roomDimensionsMM = [
-        jsonData?.roomDimensions?.roomX ? jsonData?.roomDimensions?.roomX : 5000,
-        jsonData?.roomDimensions?.roomY ? jsonData?.roomDimensions?.roomY : 5000,
+    const roomDimensionsM = [
+        jsonData?.roomDimensions?.roomX ? jsonData?.roomDimensions?.roomX : 5,
+        jsonData?.roomDimensions?.roomY ? jsonData?.roomDimensions?.roomY : 5,
     ];
-    const gridWidth = roomDimensionsMM[0];
-    const gridHeight = roomDimensionsMM[1];
+    const gridWidth = roomDimensionsM[0];
+    const gridHeight = roomDimensionsM[1];
 
     // Square metres of room
-    const squareMetres = (gridWidth / 1000) * (gridHeight / 1000);
+    const squareMetres = (gridWidth) * (gridHeight);
 
     const scale = Math.min(
-    345 / roomDimensionsMM[0],
-    345 / roomDimensionsMM[1]
+    345 / roomDimensionsM[0],
+    345 / roomDimensionsM[1]
     );
 
     const scaledRoomWidth = gridWidth * scale;
@@ -112,6 +112,18 @@ export default function DragAndDrop() {
             setHasBeenCalled(true);
         }
     }, [selectedLayout]);
+    
+    
+    useEffect(() => {
+        // console.log(squareMetres)
+        // if (!hasBeenCalled && selectedLayout != undefined) {
+        //     loadLayout(selectedLayout);
+        //     console.log("selectedLayout:", selectedLayout)
+        //     setHasBeenCalled(true);
+        // }
+    }, [roomDimensionsM]);
+
+
 
 
     // Send room files to the hub on load
@@ -462,10 +474,10 @@ export default function DragAndDrop() {
         const newBox = {
             furnitureID: furniture.furnitureID,
             id: newId, // change to "index"
-            x: roomDimensionsMM[0] / 2,
-            y: roomDimensionsMM[1] / 2,
-            width: furniture.width,
-            length: furniture.length,
+            x: roomDimensionsM[0] / 2,
+            y: roomDimensionsM[1] / 2,
+            width: furniture.width / 1000,
+            length: furniture.length / 1000,
             color: furniture.selectedColour,
             rotation: 0.0,
         };
